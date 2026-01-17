@@ -183,6 +183,8 @@ export default function Navbar() {
           <Link to="/about">ABOUT US</Link>
           <Link to="/blog">BLOG</Link>
           <Link to="/wishlist">WISHLIST</Link>
+          <Link to="/profile">PROFILE</Link>
+
         </div>
 
         {/* RIGHT ICONS */}
@@ -191,7 +193,7 @@ export default function Navbar() {
             <img src="/icons/search.png" alt="Search" />
           </Link>
 
-          <Link to="/profile">
+          <Link to="/signup">
             <img src="/icons/avatar.png" alt="User" />
           </Link>
 

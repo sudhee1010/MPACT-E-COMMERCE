@@ -2,8 +2,15 @@ import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 
 // 🔁 Utility function
+// const calculateTotal = (items) =>
+//   items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 const calculateTotal = (items) =>
-  items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  items.reduce(
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+    0
+  );
+
+
 
 // ✅ Get logged-in user's cart
 export const getCart = async (req, res) => {
@@ -15,11 +22,17 @@ export const getCart = async (req, res) => {
 
     if (cart) {
       // refresh prices from database
+      // cart.items.forEach(item => {
+      //   if (item.product?.price) {
+      //     item.price = item.product.price;
+      //   }
+      // });
       cart.items.forEach(item => {
-        if (item.product?.price) {
+        if (item.product?.price && item.price !== item.product.price) {
           item.price = item.product.price;
         }
       });
+
       cart.totalPrice = calculateTotal(cart.items);
       await cart.save();
     }
@@ -47,6 +60,12 @@ export const addToCart = async (req, res) => {
     if (!cart) {
       cart = new Cart({ user: req.user._id, items: [] });
     }
+
+if (!quantity || quantity < 1) {
+  return res.status(400).json({ message: "Invalid quantity" });
+}
+
+
 
     const existingItem = cart.items.find(
       (item) => item.product.toString() === productId
@@ -87,7 +106,15 @@ export const updateCartItem = async (req, res) => {
 
     if (!item) return res.status(404).json({ message: "Item not found" });
 
-    item.quantity = quantity;
+    // item.quantity = quantity;
+    if (quantity < 1) {
+  cart.items = cart.items.filter(
+    (i) => i.product.toString() !== productId
+  );
+} else {
+  item.quantity = quantity;
+}
+
     cart.totalPrice = calculateTotal(cart.items);
     cart.appliedCoupon = null;
     await cart.save();
