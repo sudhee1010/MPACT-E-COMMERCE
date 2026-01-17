@@ -18,6 +18,10 @@ import couponRoutes from "./routes/couponRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import heroBannerRoutes from "./routes/heroBannerRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
+import wishlistRoutes from "./routes/wishlistRoutes.js";
+import blogRoutes from "./routes/blogRoutes.js";
+import blogCategoryRoutes from "./routes/blogCategoryRoutes.js";
+
 
 dotenv.config();
 const app = express();
@@ -49,6 +53,10 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/hero-banners", heroBannerRoutes);
 app.use("/api/videos", videoRoutes);
+app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/blogs", blogRoutes);
+app.use("/api/blog-categories", blogCategoryRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 
