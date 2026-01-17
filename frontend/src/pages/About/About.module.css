@@ -1,0 +1,524 @@
+/* Reset and Base Styles */
+.aboutPage {
+  background-color: #2a2a2a;
+  color: white;
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.heroSection {
+  background-color: #2a2a2a;
+  padding: 60px 20px 60px;
+}
+
+.heroContent {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.heroTitle {
+  font-size: 70px;
+  font-weight: 900;
+  color: white;
+  letter-spacing: 2px;
+  margin: 0;
+  text-transform: uppercase;
+  transform: scaleY(1.5);
+   margin-top: 10px;
+   padding-bottom: 20px;
+  
+}
+
+/* Features Banner */
+.featuresBanner {
+  background-color: #FFD700;
+  padding: 26px 0;
+  overflow: hidden;
+  /* margin: 40px 0; */
+}
+
+.featuresTrack {
+  display: inline-flex;
+  align-items: center;
+  gap: 30px;
+  animation: scroll 15s linear infinite;
+  white-space: nowrap;
+}
+
+.featuresTrack span {
+  color: #2a2a2a;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+
+
+.divider {
+  color: #2a2a2a;
+  font-weight: 400;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Product Cards */
+.productCards {
+  display: flex;
+  gap: 25px;
+  padding: 0 40px;
+  overflow-x: hidden;
+  scroll-behavior:smooth;
+  margin: 100px 0 100px 0;
+  justify-content: center;
+}
+
+.productCard {
+  flex: 0 0 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid #FFD700;
+  background: linear-gradient(180deg, #6B3410 0%, #4A2408 100%);
+  position: relative;
+}
+
+.productCard:hover {
+             transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);
+            border-color: #FFA500;
+             
+             
+        }
+
+.cardContent {
+  position: relative;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+}
+
+.cardTitle {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 32px;
+  font-weight: 900;
+  color: white;
+  text-align: center;
+  line-height: 1;
+  z-index: 3;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.snickersLogo {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  font-weight: 900;
+  color: #FFD700;
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  padding: 8px 20px;
+  border-radius: 20px;
+  z-index: 3;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.playButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.playButton:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.productImage {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-15deg);
+  width: 140px;
+  height: auto;
+  z-index: 2;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+}
+
+.peanutsBg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(180deg, transparent 0%, rgba(139,69,19,0.5) 50%, rgba(139,69,19,0.8) 100%);
+  z-index: 1;
+}
+
+/* Know More Section */
+.knowMoreSection {
+  background-color: #2a2a2a;
+  padding: 80px 40px;
+}
+
+.sectionTitle {
+  font-size: 48px;
+  font-weight: 900;
+  text-align: center;
+  color: white;
+  margin-bottom: 60px;
+  letter-spacing: 2px;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.productShowcase {
+  display: flex;
+  justify-content: center;
+}
+
+.showcaseCard {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  height: 500px;
+  background: linear-gradient(180deg, #6B3410 0%, #4A2408 100%);
+  border-radius: 16px;
+  border: 4px solid #FFD700;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.showcaseTitle {
+  position: absolute;
+  top: 40px;
+  font-size: 48px;
+  font-weight: 900;
+  color: white;
+  text-align: center;
+  z-index: 3;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.showcaseLogo {
+  position: absolute;
+  top: 140px;
+  font-size: 32px;
+  font-weight: 900;
+  color: #FFD700;
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  padding: 12px 30px;
+  border-radius: 25px;
+  z-index: 3;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.showcaseImage {
+  position: relative;
+  width: 200px;
+  height: auto;
+  z-index: 2;
+  transform: rotate(-15deg);
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+  margin-top: 80px;
+}
+
+.showcasePeanuts {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(180deg, transparent 0%, rgba(139,69,19,0.5) 40%, rgba(139,69,19,0.9) 100%);
+  z-index: 1;
+}
+
+.descriptionText {
+  color: #d1d1d1;
+  line-height: 1.8;
+}
+
+.descriptionText p {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Get It Now Section */
+.getItNowSection {
+  background-color: #2a2a2a;
+  padding: 100px 40px;
+  text-align: center;
+}
+
+.getItNowTitle {
+  font-size: 96px;
+  font-weight: 900;
+  color: #FFD700;
+  letter-spacing: 4px;
+  margin: 0;
+  text-transform: uppercase;
+  text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+}
+
+/* Media Queries */
+
+/* Tablet and below */
+@media (max-width: 1024px) {
+  .heroTitle {
+    font-size: 56px;
+  }
+
+  .contentGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .showcaseCard {
+    max-width: 400px;
+    height: 550px;
+  }
+
+  .sectionTitle {
+    font-size: 40px;
+  }
+
+  .getItNowTitle {
+    font-size: 72px;
+  }
+}
+
+/* Mobile Large */
+@media (max-width: 768px) {
+  .heroSection {
+    padding: 40px 15px 30px;
+  }
+
+  .heroTitle {
+    font-size: 42px;
+  }
+
+  .productCards {
+    padding: 0 20px;
+    gap: 15px;
+  }
+
+  .productCard {
+    flex: 0 0 240px;
+  }
+
+  .cardContent {
+    height: 350px;
+  }
+
+  .cardTitle {
+    font-size: 28px;
+    top: 25px;
+  }
+
+  .snickersLogo {
+    font-size: 20px;
+    top: 100px;
+    padding: 6px 16px;
+  }
+
+  .productImage {
+    width: 120px;
+    bottom: 70px;
+  }
+
+  .peanutsBg {
+    height: 100px;
+  }
+
+  .knowMoreSection {
+    padding: 60px 20px;
+  }
+
+  .sectionTitle {
+    font-size: 32px;
+    margin-bottom: 40px;
+  }
+
+  .showcaseCard {
+    height: 500px;
+    padding: 30px;
+  }
+
+  .showcaseTitle {
+    font-size: 40px;
+    top: 30px;
+  }
+
+  .showcaseLogo {
+    font-size: 28px;
+    top: 120px;
+  }
+
+  .showcaseImage {
+    width: 180px;
+    margin-top: 60px;
+  }
+
+  .showcasePeanuts {
+    height: 150px;
+  }
+
+  .descriptionText p {
+    font-size: 15px;
+  }
+
+  .getItNowSection {
+    padding: 80px 20px;
+  }
+
+  .getItNowTitle {
+    font-size: 48px;
+    letter-spacing: 2px;
+  }
+
+  .featuresTrack span {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Small */
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 32px;
+    letter-spacing: 1px;
+  }
+
+  .productCards {
+    padding: 0 15px;
+  }
+
+  .productCard {
+    flex: 0 0 200px;
+  }
+
+  .cardContent {
+    height: 300px;
+    padding: 15px;
+  }
+
+  .cardTitle {
+    font-size: 24px;
+    top: 20px;
+  }
+
+  .snickersLogo {
+    font-size: 18px;
+    top: 85px;
+    padding: 5px 14px;
+  }
+
+  .playButton svg {
+    width: 50px;
+    height: 50px;
+  }
+
+  .productImage {
+    width: 100px;
+    bottom: 60px;
+  }
+
+  .peanutsBg {
+    height: 80px;
+  }
+
+  .sectionTitle {
+    font-size: 28px;
+  }
+
+  .showcaseCard {
+    height: 450px;
+    padding: 25px;
+  }
+
+  .showcaseTitle {
+    font-size: 32px;
+    top: 25px;
+  }
+
+  .showcaseLogo {
+    font-size: 24px;
+    top: 100px;
+    padding: 8px 20px;
+  }
+
+  .showcaseImage {
+    width: 150px;
+    margin-top: 50px;
+  }
+
+  .showcasePeanuts {
+    height: 120px;
+  }
+
+  .descriptionText p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .getItNowTitle {
+    font-size: 36px;
+    letter-spacing: 1px;
+  }
+
+  .featuresTrack {
+    gap: 20px;
+  }
+
+  .featuresTrack span {
+    font-size: 12px;
+  }
+}
+
+/* Extra Small Mobile */
+@media (max-width: 360px) {
+  .heroTitle {
+    font-size: 28px;
+  }
+
+  .productCard {
+    flex: 0 0 180px;
+  }
+
+  .cardContent {
+    height: 280px;
+  }
+
+  .sectionTitle {
+    font-size: 24px;
+  }
+
+  /* .getItNowTitle {
+    font-size: 32px;
+  } */
+}
