@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 
 import Loader from "./components/Loader";
@@ -74,6 +76,8 @@ function App() {
           <Route path="/Nutrition" element={<Nutrition />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login/>}/>
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
 
         </Routes>

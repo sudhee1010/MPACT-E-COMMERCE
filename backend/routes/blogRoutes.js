@@ -4,6 +4,8 @@ import {
   getBlogs,
   getFeaturedBlogs,
   getBlogBySlug,
+   updateBlog,
+  deleteBlog,
 } from "../controllers/blogController.js";
 
 import upload from "../middlewares/uploadMiddleware.js";
@@ -21,5 +23,8 @@ router.get("/:slug", getBlogBySlug);
 
 /* ADMIN */
 router.post("/", protect, isAdmin, upload.single("coverImage"), createBlog);
+router.put("/:id", protect, isAdmin, upload.single("coverImage"), updateBlog);
+router.delete("/:id", protect, isAdmin, deleteBlog);
+
 
 export default router;
