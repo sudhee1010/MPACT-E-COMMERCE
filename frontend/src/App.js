@@ -2,11 +2,12 @@
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import { Toaster } from "react-hot-toast";
 
 
 import Loader from "./components/Loader";
 import Navbar from "./components/Navbar";
-   
+
 import About from "./pages/About/About";
 import Home from "./pages/Home";
 import Product from "./pages/Product";
@@ -22,27 +23,42 @@ import Pay from "./pages/Pay";
 import SuccessPopup from "./pages/SuccessPopup.jsx";
 import HelpSupport from "./pages/HelpSupport";
 import Nutrition from "./pages/blog/Nutrition.jsx"
-import Blog  from "./pages/blog/Blog.jsx"
+import Blog from "./pages/blog/Blog.jsx"
 import Profile from "./pages/profile/Profile";
 import Prfle from "./pages/profile/Prfle";
 import SeeMore from "./pages/SeeMore";
 import NewProfile from "./pages/profile/Newprofile.jsx"
 import Signup from "./pages/Signup.jsx";
-import  Login from "./pages/Login.jsx";
+import Login from "./pages/Login.jsx";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function App() {
   const [loading, setLoading] = useState(true);
-  
+
 
   return (
     <>
       {/* NAVBAR IS ALWAYS MOUNTED */}
       <Navbar />
-      
+
       <ScrollToTop />
 
       {/* LOADER OVERLAY */}
       {loading && <Loader onFinish={() => setLoading(false)} />}
+
+
+//TOAST
+          <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#262626",
+            color: "#facc15",
+            border: "1px solid #facc15",
+          },
+        }}
+      />
 
       <div className="page-wrapper">
         <Routes>
@@ -62,22 +78,23 @@ function App() {
           <Route path="/trackorder" element={<Trackpage />} />
           <Route path="/review" element={<Review />} />
           <Route path="/popup" element={<SuccessPopup />} />
-          
 
 
-          
+
+
           <Route path="/about" element={<About />} />
-          <Route path="/faq" element={<Faq/>} />
-          <Route path="/blog" element={<Blog/>} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/blog" element={<Blog />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/Nutrition" element={<Nutrition />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login/>}/>
+          <Route path="/login" element={<Login />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
 
         </Routes>
-      </div>   
+      </div>
 
 
     </>

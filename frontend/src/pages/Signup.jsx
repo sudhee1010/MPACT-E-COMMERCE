@@ -165,11 +165,11 @@
 //   .wrapper {
 //     max-width: 100%;
 //   }
-  
+
 //   .formBox {
 //     padding: 1.5rem;
 //   }
-  
+
 //   .title {
 //     font-size: 1.875rem;
 //   }
@@ -198,7 +198,7 @@
 //     password: '',
 //     confirmPassword: ''
 //   });
-  
+
 //   const navigate=useNavigate();
 //   function navigatefuntion(){
 //     navigate("home")
@@ -349,6 +349,8 @@
 import { useState } from 'react';
 import { Eye, EyeOff, User, Mail, Phone, Lock, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from "react-hot-toast";
+import api from '../api/axios';
 
 // CSS Module styles
 const styles = `
@@ -540,17 +542,22 @@ export default function CreateAccount() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: '',
+    name: '',
     email: '',
     phone: '',
     password: '',
     confirmPassword: ''
   });
-  
-  const navigate=useNavigate();
-  function navigatefuntion(){
-    navigate("/")
-  }
+
+  // axios.defaults.withCredentials = true;
+
+
+  const navigate = useNavigate();
+  // function navigatefuntion(){
+  //   navigate("/")
+  // }
+  const goHome = () => navigate("/");
+
 
   const handleChange = (e) => {
     setFormData({
@@ -559,17 +566,73 @@ export default function CreateAccount() {
     });
   };
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    alert('Account created successfully!');
+  // const handleSubmit = () => {
+  //   console.log('Form submitted:', formData);
+  //   alert('Account created successfully!');
+  // };
+
+  // const handleSubmit = async () => {
+  //   if (formData.password !== formData.confirmPassword) {
+  //     alert("Passwords do not match");
+  //     return;
+  //   }
+
+
+  //   try {
+  //     const res = await axios.post(
+  //       "http://localhost:5000/api/auth/register-user",
+  //       {
+  //         name: formData.name, 
+  //         email: formData.email,
+  //         phone: formData.phone,
+  //         password: formData.password
+  //       }
+  //     );
+
+  //     // store token if needed
+  //     localStorage.setItem("token", res.data.token);
+
+  //     alert("Account created successfully. Please verify your email.");
+  //     navigate("/verify-email"); // optional
+
+  //   } catch (error) {
+  //     alert(error.response?.data?.message || "Signup failed");
+  //   }
+  // };
+
+  const handleSubmit = async () => {
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      await api.post("/api/auth/register-user",
+        {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        }
+      );
+
+      toast.success("Account created. Please verify your email.");
+      navigate("/verify-email");
+
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Signup failed");
+    }
   };
+
+
 
   return (
     <>
       <style>{styles}</style>
       <div className="container">
         <div className="wrapper">
-          <button className="backButton" onClick={()=>navigatefuntion("/")}>
+          {/* <button className="backButton" onClick={()=>navigatefuntion("/")}> */}
+          <button className="backButton" onClick={goHome}>
             <ArrowLeft size={20} />
             <span>Back to Home</span>
           </button>
@@ -586,8 +649,8 @@ export default function CreateAccount() {
                   <User className="icon" size={20} />
                   <input
                     type="text"
-                    name="fullName"
-                    value={formData.fullName}
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
                     className="input"
@@ -613,7 +676,7 @@ export default function CreateAccount() {
 
               {/* Phone Number */}
               <div className="formGroup">
-                <label className="label">Phone Number (Optional)</label>
+                <label className="label">Phone Number</label>
                 <div className="inputWrapper">
                   <Phone className="icon" size={20} />
                   <input
@@ -641,6 +704,7 @@ export default function CreateAccount() {
                     className="input inputWithToggle"
                   />
                   <button
+                    type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="toggleButton"
                   >
@@ -657,12 +721,13 @@ export default function CreateAccount() {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
-                    value={formData.confirmData}
+                    value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Confirm your password"
                     className="input inputWithToggle"
                   />
                   <button
+                    type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="toggleButton"
                   >
@@ -672,9 +737,13 @@ export default function CreateAccount() {
               </div>
 
               {/* Submit Button */}
-              <button onClick={handleSubmit} className="submitButton">
+              {/* <button onClick={handleSubmit} className="submitButton">
                 Sign Up
-              </button>
+              </button> */}
+              <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                <button type="submit" className="submitButton">Sign Up</button>
+              </form>
+
 
               {/* Login Link */}
               <p className="loginText">

@@ -8,9 +8,39 @@ import { verifyGoogleToken } from "../utils/googleVerify.js";
 /* ===========================
    EMAIL REGISTER LOGIN
 =========================== */
+// export const registerUser = async (req, res) => {
+//   try {
+//     const { name, email, password, phone } = req.body;
+
+//     const exists = await User.findOne({ email });
+//     if (exists) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     const user = await User.create({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       phone,
+//       isEmailVerified: false,
+//       role:"customer"
+//     });
+
+//     res.status(201).json({
+//       token: generateToken(user._id),user
+//     });
+
+
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     const exists = await User.findOne({ email });
     if (exists) {
@@ -23,19 +53,29 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      phone,
       isEmailVerified: false,
-      role:"customer"
+      role: "customer",
+    });
+
+    const token = generateToken(user._id);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(201).json({
-      token: generateToken(user._id),user
+      message: "Registered successfully. Please verify email.",
+      user,
     });
-
-    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 
@@ -59,14 +99,14 @@ export const registerAdmin = async (req, res) => {
       email,
       password: hashedPassword,
       isEmailVerified: true,
-      role:"admin"
+      role: "admin"
     });
 
     res.status(201).json({
-      token: generateToken(user._id),user
+      token: generateToken(user._id), user
     });
 
-    
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -75,6 +115,31 @@ export const registerAdmin = async (req, res) => {
 /* ===========================
    EMAIL LOGIN
 =========================== */
+// export const loginUser = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email }).select("+password");
+//     if (!user) {
+//       return res.status(401).json({ message: "Invalid credentials" });
+//     }
+
+//     if (!user.isEmailVerified) {
+//       return res.status(403).json({ message: "Email not verified" });
+//     }
+
+//     const match = await bcrypt.compare(password, user.password);
+//     if (!match) {
+//       return res.status(401).json({ message: "Invalid credentials" });
+//     }
+
+//     res.json({ token: generateToken(user._id),user });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -93,11 +158,26 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    res.json({ token: generateToken(user._id),user });
+    const token = generateToken(user._id);
+
+    // ✅ SET COOKIE
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json({
+      message: "Login successful",
+      user,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 /* ===========================
    SEND EMAIL OTP
@@ -151,10 +231,25 @@ export const verifyOTP = async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
+    // res.json({
+    //   message: "Email verified",
+    //   token: generateToken(user._id)
+    // });
+    const token = generateToken(user._id);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       message: "Email verified",
-      token: generateToken(user._id)
+      user,
     });
+
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -305,13 +400,62 @@ export const googleLogin = async (req, res) => {
       });
     }
 
+    const tokens = generateToken(user._id);
+
+    res.cookie("token", tokens, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       message: "Google login successful",
-      token: generateToken(user._id)
+      user,
     });
+
   } catch (error) {
     res.status(401).json({ message: "Invalid Google token" });
   }
 };
+
+/* ===========================
+   GET CUSTOMER PROFILE
+=========================== */
+export const getCustomerProfile = async (req, res) => {
+  try {
+    // req.user comes from protect middleware
+    const user = req.user;
+
+    if (user.role !== "customer") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      isPhoneVerified: user.isPhoneVerified,
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//LOGOUT USER
+export const logoutUser = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "strict",
+  });
+
+  res.json({ message: "Logged out successfully" });
+};
+
+
 
 
