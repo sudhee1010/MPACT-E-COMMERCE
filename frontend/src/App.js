@@ -29,6 +29,7 @@ import SeeMore from "./pages/SeeMore";
 import NewProfile from "./pages/profile/Newprofile.jsx"
 import Signup from "./pages/Signup.jsx";
 import  Login from "./pages/Login.jsx";
+import WishlistPage from "./pages/Wishlist.jsx";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -74,6 +75,8 @@ function App() {
           <Route path="/Nutrition" element={<Nutrition />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login/>}/>
+          <Route path="/wishlist" element={<WishlistPage/>}/>
+
 
 
         </Routes>

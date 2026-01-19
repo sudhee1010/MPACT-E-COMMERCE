@@ -8,9 +8,12 @@ export default function Products() {
   const [categories, setCategories] = useState([]);
   const [productsByCategory, setProductsByCategory] = useState({});
   // const [quantities, setQuantities] = useState({});
-  const [favorites, setFavorites] = useState({});
+  const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const BASE_URL = "http://localhost:5000/api";
 
   /* ================= FETCH CATEGORIES ================= */
   useEffect(() => {
@@ -57,13 +60,65 @@ export default function Products() {
     if (categories.length) fetchProducts();
   }, [categories]);
 
-  /* ================= FAVORITE HANDLER ================= */
-  const toggleFavorite = (productId) => {
-    setFavorites((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
-  };
+  // /* ================= FAVORITE HANDLER ================= */
+  // const toggleFavorite = (productId) => {
+  //   setFavorites((prev) => ({
+  //     ...prev,
+  //     [productId]: !prev[productId],
+  //   }));
+  // };
+
+
+
+  /* FETCH WISHLIST */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    axios
+      .get(`${BASE_URL}/wishlist`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setWishlist(res.data.wishlist.map((p) => p._id));
+      })
+      .catch(() => { });
+  }, []);
+
+
+ /* ❤️ TOGGLE WISHLIST ONLY */
+const toggleWishlist = async (productId) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    setShowLoginModal(true); // show custom modal
+    return;
+  }
+
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/wishlist/toggle`,
+      { productId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    if (res.data.action === "added") {
+      setWishlist((prev) => [...prev, productId]);
+    } else {
+      setWishlist((prev) => prev.filter((id) => id !== productId));
+    }
+  } catch (err) {
+    console.error("Wishlist toggle failed", err);
+  }
+};
+
+
+
+
+
+
 
   /* ================= UI ================= */
   if (loading) {
@@ -430,23 +485,31 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                 {productsByCategory[categoryName].slice(0, 4).map((product) => (
                   <div className="product-card" key={product._id}>
                     <div
-                      className={`discount-badge ${
-                        product.discountPercent ? "show" : "hide"
-                      }`}
+                      className={`discount-badge ${product.discountPercent ? "show" : "hide"
+                        }`}
                     >
                       {product.discountPercent
                         ? `${product.discountPercent}% OFF`
                         : ""}
                     </div>
 
-                    <button
+                    {/* <button
                       className={`favorite-btn ${
                         favorites[product._id] ? "active" : ""
                       }`}
                       onClick={() => toggleFavorite(product._id)}
                     >
                       <Heart />
+                    </button> */}
+
+                    <button
+                      className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
+                        }`}
+                      onClick={() => toggleWishlist(product._id)}
+                    >
+                      <Heart />
                     </button>
+
 
                     <div className="product-image-container">
                       <img
@@ -508,6 +571,73 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
           ))}
         </div>
       </div>
+{showLoginModal && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.7)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+    }}
+  >
+    <div
+      style={{
+        background: "#111",
+        border: "2px solid #ffeb00",
+        borderRadius: "12px",
+        padding: "28px",
+        width: "90%",
+        maxWidth: "420px",
+        textAlign: "center",
+        color: "#fff",
+      }}
+    >
+      <h2 style={{ color: "#ffeb00", marginBottom: "10px" }}>
+        Login Required
+      </h2>
+
+      <p style={{ marginBottom: "24px" }}>
+        Please login to add items to your wishlist.
+      </p>
+
+      <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+        <Link to="/login">
+          <button
+            style={{
+              background: "#ffeb00",
+              color: "#000",
+              padding: "10px 22px",
+              border: "none",
+              fontWeight: "800",
+              cursor: "pointer",
+              borderRadius: "6px",
+            }}
+          >
+            Login
+          </button>
+        </Link>
+
+        <button
+          onClick={() => setShowLoginModal(false)}
+          style={{
+            background: "transparent",
+            color: "#ffeb00",
+            padding: "10px 22px",
+            border: "2px solid #ffeb00",
+            fontWeight: "800",
+            cursor: "pointer",
+            borderRadius: "6px",
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       <Footer />
     </>
