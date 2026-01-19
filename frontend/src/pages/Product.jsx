@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { Heart } from "lucide-react";
 import Footer from "../components/Footer";
+import { useNavigate } from "react-router-dom";
 
 export default function Products() {
   const [categories, setCategories] = useState([]);
@@ -11,6 +12,10 @@ export default function Products() {
   const [favorites, setFavorites] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const isLoggedIn = Boolean(localStorage.getItem("token"));
+  const navigate = useNavigate();
+
 
   /* ================= FETCH CATEGORIES ================= */
   useEffect(() => {
@@ -415,6 +420,63 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
     padding: 10px 24px;
   }
 }
+  /* ================= MODAL ================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.login-modal {
+  background: #151515;
+  border: 2px solid #ffeb00;
+  border-radius: 20px;
+  padding: 32px;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  animation: popIn 0.3s ease;
+}
+
+.login-modal h2 {
+  color: #ffeb00;
+  font-family: "Jersey 25", cursive;
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.login-modal p {
+  color: #ffffff;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-actions button {
+  flex: 1;
+  height: 48px;
+}
+
+/* Animation */
+@keyframes popIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 
 `}</style>
 
@@ -430,9 +492,8 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                 {productsByCategory[categoryName].slice(0, 4).map((product) => (
                   <div className="product-card" key={product._id}>
                     <div
-                      className={`discount-badge ${
-                        product.discountPercent ? "show" : "hide"
-                      }`}
+                      className={`discount-badge ${product.discountPercent ? "show" : "hide"
+                        }`}
                     >
                       {product.discountPercent
                         ? `${product.discountPercent}% OFF`
@@ -440,9 +501,8 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                     </div>
 
                     <button
-                      className={`favorite-btn ${
-                        favorites[product._id] ? "active" : ""
-                      }`}
+                      className={`favorite-btn ${favorites[product._id] ? "active" : ""
+                        }`}
                       onClick={() => toggleFavorite(product._id)}
                     >
                       <Heart />
@@ -482,7 +542,7 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 
                     <div className="price">₹{product.price}</div>
 
-                    <div className="action-buttons">
+                    {/* <div className="action-buttons">
                       <Link to="/cart" className="action-link">
                         <button className="add-to-cart-btn">
                           🛒&nbsp; Add to Cart
@@ -494,7 +554,29 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                       >
                         <button className="buy-btn">BUY NOW</button>
                       </Link>
+                    </div> */}
+                    <div className="action-buttons">
+                      <button
+                        className="add-to-cart-btn"
+                        onClick={() => {
+                          if (!isLoggedIn) {
+                            setShowLoginModal(true);
+                          } else {
+                            navigate("/cart");
+                          }
+                        }}
+                      >
+                        🛒&nbsp; Add to Cart
+                      </button>
+
+                      <Link
+                        to={`/productspec/${product._id}`}
+                        className="action-link"
+                      >
+                        <button className="buy-btn">BUY NOW</button>
+                      </Link>
                     </div>
+
                   </div>
                 ))}
               </div>
@@ -508,6 +590,29 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
           ))}
         </div>
       </div>
+
+      {showLoginModal && (
+        <div className="modal-overlay">
+          <div className="login-modal">
+            <h2>Login Required</h2>
+            <p>Please login to add items to your cart.</p>
+
+            <div className="modal-actions">
+              <Link to ="/login" className="action-link">
+                <button className="buy-btn">LOGIN</button>
+              </Link>
+
+              <button
+                className="add-to-cart-btn"
+                onClick={() => setShowLoginModal(false)}
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <Footer />
     </>
