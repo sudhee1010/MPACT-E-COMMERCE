@@ -1,10 +1,69 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import SideCart from "./SideCart"; // adjust path if needed
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const handleProfileClick = () => {
+    if (user) {
+      // logged in → go to profile
+      navigate("/profile");
+    } else {
+      // not logged in → open modal
+      setShowLoginModal(true);
+    }
+  };
+
+
+
+  const modalStyles = {
+    overlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      backgroundColor: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 2000,
+    },
+    modal: {
+      backgroundColor: "#262626",
+      padding: "2rem",
+      borderRadius: "8px",
+      border: "2px solid #facc15",
+      width: "300px",
+      textAlign: "center",
+      color: "white",
+    },
+    loginBtn: {
+      backgroundColor: "#facc15",
+      border: "none",
+      padding: "0.5rem 1rem",
+      borderRadius: "5px",
+      cursor: "pointer",
+      fontWeight: "bold",
+    },
+    cancelBtn: {
+      backgroundColor: "transparent",
+      border: "1px solid #facc15",
+      color: "#facc15",
+      padding: "0.5rem 1rem",
+      borderRadius: "5px",
+      cursor: "pointer",
+    },
+  };
+
 
   return (
     <>
@@ -182,8 +241,32 @@ export default function Navbar() {
           <Link to="/products">PRODUCTS</Link>
           <Link to="/about">ABOUT US</Link>
           <Link to="/blog">BLOG</Link>
-          <Link to="/wishlist">WISHLIST</Link>
-          <Link to="/profile">PROFILE</Link>
+          {/* <Link to="/wishlist" onClick={() => {
+            if (user) navigate("/wishlist");
+            else setShowLoginModal(true);
+          }}>WISHLIST</Link> */}
+          <Link
+            to="/wishlist"
+            onClick={(e) => {
+              e.preventDefault();   // 🔥 STOP AUTO NAVIGATION
+
+              if (user) navigate("/wishlist");
+              else setShowLoginModal(true);
+            }}
+          >
+            WISHLIST
+          </Link>
+
+          {/* <Link to="/profile" onClick={handleProfileClick}>PROFILE</Link> */}
+          <Link
+            to="/profile"
+            onClick={(e) => {
+              e.preventDefault();        // 🔥 STOP AUTO NAVIGATION
+              handleProfileClick();     // 🔥 NOW RUN OUR LOGIC
+            }}
+          >
+            PROFILE
+          </Link>
 
         </div>
 
@@ -192,6 +275,7 @@ export default function Navbar() {
           <Link to="/seeMore">
             <img src="/icons/search.png" alt="Search" />
           </Link>
+
 
           <Link to="/signup">
             <img src="/icons/avatar.png" alt="User" />
@@ -221,6 +305,42 @@ export default function Navbar() {
 
       {/* ================= SIDE CART ================= */}
       <SideCart open={cartOpen} onClose={() => setCartOpen(false)} />
+
+      {/* ================= LOGIN REQUIRED MODAL ================= */}
+      {showLoginModal && (
+        <div style={modalStyles.overlay}>
+          <div style={modalStyles.modal}>
+            <h3 style={{ marginBottom: "1rem", color: "#facc15" }}>
+              Login Required
+            </h3>
+            <p style={{ marginBottom: "1.5rem" }}>
+              Please login to view your profile.
+            </p>
+
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+              <button
+                style={modalStyles.loginBtn}
+                onClick={() => {
+                  setShowLoginModal(false);
+                  navigate("/login");
+                }}
+              >
+                Login
+              </button>
+
+              <button
+                style={modalStyles.cancelBtn}
+                onClick={() => setShowLoginModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
     </>
   );
 }
