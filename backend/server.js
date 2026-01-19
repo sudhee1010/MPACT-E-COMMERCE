@@ -21,6 +21,7 @@ import videoRoutes from "./routes/videoRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
 import blogCategoryRoutes from "./routes/blogCategoryRoutes.js";
+import cookieParser from "cookie-parser";
 
 
 dotenv.config();
@@ -29,8 +30,15 @@ connectDB();
 
 
 // Middlewares
-app.use(cors());
+// app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", 
+    credentials: true,    
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
 
 // Test route
 app.get("/", (req, res) => {

@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "../middlewares/authMiddleware.js";
 import {
   registerUser,
   loginUser,
@@ -6,7 +7,7 @@ import {
   verifyOTP, forgotPassword,
   resetPassword, sendPhoneOTP,
   verifyPhoneOTP,googleLogin,
-  registerAdmin
+  registerAdmin,logoutUser,getCustomerProfile
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -21,5 +22,8 @@ router.post("/reset-password", resetPassword);
 router.post("/phone/send-otp", sendPhoneOTP);
 router.post("/phone/verify-otp", verifyPhoneOTP);
 router.post("/google-login", googleLogin);
+router.post("/logout", protect, logoutUser);
+router.get("/profile", protect, getCustomerProfile);
+
 
 export default router;
