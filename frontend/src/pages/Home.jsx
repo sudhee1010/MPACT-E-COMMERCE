@@ -880,35 +880,50 @@ useEffect(() => {
       <FeaturesSection />
       <VideoShowcaseSection />
 
-      {/* Store Locator */}
-      <section style={{ padding: '4rem 0', backgroundColor: '#facc15', overflow: 'hidden' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem', textAlign: 'center' }}>
-          <h2 style={{
-            fontSize: window.innerWidth >= 768 ? '3.75rem' : '3rem',
-            fontWeight: 900,
-            color: 'black',
-            marginBottom: '2rem',
-            transform: scrollY > 2600 ? 'translateY(0) scale(1)' : 'translateY(50px) scale(0.9)',
-            opacity: scrollY > 2600 ? 1 : 0,
-            transition: 'all 0.7s'
-          }}>
-            FIND OUR NEAREST STORE
-          </h2>
-          <div style={{
-            maxWidth: '48rem',
-            margin: '0 auto',
-            transform: scrollY > 2700 ? 'translateY(0) scale(1)' : 'translateY(50px) scale(0.95)',
-            opacity: scrollY > 2700 ? 1 : 0,
-            transition: 'all 0.7s'
-          }}>
-            <img
-              src="/api/placeholder/800/300"
-              alt="Store locator map"
-              style={{ width: '100%', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', transition: 'box-shadow 0.3s' }}
-            />
-          </div>
-        </div>
-      </section>
+     {/* Store Locator */}
+<section style={{ padding: '4rem 0', backgroundColor: '#facc15', overflow: 'hidden' }}>
+  <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem', textAlign: 'center' }}>
+
+    <h2
+      style={{
+        fontSize: window.innerWidth >= 768 ? '3.75rem' : '3rem',
+        fontWeight: 900,
+        color: 'black',
+        marginBottom: '2rem',
+        transform: scrollY > 2600 ? 'translateY(0) scale(1)' : 'translateY(50px) scale(0.9)',
+        opacity: scrollY > 2600 ? 1 : 0,
+        transition: 'all 0.7s',
+      }}
+    >
+      FIND OUR NEAREST STORE
+    </h2>
+
+    <div
+      style={{
+        maxWidth: '48rem',
+        margin: '0 auto',
+        transform: scrollY > 2700 ? 'translateY(0) scale(1)' : 'translateY(50px) scale(0.95)',
+        opacity: scrollY > 2700 ? 1 : 0,
+        transition: 'all 0.7s',
+        borderRadius: '0.5rem',
+        overflow: 'hidden',
+        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+      }}
+    >
+      <iframe
+        title="Gym Store Location"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4685.552562470286!2d76.9388791!3d8.5257209!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b05bbb4d95185af%3A0x15f1640b53f2c59d!2sScipy%20Technologies%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1768902995688!5m2!1sen!2sin"
+        width="100%"
+        height="350"
+        style={{ border: 0 }}
+        allowFullScreen=""
+        loading="lazy"
+      />
+    </div>
+
+  </div>
+</section>
+
 
       {/* ================= EXACT FOOTER ================= */}
       <footer className="mpact-footer">
