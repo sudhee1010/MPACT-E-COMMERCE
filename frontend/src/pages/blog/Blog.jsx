@@ -578,33 +578,7 @@ const MPACTBlog = () => {
         }
       `}</style>
 
-      {/* Header */}
-      <header className="header">
-        <div className="header-container container">
-        
-          
-          {/* Desktop Navigation */}
-
-          <div className="header-icons">
-            {/*  */}
-            <button 
-              className="mobile-menu-btn icon-btn"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-
-          {/* Mobile Navigation */}
-          <nav className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
-             <a href="#" className="nav-link">HOME</a>
-            <a href="#" className="nav-link">PRODUCTS</a>
-            <a href="#" className="nav-link">ABOUT US</a>
-            <a href="#" className="nav-link active">BLOG</a>
-            <a href="#" className="nav-link">WISHLIST</a>
-          </nav> 
-        </div>
-      </header>
+     
 
       {/* Hero Section */}
       <section style={{ textAlign: 'center', padding: '3rem 1rem' }}>

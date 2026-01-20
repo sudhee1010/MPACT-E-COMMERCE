@@ -2,9 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { addToCartApi } from "../api/cartApi";
+import toast from "react-hot-toast";
+import { useCart } from "../context/CartContext";
+
 
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState([]);
+    const { refreshCart, setOpenSideCart } = useCart();
 
   /* ================= FETCH WISHLIST ================= */
   useEffect(() => {
@@ -21,24 +26,48 @@ export default function WishlistPage() {
       });
   }, []);
 
-    /* ================= MOVE WISHLIST → CART ================= */
-  const moveToCart = async (productId) => {
+  /* ================= MOVE WISHLIST → CART ================= */
+  // const moveToCart = async (productId) => {
+  //   try {
+  //     await api.post("/api/wishlist/move-to-cart", { productId });
+  //     setWishlist((prev) => prev.filter((item) => item._id !== productId));
+  //   } catch (err) {
+  //     if (err.response?.status === 401) {
+  //       alert("Please login to move items to cart");
+  //     }
+  //   }
+  // };
+
+
+  const handleAddToCart = async (productId) => {
     try {
-      await api.post("/api/wishlist/move-to-cart", { productId });
+      // 1. Add to cart
+      await addToCartApi(productId, 1);
+
+      // 2. Remove from wishlist in backend
+      await api.post("/api/wishlist/toggle", { productId });
+
+      // 3. Remove from wishlist in frontend state
       setWishlist((prev) => prev.filter((item) => item._id !== productId));
-    } catch (err) {
-      if (err.response?.status === 401) {
-        alert("Please login to move items to cart");
-      }
+      
+       await refreshCart();
+    setOpenSideCart(true);
+      toast.success("Product moved to cart 🛒");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Please login to add to cart"
+      );
     }
   };
+
+
 
   /* ================= REMOVE FROM WISHLIST ================= */
   const removeFromWishlist = async (productId) => {
     try {
       await api.post("/api/wishlist/toggle", { productId });
       setWishlist((prev) => prev.filter((item) => item._id !== productId));
-    } catch (err) {}
+    } catch (err) { }
   };
 
   return (
@@ -734,7 +763,7 @@ export default function WishlistPage() {
                         </span>
                       ))}
                     </div>
-                     <div className="rating">
+                    <div className="rating">
                       {"★".repeat(Math.round(product.rating || 0))}
                       {"☆".repeat(5 - Math.round(product.rating || 0))}
                     </div>
@@ -755,7 +784,7 @@ export default function WishlistPage() {
                     <div className="action-buttons">
                       <button
                         className="add-to-cart-btn"
-                        onClick={() => moveToCart(product._id)}
+                        onClick={() => handleAddToCart(product._id)}
                       >
                         🛒 MOVE TO CART
                       </button>
@@ -767,6 +796,6 @@ export default function WishlistPage() {
           </div>
         </main>
       </div>
-      </>
-      );}
-   
+    </>
+  );
+}

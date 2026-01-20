@@ -286,7 +286,11 @@ export default function SideCart() {
 
           {cartItems.map(item => (
             <div className="item" key={item.product._id}>
-              <img src={item.product.images[0].url} alt="" />
+              {/* <img src={item.product.images[0].url || "/placeholder.png"} alt="" /> */}
+                 <img
+                        src={item.product.images?.[0]?.url || "/images/Product1.png"}
+                        alt={item.product.name}
+                      />
 
               <div>
                 <h4>{item.product.name}</h4>

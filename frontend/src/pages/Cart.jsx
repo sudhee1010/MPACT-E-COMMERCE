@@ -486,7 +486,11 @@ export default function Cart() {
                 </div>
 
                 <div className="img">
-                  <img src={item.product.images[0].url} alt="" />
+                  <img 
+                  // src={item.product.images[0].url} alt="" 
+                   src={item.product.images?.[0]?.url || "/images/Product1.png"}
+                        alt={item.product.name}
+                  />
                 </div>
 
                 <div className="details">
