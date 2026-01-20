@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
-      required:true
+      required: true
     },
 
     phone: {
@@ -26,8 +26,14 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
       trim: true,
-      required:true
+      required: true
     },
+
+    address: {
+      type: String,
+      default: ""
+    },
+
 
     password: {
       type: String,
@@ -51,13 +57,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["customer", "admin"]
     },
-          wishlist: [
+    wishlist: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product"
       }
     ]
-    
+
   },
   { timestamps: true }
 );
