@@ -167,9 +167,9 @@ useEffect(() => {
   padding: clamp(16px, 3vw, 28px)
            clamp(28px, 6vw, 62px);
   font-size: clamp(1.4rem, 3.2vw, 2.125rem);
-  font-weight: 500;
+  font-weight: 700;
   transform-origin: center;
-  border-radius: 6px;
+  border-radius: 0px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
