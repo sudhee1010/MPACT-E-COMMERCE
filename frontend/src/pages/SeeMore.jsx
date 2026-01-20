@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect } from "react";
 import Footer from "../components/Footer";
 import { Heart } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
+import api from "../api/axios";
+
 
 
 /* ================= COMPONENT ================= */
@@ -17,21 +19,25 @@ export default function ProductPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [favorites, setFavorites] = useState({});
-  const toggleFavorite = (productId) => {
-    setFavorites((prev) => ({ ...prev, [productId]: !prev[productId] }));
-  };
+  // const [favorites, setFavorites] = useState({});
+  // const toggleFavorite = (productId) => {
+  //   setFavorites((prev) => ({ ...prev, [productId]: !prev[productId] }));
+  // };
+
+
   const [priceRange, setPriceRange] = useState({ min: 0, max: 5000 });
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [inStock, setInStock] = useState(false);
-
+const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [categoryId, setCategoryId] = useState(null);
+    const [wishlistIds, setWishlistIds] = useState(new Set());
 
   const [searchParams] = useSearchParams();
   const categoryName = decodeURIComponent(searchParams.get("category"));
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [categoryId, setCategoryId] = useState(null);
+  
+
 
 
   const [openSections, setOpenSections] = useState({
@@ -40,6 +46,8 @@ export default function ProductPage() {
     rating: true,
     availability: true,
   });
+
+
 
   // const data = useMemo(() => {
   //   return products.length ? products : MOCK_PRODUCTS;
@@ -76,9 +84,9 @@ export default function ProductPage() {
 
 
     // Filter by stock
-  if (inStock) {
-  result = result.filter((p) => p.countInStock > 0);
-}
+    if (inStock) {
+      result = result.filter((p) => p.countInStock > 0);
+    }
 
 
     // Sort
@@ -139,9 +147,7 @@ export default function ProductPage() {
   useEffect(() => {
     const fetchCategoryId = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/categories"
-        );
+        const { data } = await api.get("/api/categories");
 
         const matched = data.find(
           (cat) => cat.name === categoryName
@@ -160,29 +166,72 @@ export default function ProductPage() {
 
 
 
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get("/api/products", {
+        params: { category: categoryId },
+      });
+      setProducts(data.products || []);
+    } catch (err) {
+      console.error("Failed to fetch products", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  if (categoryId) fetchProducts();
+}, [categoryId]);
+
+
+  // wishList Fetch
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const { data } = await axios.get(
-          "http://localhost:5000/api/products",
-          {
-            params: { category: categoryId },
-          }
-        );
-        setProducts(data.products || []);
-      } catch (err) {
-        console.error("Failed to fetch products", err);
-      } finally {
-        setLoading(false);
+    api
+      .get("/api/wishlist")
+      .then((res) => {
+        const ids = new Set(res.data.wishlist.map((p) => p._id));
+        setWishlistIds(ids);
+      })
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          setWishlistIds(new Set()); // not logged in
+        }
+      });
+  }, [])
+
+const toggleWishlist = async (productId) => {
+  try {
+    await api.post("/api/wishlist/toggle", { productId });
+
+    setWishlistIds((prev) => {
+      const updated = new Set(prev);
+      updated.has(productId)
+        ? updated.delete(productId)
+        : updated.add(productId);
+      return updated;
+    });
+  } catch (err) {
+    alert("Please login");
+  }
+};
+
+
+  const moveToCart = async (productId) => {
+    try {
+      await api.post("/api/wishlist/move-to-cart", { productId });
+
+      setWishlistIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(productId);
+        return updated;
+      });
+    } catch (err) {
+      if (err.response?.status === 401) {
+        alert("Please login to move items to cart");
       }
-    };
-
-    if (categoryId) fetchProducts();
-  }, [categoryId]);
-
-
+    }
+  };
 
 
   const toggleCategory = (category) => {
@@ -468,7 +517,13 @@ export default function ProductPage() {
           ) : (
             <div className="products">
               {filteredAndSortedData.map((p) => (
-                <ProductCard key={p._id} product={p} />
+                <ProductCard
+                  key={p._id}
+                  product={p}
+                  wishlistIds={wishlistIds}
+                  toggleWishlist={toggleWishlist}
+                />
+
               ))}
             </div>
           )}
@@ -1144,26 +1199,113 @@ export default function ProductPage() {
 
 /* ================= CARD ================= */
 
-const ProductCard = ({ product }) => {
+// const ProductCard = ({ product }) => {
+//   const [qty, setQty] = useState(1);
+//   const [isFavorite, setIsFavorite] = useState(false);
+//   const [wishlistIds, setWishlistIds] = useState(new Set());
+
+
+
+//    const toggleWishlist = async (productId) => {
+//     try {
+//       await api.post("/api/wishlist/toggle", { productId });
+
+//       setWishlistIds(prev => {
+//         const updated = new Set(prev);
+//         updated.has(productId)
+//           ? updated.delete(productId)
+//           : updated.add(productId);
+//         return updated;
+//       });
+//     } catch (err) {
+//       if (err.response?.status === 401) {
+//         alert("Please login");
+//       }
+//     }
+//   };
+
+//   return (
+//     <div className="card">
+//       <div className="imageWrap">
+//         {/* <span className="discount">`{product.discountPercent}% OFF`</span> */}
+//         {product.discountPercent && (
+//           <span className="discount">{product.discountPercent}% OFF</span>
+//         )}
+
+//         {/* <img src={product.image} alt={product.title} /> */}
+//         <img
+//           src={product.images?.[0]?.url || "/images/Product1.png"}
+//           alt={product.name}
+//         />
+//         <button
+//           className={`fav ${wishlistIds.has(product._id) ? "active" : ""}`}
+//           onClick={() => toggleWishlist(product._id)}
+//         >
+//           <Heart />
+//         </button>
+
+//       </div>
+
+//       <div className="info">
+//         <h3>{product.name}</h3>
+
+//         <div className="specs">
+//           {product.highlights?.map((s, i) => (
+//             <span key={i}>{s}</span>
+//           ))}
+//         </div>
+
+//         {/* <div className="rating">
+//           ★★★★☆ <span>({product.numReviews})</span>
+//         </div> */}
+//         <div className="rating">
+//           {"★".repeat(Math.round(product.rating || 0))}
+//           {"☆".repeat(5 - Math.round(product.rating || 0))}
+//           <span>({product.numReviews || 0})</span>
+//         </div>
+
+
+//         <div className="price">
+//           {/* <del>₹{product.orginalPrice}</del> */}
+//           {product.originalPrice && <del>₹{product.originalPrice}</del>}
+//           <strong>₹{product.price}</strong>
+//           <span className="off">{product.discountPercent}</span>
+//         </div>
+
+//         <div className="qty">
+//           <button onClick={() => setQty(Math.max(1, qty - 1))}>−</button>
+//           <span>{qty}</span>
+//           <button onClick={() => setQty(qty + 1)}>+</button>
+//         </div>
+
+//         <div className="actions">
+//           <button className="cartBtn">Add to Cart</button>
+//           <button className="buyBtn">BUY NOW</button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+/* ================= CARD ================= */
+
+const ProductCard = ({ product, wishlistIds, toggleWishlist }) => {
   const [qty, setQty] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
 
   return (
     <div className="card">
       <div className="imageWrap">
-        {/* <span className="discount">`{product.discountPercent}% OFF`</span> */}
         {product.discountPercent && (
           <span className="discount">{product.discountPercent}% OFF</span>
         )}
 
-        {/* <img src={product.image} alt={product.title} /> */}
         <img
           src={product.images?.[0]?.url || "/images/Product1.png"}
           alt={product.name}
         />
+
         <button
-          className={`fav ${isFavorite ? "active" : ""}`}
-          onClick={() => setIsFavorite(!isFavorite)}
+          className={`fav ${wishlistIds.has(product._id) ? "active" : ""}`}
+          onClick={() => toggleWishlist(product._id)}
         >
           <Heart />
         </button>
@@ -1172,27 +1314,24 @@ const ProductCard = ({ product }) => {
       <div className="info">
         <h3>{product.name}</h3>
 
-        <div className="specs">
-          {product.highlights?.map((s, i) => (
-            <span key={i}>{s}</span>
-          ))}
-        </div>
 
-        {/* <div className="rating">
-          ★★★★☆ <span>({product.numReviews})</span>
-        </div> */}
+           <div className="specs">
+                      {product.highlights?.map((spec, i) => (
+                        <span className="spec" key={i}>
+                          {spec}
+                        </span>
+                      ))}
+                    </div>
+
         <div className="rating">
           {"★".repeat(Math.round(product.rating || 0))}
           {"☆".repeat(5 - Math.round(product.rating || 0))}
           <span>({product.numReviews || 0})</span>
         </div>
 
-
         <div className="price">
-          {/* <del>₹{product.orginalPrice}</del> */}
           {product.originalPrice && <del>₹{product.originalPrice}</del>}
           <strong>₹{product.price}</strong>
-          <span className="off">{product.discountPercent}</span>
         </div>
 
         <div className="qty">
