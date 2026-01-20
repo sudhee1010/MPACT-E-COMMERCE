@@ -10,6 +10,8 @@ import { addToCart } from "../services/cartService";
 import { Instagram, Youtube } from 'lucide-react';
 import { SiTiktok } from "react-icons/si";
 import WhatsAppFloat from '../components/WhatsAppFloat';
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 
 
 
@@ -43,6 +45,25 @@ const MPACTLandingPage = () => {
   const productsRef = useRef(null);
   const aboutRef = useRef(null);
   const blogRef = useRef(null);
+
+  useEffect(() => {
+  const timeout = setTimeout(() => {
+    ScrollTrigger.refresh();
+  }, 100);
+
+  return () => clearTimeout(timeout);
+}, [products, heroSlides]);
+
+
+useEffect(() => {
+  const handleResize = () => {
+    ScrollTrigger.refresh();
+  };
+
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -803,7 +824,7 @@ useEffect(() => {
             ))}
           </div>
 
-          {/* <div style={{ textAlign: 'center' }}>
+ {/* <div style={{ textAlign: 'center' }}>
             <button
               disabled={!hasNextPage || loadingProducts}
               onClick={() => fetchProducts(nextCursor)}
@@ -889,53 +910,6 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* <section ref={blogRef} style={{ padding: '5rem 0', backgroundColor: 'black', overflow: 'hidden' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem', textAlign: 'center' }}>
-          <h2 style={{ fontSize: window.innerWidth >= 768 ? '3.75rem' : '3rem', fontWeight: 900, color: '#facc15', marginBottom: '2rem' }}>BLOG</h2>
-          <p style={{ color: '#d1d5db', fontSize: '1.125rem', maxWidth: '48rem', margin: '0 auto 3rem' }}>
-            Stay updated with the latest news, recipes, and fitness tips from the MPACT community.
-          </p>
-
-          <h2 style={{
-            fontSize: window.innerWidth >= 768 ? '6rem' : '3.75rem',
-            fontWeight: 900,
-            color: '#facc15',
-            marginBottom: '2rem',
-            transform: scrollY > 3000 ? 'translateY(0) scale(1)' : 'translateY(50px) scale(0.8)',
-            opacity: scrollY > 3000 ? 1 : 0,
-            transition: 'all 0.7s',
-            cursor: 'default'
-          }}
-            onMouseEnter={(e) => e.target.style.transform = scrollY > 3000 ? 'translateY(0) scale(1.1)' : ''}
-            onMouseLeave={(e) => e.target.style.transform = scrollY > 3000 ? 'translateY(0) scale(1)' : ''}>
-            #GET IT NOW
-          </h2>
-        </div>
-      </section> */}
-
-      {/* Footer */}
-      {/* <footer style={{ backgroundColor: '#171717', borderTop: '1px solid #262626', padding: '2rem 0' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem' }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: window.innerWidth >= 768 ? 'row' : 'column',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '1rem'
-          }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>MPACT</div>
-            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem' }}>
-              <a href="#" style={{ color: 'white', textDecoration: 'none', transition: 'color 0.3s' }} onMouseEnter={(e) => e.target.style.color = '#facc15'} onMouseLeave={(e) => e.target.style.color = 'white'}>PRIVACY POLICY</a>
-              <a href="#" style={{ color: 'white', textDecoration: 'none', transition: 'color 0.3s' }} onMouseEnter={(e) => e.target.style.color = '#facc15'} onMouseLeave={(e) => e.target.style.color = 'white'}>TERMS OF USE</a>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <a href="#" style={{ color: 'white', textDecoration: 'none', transition: 'all 0.3s' }} onMouseEnter={(e) => { e.target.style.color = '#facc15'; e.target.style.transform = 'scale(1.1)'; }} onMouseLeave={(e) => { e.target.style.color = 'white'; e.target.style.transform = 'scale(1)'; }}>FB</a>
-              <a href="#" style={{ color: 'white', textDecoration: 'none', transition: 'all 0.3s' }} onMouseEnter={(e) => { e.target.style.color = '#facc15'; e.target.style.transform = 'scale(1.1)'; }} onMouseLeave={(e) => { e.target.style.color = 'white'; e.target.style.transform = 'scale(1)'; }}>TW</a>
-              <a href="#" style={{ color: 'white', textDecoration: 'none', transition: 'all 0.3s' }} onMouseEnter={(e) => { e.target.style.color = '#facc15'; e.target.style.transform = 'scale(1.1)'; }} onMouseLeave={(e) => { e.target.style.color = 'white'; e.target.style.transform = 'scale(1)'; }}>IG</a>
-            </div>
-          </div>
-        </div>
-      </footer> */}
       {/* ================= EXACT FOOTER ================= */}
       <footer className="mpact-footer">
         <style>{`
