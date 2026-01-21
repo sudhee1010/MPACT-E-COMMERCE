@@ -4,6 +4,10 @@ import { Heart } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 // import axios from "axios";
 import api from "../api/axios";
+import { addToCartApi } from "../api/cartApi";
+import toast from "react-hot-toast";
+import { useCart } from "../context/CartContext";
+
 
 
 
@@ -28,15 +32,15 @@ export default function ProductPage() {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 5000 });
   const [selectedRatings, setSelectedRatings] = useState([]);
   const [inStock, setInStock] = useState(false);
-const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoryId, setCategoryId] = useState(null);
-    const [wishlistIds, setWishlistIds] = useState(new Set());
+  const [wishlistIds, setWishlistIds] = useState(new Set());
 
   const [searchParams] = useSearchParams();
   const categoryName = decodeURIComponent(searchParams.get("category"));
 
-  
+
 
 
 
@@ -166,23 +170,23 @@ const [products, setProducts] = useState([]);
 
 
 
-useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get("/api/products", {
-        params: { category: categoryId },
-      });
-      setProducts(data.products || []);
-    } catch (err) {
-      console.error("Failed to fetch products", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get("/api/products", {
+          params: { category: categoryId },
+        });
+        setProducts(data.products || []);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (categoryId) fetchProducts();
-}, [categoryId]);
+    if (categoryId) fetchProducts();
+  }, [categoryId]);
 
 
   // wishList Fetch
@@ -200,21 +204,21 @@ useEffect(() => {
       });
   }, [])
 
-const toggleWishlist = async (productId) => {
-  try {
-    await api.post("/api/wishlist/toggle", { productId });
+  const toggleWishlist = async (productId) => {
+    try {
+      await api.post("/api/wishlist/toggle", { productId });
 
-    setWishlistIds((prev) => {
-      const updated = new Set(prev);
-      updated.has(productId)
-        ? updated.delete(productId)
-        : updated.add(productId);
-      return updated;
-    });
-  } catch (err) {
-    alert("Please login");
-  }
-};
+      setWishlistIds((prev) => {
+        const updated = new Set(prev);
+        updated.has(productId)
+          ? updated.delete(productId)
+          : updated.add(productId);
+        return updated;
+      });
+    } catch (err) {
+      alert("Please login");
+    }
+  };
 
 
   const moveToCart = async (productId) => {
@@ -232,6 +236,9 @@ const toggleWishlist = async (productId) => {
       }
     }
   };
+
+
+
 
 
   const toggleCategory = (category) => {
@@ -1290,6 +1297,21 @@ const toggleWishlist = async (productId) => {
 
 const ProductCard = ({ product, wishlistIds, toggleWishlist }) => {
   const [qty, setQty] = useState(1);
+  const { refreshCart, setOpenSideCart } = useCart();
+
+
+    const handleAddToCart = async (productId) => {
+    try {
+      await addToCartApi(productId, 1);
+      toast.success("Product added to cart 🛒");
+       await refreshCart();
+    setOpenSideCart(true);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Please login to add to cart"
+      );
+    }
+  };
 
   return (
     <div className="card">
@@ -1315,13 +1337,13 @@ const ProductCard = ({ product, wishlistIds, toggleWishlist }) => {
         <h3>{product.name}</h3>
 
 
-           <div className="specs">
-                      {product.highlights?.map((spec, i) => (
-                        <span className="spec" key={i}>
-                          {spec}
-                        </span>
-                      ))}
-                    </div>
+        <div className="specs">
+          {product.highlights?.map((spec, i) => (
+            <span className="spec" key={i}>
+              {spec}
+            </span>
+          ))}
+        </div>
 
         <div className="rating">
           {"★".repeat(Math.round(product.rating || 0))}
@@ -1341,7 +1363,13 @@ const ProductCard = ({ product, wishlistIds, toggleWishlist }) => {
         </div>
 
         <div className="actions">
-          <button className="cartBtn">Add to Cart</button>
+          {/* <button className="cartBtn">Add to Cart</button> */}
+          <button
+            className="cartBtn"
+            onClick={() => handleAddToCart(product._id)}
+          >
+            🛒 Add to Cart
+          </button>
           <button className="buyBtn">BUY NOW</button>
         </div>
       </div>
