@@ -78,36 +78,118 @@ export default function MotivationalSection() {
   return (
     <>
       <style>{`
-        .motivation {
-          background: #000;
-          padding: 120px 16px;
-          text-align: center;
-          overflow: hidden;
-        }
+/* ================= BASE ================= */
 
-        .motivation h2 {
-          font-size: clamp(3rem, 6vw, 7rem);
-          font-weight: 900;
-          line-height: 1.1;
-          color: #facc15;
-        }
+.motivation {
+  background: #000;
+  padding: clamp(90px, 10vw, 160px) 16px;
+  text-align: center;
+  overflow: hidden;
+}
 
-        .scrub-line {
-          display: block;
-        }
+.motivation h2 {
+  font-size: clamp(2.6rem, 6vw, 7rem);
+  font-weight: 900;
+  line-height: 1.08;
+  color: #facc15;
+  max-width: 1400px;
+  margin: 0 auto;
+}
 
-        .fuel {
-          display: inline-block;
-          background: #ffed23;
-          color: #333;
-          padding: 16px 40px;
-          border-radius: 16px;
-          font-size: clamp(2.5rem, 5vw, 5rem);
-          margin: 40px 0;
-          transform: scaleX(0);
-          transform-origin: left center;
-        }
-      `}</style>
+.scrub-line {
+  display: block;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+/* ================= FUEL ================= */
+
+.fuel {
+  display: inline-block;
+  background: #ffed23;
+  color: #333;
+  padding: clamp(12px, 2.8vw, 20px)
+           clamp(30px, 6vw, 50px);
+  border-radius: 16px;
+  font-size: clamp(2.2rem, 5vw, 5.2rem);
+  margin: clamp(28px, 6vw, 52px) 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  white-space: nowrap;
+}
+
+/* ================= LARGE SCREENS ================= */
+/* 1440px – 1920px */
+
+@media (min-width: 1440px) {
+  .motivation h2 {
+    max-width: 1600px;
+    line-height: 1.05;
+  }
+
+  .fuel {
+    border-radius: 18px;
+  }
+}
+
+/* ================= EXTRA LARGE / 4K ================= */
+
+@media (min-width: 1920px) {
+  .motivation {
+    padding: 180px 16px;
+  }
+
+  .motivation h2 {
+    font-size: 7.4rem;
+    max-width: 1800px;
+  }
+
+  .fuel {
+    font-size: 5.6rem;
+    padding: 22px 58px;
+    border-radius: 20px;
+  }
+}
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1024px) {
+  .motivation h2 {
+    font-size: clamp(2.4rem, 6.5vw, 5.6rem);
+    line-height: 1.12;
+  }
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 640px) {
+  .motivation {
+    padding: 72px 12px;
+  }
+
+  .motivation h2 {
+    line-height: 1.15;
+  }
+
+  .fuel {
+    border-radius: 12px;
+  }
+}
+
+/* ================= SMALL MOBILE ================= */
+
+@media (max-width: 420px) {
+  .motivation h2 {
+    font-size: 2.2rem;
+  }
+
+  .fuel {
+    font-size: 1.9rem;
+    padding: 10px 22px;
+  }
+}
+`}</style>
+
 
       <section ref={sectionRef} className="motivation">
         <h2>

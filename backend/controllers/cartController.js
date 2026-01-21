@@ -17,7 +17,7 @@ export const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id }).populate(
       "items.product",
-      "name price images"
+      "name price originalPrice discountPercent images"
     );
 
     if (cart) {
@@ -27,11 +27,24 @@ export const getCart = async (req, res) => {
       //     item.price = item.product.price;
       //   }
       // });
+      // cart.items.forEach(item => {
+      //   if (item.product?.price && item.price !== item.product.price) {
+      //     item.price = item.product.price;
+      //   }
+      // });
       cart.items.forEach(item => {
-        if (item.product?.price && item.price !== item.product.price) {
+        if (item.product?.price) {
           item.price = item.product.price;
         }
+
+        if (item.product?.originalPrice) {
+          item.originalPrice = item.product.originalPrice;
+        } else {
+          item.originalPrice = item.product.price;
+        }
       });
+
+
 
       cart.totalPrice = calculateTotal(cart.items);
       await cart.save();
@@ -46,11 +59,59 @@ export const getCart = async (req, res) => {
 
 
 // ✅ Add to cart
+// export const addToCart = async (req, res) => {
+//   try {
+//     const { productId, quantity } = req.body;
+
+//     const product = await Product.findById(productId);
+//     if (!product || !product.isActive) {
+//       return res.status(404).json({ message: "Product not available" });
+//     }
+
+//     let cart = await Cart.findOne({ user: req.user._id });
+
+//     if (!cart) {
+//       cart = new Cart({ user: req.user._id, items: [] });
+//     }
+
+//     if (!quantity || quantity < 1) {
+//       return res.status(400).json({ message: "Invalid quantity" });
+//     }
+
+
+
+//     const existingItem = cart.items.find(
+//       (item) => item.product.toString() === productId
+//     );
+
+//     if (existingItem) {
+//       existingItem.quantity += quantity;
+//     } else {
+//       cart.items.push({
+//         product: productId,
+//         quantity,
+//         price: product.price
+//       });
+//     }
+
+//     cart.totalPrice = calculateTotal(cart.items);
+//     cart.appliedCoupon = null;
+//     await cart.save();
+
+//     res.json(cart);
+//   } catch (error) {
+//     console.error("Add To Cart Error:", error);
+//     res.status(500).json({ message: "Failed to add item to cart" });
+//   }
+// };
+
 export const addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
 
+    // 🔹 Get product
     const product = await Product.findById(productId);
+
     if (!product || !product.isActive) {
       return res.status(404).json({ message: "Product not available" });
     }
@@ -61,11 +122,12 @@ export const addToCart = async (req, res) => {
       cart = new Cart({ user: req.user._id, items: [] });
     }
 
-if (!quantity || quantity < 1) {
-  return res.status(400).json({ message: "Invalid quantity" });
-}
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({ message: "Invalid quantity" });
+    }
 
-
+    // 🔹 SAFE originalPrice fallback
+    const originalPrice = product.originalPrice || product.price;
 
     const existingItem = cart.items.find(
       (item) => item.product.toString() === productId
@@ -73,29 +135,85 @@ if (!quantity || quantity < 1) {
 
     if (existingItem) {
       existingItem.quantity += quantity;
+
+      // 🔥 ALWAYS refresh prices
+      existingItem.price = product.price;
+      existingItem.originalPrice = originalPrice;
+
     } else {
       cart.items.push({
         product: productId,
         quantity,
-        price: product.price
+        price: product.price,
+        originalPrice: originalPrice
       });
     }
 
     cart.totalPrice = calculateTotal(cart.items);
     cart.appliedCoupon = null;
+
     await cart.save();
 
-    res.json(cart);
+    // res.json(cart);
+
+    // 🔥 RE-FETCH POPULATED CART
+    const updatedCart = await Cart.findOne({ user: req.user._id }).populate(
+      "items.product",
+      "name price originalPrice discountPercent images"
+    );
+
+    res.json(updatedCart);
+
   } catch (error) {
     console.error("Add To Cart Error:", error);
     res.status(500).json({ message: "Failed to add item to cart" });
   }
 };
 
+
+
 // ✅ Update quantity
+// export const updateCartItem = async (req, res) => {
+//   try {
+//     const { productId, quantity } = req.body;
+
+//     const cart = await Cart.findOne({ user: req.user._id });
+//     if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+//     const item = cart.items.find(
+//       (item) => item.product.toString() === productId
+//     );
+
+//     if (!item) return res.status(404).json({ message: "Item not found" });
+
+//     // item.quantity = quantity;
+//     if (quantity < 1) {
+//       cart.items = cart.items.filter(
+//         (i) => i.product.toString() !== productId
+//       );
+//     } else {
+//       item.quantity = quantity;
+//     }
+
+//     cart.totalPrice = calculateTotal(cart.items);
+//     cart.appliedCoupon = null;
+//     await cart.save();
+
+//     res.json(cart);
+//   } catch (error) {
+//     console.error("Update Cart Item Error:", error);
+//     res.status(500).json({ message: "Failed to update cart item" });
+//   }
+// };
+
 export const updateCartItem = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     const cart = await Cart.findOne({ user: req.user._id });
     if (!cart) return res.status(404).json({ message: "Cart not found" });
@@ -106,25 +224,38 @@ export const updateCartItem = async (req, res) => {
 
     if (!item) return res.status(404).json({ message: "Item not found" });
 
-    // item.quantity = quantity;
+    // If quantity becomes 0 → remove item
     if (quantity < 1) {
-  cart.items = cart.items.filter(
-    (i) => i.product.toString() !== productId
-  );
-} else {
-  item.quantity = quantity;
-}
+      cart.items = cart.items.filter(
+        (i) => i.product.toString() !== productId
+      );
+    } else {
+      item.quantity = quantity;
+
+      // 🔥 Refresh prices always
+      item.price = product.price;
+      item.originalPrice = product.originalPrice || product.price;
+    }
 
     cart.totalPrice = calculateTotal(cart.items);
     cart.appliedCoupon = null;
+
     await cart.save();
 
-    res.json(cart);
+    // 🔥 RE-FETCH POPULATED CART
+    const updatedCart = await Cart.findOne({ user: req.user._id }).populate(
+      "items.product",
+      "name price originalPrice discountPercent images"
+    );
+
+    res.json(updatedCart);
   } catch (error) {
     console.error("Update Cart Item Error:", error);
     res.status(500).json({ message: "Failed to update cart item" });
   }
 };
+
+
 
 // ✅ Remove item
 export const removeCartItem = async (req, res) => {
@@ -142,7 +273,12 @@ export const removeCartItem = async (req, res) => {
     cart.appliedCoupon = null;
     await cart.save();
 
-    res.json(cart);
+    const updatedCart = await Cart.findOne({ user: req.user._id }).populate(
+      "items.product",
+      "name price originalPrice discountPercent images"
+    );
+
+    res.json(updatedCart);
   } catch (error) {
     console.error("Remove Cart Item Error:", error);
     res.status(500).json({ message: "Failed to remove item from cart" });

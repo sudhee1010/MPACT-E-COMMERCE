@@ -5,6 +5,11 @@ import { Heart } from "lucide-react";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { addToCartApi } from "../api/cartApi";
+import toast from "react-hot-toast";
+import { useCart } from "../context/CartContext";
+
+
 
 export default function Products() {
   const [categories, setCategories] = useState([]);
@@ -16,6 +21,8 @@ export default function Products() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   // const isLoggedIn = Boolean(localStorage.getItem("token"));
   const navigate = useNavigate();
+  const { refreshCart, setOpenSideCart } = useCart();
+
 
 
   /* ================= FETCH CATEGORIES ================= */
@@ -121,6 +128,21 @@ export default function Products() {
       }
     }
   };
+
+const handleAddToCart = async (productId) => {
+  try {
+    await addToCartApi(productId, 1);
+    await refreshCart();
+    setOpenSideCart(true);
+    toast.success("Product added to cart 🛒");
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message || "Please login to add to cart"
+    );
+  }
+};
+
+
 
   /* ================= UI ================= */
   // if (loading) {
@@ -598,7 +620,7 @@ export default function Products() {
                     <div className="action-buttons">
                       <button
                         className="add-to-cart-btn"
-                        onClick={() => navigate("/cart")}
+                        onClick={() => handleAddToCart(product._id)}
                       >
                         🛒 Add to Cart
                       </button>
