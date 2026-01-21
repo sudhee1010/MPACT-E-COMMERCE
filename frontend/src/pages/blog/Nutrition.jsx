@@ -1,20 +1,100 @@
-import  Navbar  from "../../components/Navbar";
+import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import React from 'react'
-
-import  { useState } from 'react';
-import { Search, ShoppingCart, User, ArrowLeft, Heart, Share2, Calendar, Clock, UserCircle } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, Heart, Share2, Calendar, Clock, UserCircle } from 'lucide-react';
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../../services/api";
+import toast from "react-hot-toast";
 
 const BlogArticlePage = () => {
   const [liked, setLiked] = useState(false);
+  const { slug } = useParams();
+  const [blog, setBlog] = useState(null);
+  const [relatedBlogs, setRelatedBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const navigate=useNavigate();
-    function navigateFunction() {
-      navigate("/Blog")
-      
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchBlog = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch single blog by slug
+        const res = await api.get(`/blogs/${slug}`);
+        setBlog(res.data);
+
+        // Fetch related blogs by category
+        if (res.data.category) {
+          const relatedRes = await api.get(`/blogs`, {
+            params: { category: res.data.category._id }
+          });
+
+          // Filter out current blog and limit to 3
+          setRelatedBlogs(
+            relatedRes.data
+              .filter((b) => b.slug !== slug)
+              .slice(0, 3)
+          );
+        }
+      } catch (error) {
+        console.error("Error loading blog", error);
+        toast.error("Failed to load blog article");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlog();
+  }, [slug]);
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: blog?.title,
+        url: window.location.href,
+      }).catch(err => console.log('Error sharing:', err));
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied to clipboard!');
     }
-  
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="spinner"></div>
+        <style>{`
+          .spinner {
+            border: 4px solid #374151;
+            border-top: 4px solid #facc15;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  if (!blog) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
+        <h2 className="text-2xl mb-4">Blog not found</h2>
+        <button 
+          onClick={() => navigate('/blog')}
+          className="bg-yellow-400 text-black px-6 py-2 rounded-full font-semibold hover:bg-yellow-300"
+        >
+          Back to Blog
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -45,70 +125,9 @@ const BlogArticlePage = () => {
           padding: 0 1rem;
         }
 
-        /* ============================================
-           HEADER STYLES
-        ============================================ */
-
-        .header-inner {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1rem;
-          max-width: 1280px;
-          margin: 0 auto;
-        }
-
-        .site-logo {
-          font-size: 1.5rem;
-          font-weight: 700;
-          letter-spacing: -0.5px;
-          cursor: pointer;
-        }
-
-        .main-nav {
-          display: none;
-          gap: 2rem;
-        }
-
-        .nav-item {
-          font-size: 0.875rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: opacity 0.2s ease;
-          text-decoration: none;
-          color: inherit;
-          letter-spacing: 0.5px;
-        }
-
-        .nav-item:hover {
-          opacity: 0.7;
-        }
-
-        .nav-item.active {
-          font-weight: 700;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 1rem;
-          align-items: center;
-        }
-
-        .header-icon {
-          cursor: pointer;
-          transition: transform 0.2s ease;
-        }
-
-        .header-icon:hover {
-          transform: scale(1.1);
-        }
-
-        /* ============================================
-           ARTICLE HEADER SECTION
-        ============================================ */
+        /* ARTICLE HEADER SECTION */
         .article-header {
           padding: 2rem 0;
-        
         }
 
         .back-link {
@@ -123,7 +142,6 @@ const BlogArticlePage = () => {
           background: none;
           border: none;
           font-family: inherit;
-          top:10%;
         }
 
         .back-link:hover {
@@ -134,13 +152,12 @@ const BlogArticlePage = () => {
           display: inline-block;
           background-color: #facc15;
           color: #000;
-          padding: 0.2rem 1.135rem;
+          padding: 0.5rem 1.25rem;
           border-radius: 9999px;
           font-size: 0.875rem;
           font-weight: 700;
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
           letter-spacing: 0.3px;
-          top:10px;
         }
 
         .page-title {
@@ -199,9 +216,7 @@ const BlogArticlePage = () => {
           color: #000;
         }
 
-        /* ============================================
-           FEATURED IMAGE
-        ============================================ */
+        /* FEATURED IMAGE */
         .hero-image-container {
           width: 100%;
           margin-bottom: 2.5rem;
@@ -216,9 +231,7 @@ const BlogArticlePage = () => {
           display: block;
         }
 
-        /* ============================================
-           ARTICLE BODY
-        ============================================ */
+        /* ARTICLE BODY */
         .article-body {
           color: #d1d5db;
           line-height: 1.8;
@@ -262,9 +275,7 @@ const BlogArticlePage = () => {
           font-weight: 600;
         }
 
-        /* ============================================
-           TAGS SECTION
-        ============================================ */
+        /* TAGS SECTION */
         .tags-wrapper {
           margin: 3rem 0;
           padding-top: 2rem;
@@ -302,9 +313,7 @@ const BlogArticlePage = () => {
           border-color: #facc15;
         }
 
-        /* ============================================
-           AUTHOR SECTION
-        ============================================ */
+        /* AUTHOR SECTION */
         .author-section {
           border: 2px solid #facc15;
           border-radius: 12px;
@@ -340,9 +349,7 @@ const BlogArticlePage = () => {
           margin: 0;
         }
 
-        /* ============================================
-           RELATED ARTICLES SECTION
-        ============================================ */
+        /* RELATED ARTICLES SECTION */
         .related-articles {
           margin: 4rem 0;
         }
@@ -420,9 +427,7 @@ const BlogArticlePage = () => {
           font-size: 0.75rem;
         }
 
-        /* ============================================
-           TABLET STYLES (641px - 1024px)
-        ============================================ */
+        /* TABLET STYLES (641px - 1024px) */
         @media (min-width: 641px) {
           .content-wrapper {
             padding: 0 2rem;
@@ -450,22 +455,8 @@ const BlogArticlePage = () => {
           }
         }
 
-        /* ============================================
-           DESKTOP STYLES (768px+)
-        ============================================ */
+        /* DESKTOP STYLES (768px+) */
         @media (min-width: 768px) {
-          .site-logo {
-            font-size: 1.875rem;
-          }
-
-          .main-nav {
-            display: flex;
-          }
-
-          .header-inner {
-            padding: 1rem 2rem;
-          }
-
           .page-title {
             font-size: 3.25rem;
           }
@@ -501,9 +492,7 @@ const BlogArticlePage = () => {
           }
         }
 
-        /* ============================================
-           LARGE DESKTOP STYLES (1024px+)
-        ============================================ */
+        /* LARGE DESKTOP STYLES (1024px+) */
         @media (min-width: 1024px) {
           .article-header {
             padding: 3rem 0;
@@ -523,9 +512,7 @@ const BlogArticlePage = () => {
           }
         }
 
-        /* ============================================
-           EXTRA LARGE DESKTOP (1280px+)
-        ============================================ */
+        /* EXTRA LARGE DESKTOP (1280px+) */
         @media (min-width: 1280px) {
           .content-wrapper {
             padding: 0 3rem;
@@ -538,40 +525,35 @@ const BlogArticlePage = () => {
       `}</style>
 
       <div className="page-container">
-        {/* Header */}
-        <header className="site-header">
-          <div className="header-inner">
-        
-          </div>
-        </header>
-
         {/* Main Content */}
         <main className="content-wrapper">
           {/* Article Header */}
           <div className="article-header">
-            <button className="back-link" onClick={()=>navigateFunction("/Blog")}>
+            <button className="back-link" onClick={() => navigate("/blog")}>
               <ArrowLeft size={16} />
               Back to Blog
             </button>
 
-            <span className="category-label">Nutrition</span>
+            <span className="category-label">{blog.category?.name || 'Uncategorized'}</span>
 
-            <h1 className="page-title">
-              The Science Behind Protein Absorption: What You Need to Know
-            </h1>
+            <h1 className="page-title">{blog.title}</h1>
 
             <div className="article-metadata">
               <span className="meta-info">
                 <UserCircle size={16} />
-                Dr. Sarah Johnson
+                Admin
               </span>
               <span className="meta-info">
                 <Calendar size={16} />
-                January 8, 2025
+                {new Date(blog.createdAt).toLocaleDateString('en-US', { 
+                  month: 'long', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                })}
               </span>
               <span className="meta-info">
                 <Clock size={16} />
-                5 min read
+                {blog.readTime} min read
               </span>
             </div>
 
@@ -583,7 +565,7 @@ const BlogArticlePage = () => {
                 <Heart size={16} fill={liked ? '#000' : 'none'} />
                 Like
               </button>
-              <button className="action-button">
+              <button className="action-button" onClick={handleShare}>
                 <Share2 size={16} />
                 Share
               </button>
@@ -593,75 +575,32 @@ const BlogArticlePage = () => {
           {/* Featured Image */}
           <div className="hero-image-container">
             <img 
-              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&h=800&fit=crop" 
-              alt="Protein rich meal with eggs, avocado, and vegetables"
+             // src={`http://localhost:5000/${blog.coverImage}`}
+               src={blog.coverImage}
+              alt={blog.title}
               className="hero-image"
             />
           </div>
 
           {/* Article Content */}
-          <article className="article-body">
-            <h2>Understanding Protein Absorption</h2>
-            <p>
-              Protein is essential for muscle growth, recovery, and overall health. But did you know that not all protein is absorbed 
-              equally? The rate and efficiency of protein absorption depend on several factors, including the type of protein, your 
-              digestive health, and the timing of consumption.
-            </p>
-
-            <h3>The Digestive Process</h3>
-            <p>
-              When you consume protein, it undergoes a complex digestive process. Proteins are broken down into amino acids in 
-              your stomach and small intestine. These amino acids are then absorbed into your bloodstream and transported to 
-              various cells throughout your body.
-            </p>
-
-            <h3>Types of Protein</h3>
-            <p>Different protein sources have different absorption rates:</p>
-            <ul>
-              <li><strong>Whey Protein:</strong> Absorbs quickly (approximately 8-10 grams per hour)</li>
-              <li><strong>Casein Protein:</strong> Absorbs slowly, providing sustained amino acid release</li>
-              <li><strong>Plant-Based Proteins:</strong> Absorption varies depending on the source and processing</li>
-              <li><strong>Whole Food Proteins:</strong> Generally absorb more slowly than isolated proteins</li>
-            </ul>
-
-            <h3>Maximizing Protein Absorption</h3>
-            <p>Here are some strategies to optimize protein absorption:</p>
-            <ul>
-              <li>Distribute protein intake throughout the day (20-30g per meal)</li>
-              <li>Combine protein with digestive enzymes or probiotics</li>
-              <li>Stay hydrated to support digestive processes</li>
-              <li>Don't exceed your body's absorption capacity in one sitting</li>
-            </ul>
-
-            <h3>The Role of Timing</h3>
-            <p>
-              While protein timing isn't as critical as once thought, consuming protein within a few hours after exercise can support 
-              muscle recovery and growth. The key is meeting your daily protein requirements consistently while maintaining your overall protein intake.
-            </p>
-
-            <h3>Quality Matters</h3>
-            <p>
-              At MPACT, we prioritize using high-quality protein sources that are easily digestible and bioavailable. Our products are 
-              designed to provide optimal nutrition without unnecessary additives or preservatives.
-            </p>
-
-            <h2>Conclusion</h2>
-            <p>
-              Understanding protein absorption helps you make informed choices about your nutrition. Focus on consuming quality 
-              protein sources throughout the day, and your body will thank you with improved performance, recovery, and overall 
-              health.
-            </p>
-          </article>
+          <article
+            className="article-body"
+            dangerouslySetInnerHTML={{ __html: blog.content }}
+          />
 
           {/* Tags Section */}
-          <div className="tags-wrapper">
-            <div className="tags-label">Tags:</div>
-            <div className="tags-list">
-              <span className="tag-item">#Protein</span>
-              <span className="tag-item">#Health</span>
-              <span className="tag-item">#Science</span>
+          {blog.tags && blog.tags.length > 0 && (
+            <div className="tags-wrapper">
+              <div className="tags-label">Tags:</div>
+              <div className="tags-list">
+                {blog.tags.map((tag, index) => (
+                  <span key={index} className="tag-item">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Author Card */}
           <div className="author-section">
@@ -669,35 +608,44 @@ const BlogArticlePage = () => {
               <UserCircle size={34} color="#000" />
             </div>
             <div className="author-details">
-              <h3>Dr. Sarah Johnson</h3>
+              <h3>Admin</h3>
               <p>Health & Nutrition Expert</p>
             </div>
           </div>
 
           {/* Related Articles */}
-          <section className="related-articles">
-            <h2 className="section-heading">RELATED ARTICLES</h2>
-            <div className="related-grid">
-              <div className="related-card">
-                <div className="related-image-box">
-                  <img 
-                    src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500&h=300&fit=crop" 
-                    alt="Nutrition labels guide"
-                    className="related-img"
-                  />
-                  <span className="related-category">Nutrition</span>
-                </div>
-                <div className="related-info">
-                  <h3 className="related-title">The Ultimate Guide to Reading Nutrition Labels</h3>
-                  <div className="related-metadata">
-                    <span>Dec 28</span>
-                    <span>•</span>
-                    <span>8 min read</span>
+          {relatedBlogs.length > 0 && (
+            <div className="related-articles">
+              <h2 className="section-heading">RELATED ARTICLES</h2>
+              <div className="related-grid">
+                {relatedBlogs.map((item) => (
+                  <div
+                    key={item._id}
+                    className="related-card"
+                    onClick={() => navigate(`/blog/${item.slug}`)}
+                  >
+                    <div className="related-image-box">
+                      <img
+                       // src={`http://localhost:5000/${item.coverImage}`}
+                       src={item.coverImage}
+                        alt={item.title}
+                        className="related-img"
+                      />
+                      <span className="related-category">
+                        {item.category?.name || 'Uncategorized'}
+                      </span>
+                    </div>
+                    <div className="related-info">
+                      <h3 className="related-title">{item.title}</h3>
+                      <div className="related-metadata">
+                        <span>{item.readTime} min read</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
-          </section>
+          )}
         </main>
       </div>
     </div>

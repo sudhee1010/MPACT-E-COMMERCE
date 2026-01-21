@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Home, Briefcase, User, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -19,7 +20,33 @@ const Checkout = () => {
   });
 
   const [errors, setErrors] = useState({});
+    /* ================= FETCH ADDRESS ================= */
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        const res = await api.get("/api/address/me");
+        const data = res.data;
 
+        setAddressType(data.addressType === "Work" ? "work" : "home");
+
+        setForm({
+          name: data.fullName || "",
+          phone: data.phoneNumber || "",
+          email: data.email || "",
+          address1: data.addressLine1 || "",
+          address2: data.addressLine2 || "",
+          city: data.city || "",
+          state: data.state || "",
+          pincode: data.pincode || "",
+        });
+      } catch (error) {
+        // No saved address → do nothing
+      }
+    };
+
+    fetchAddress();
+  }, []);
+/* ================= FORM HANDLING ================= */
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -43,12 +70,28 @@ const Checkout = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleContinue = () => {
-    if (validate()) {
+  /* ================= SAVE & CONTINUE ================= */
+  const handleContinue = async () => {
+    if (!validate()) return;
+
+    try {
+      await api.post("/api/address", {
+        addressType: addressType === "work" ? "Work" : "Home",
+        fullName: form.name,
+        phoneNumber: form.phone,
+        email: form.email,
+        addressLine1: form.address1,
+        addressLine2: form.address2,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+      });
+
       navigate("/pay");
+    } catch (error) {
+      alert("Failed to save address. Please try again.");
     }
   };
-
   return (
     <div className="page">
       {/* STEP INDICATOR */}
