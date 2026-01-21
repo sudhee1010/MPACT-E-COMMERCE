@@ -3,14 +3,19 @@ import { useState } from "react";
 import SideCart from "./SideCart"; // adjust path if needed
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import { ShoppingCart } from "lucide-react";
+
 
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
+  // const [cartOpen, setCartOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const { cartCount, setOpenSideCart } = useCart();
+
 
   const handleProfileClick = () => {
     if (user) {
@@ -282,11 +287,44 @@ export default function Navbar() {
           </Link>
 
           {/* CART ICON → SIDE CART */}
-          <img
+          {/* <img
             src="/icons/bag.png"
             alt="Cart"
             onClick={() => setCartOpen(true)}
-          />
+          /> */}
+
+          <div
+            style={{ position: "relative", cursor: "pointer" }}
+            onClick={() => setOpenSideCart(true)}
+          >
+            <ShoppingCart
+              size={22}
+              color="black"     // 🔥 GUARANTEED BLACK
+              strokeWidth={2}
+            />
+
+            {cartCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-6px",
+                  right: "-10px",
+                  background: "red",
+                  color: "white",
+                  borderRadius: "50%",
+                  padding: "2px 7px",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  minWidth: "20px",
+                  textAlign: "center"
+                }}
+              >
+                {cartCount}
+              </span>
+            )}
+          </div>
+
+
 
           {/* HAMBURGER */}
           <div className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
@@ -304,7 +342,8 @@ export default function Navbar() {
       </div>
 
       {/* ================= SIDE CART ================= */}
-      <SideCart open={cartOpen} onClose={() => setCartOpen(false)} />
+      {/* <SideCart open={cartOpen} onClose={() => setCartOpen(false)} /> */}
+      <SideCart />
 
       {/* ================= LOGIN REQUIRED MODAL ================= */}
       {showLoginModal && (

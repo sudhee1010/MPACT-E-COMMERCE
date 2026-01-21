@@ -11,6 +11,8 @@ import { Instagram, Youtube } from 'lucide-react';
 import { SiTiktok } from "react-icons/si";
 import WhatsAppFloat from '../components/WhatsAppFloat';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Footer from "../components/Footer";
+
 
 
 
@@ -1282,6 +1284,7 @@ useEffect(() => {
           </div>
         </div>
       </footer>
+     <Footer/>
       {showLoginModal && (
         <div
           style={{

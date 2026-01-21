@@ -12,10 +12,18 @@ const cartItemSchema = new mongoose.Schema(
       required: true,
       default: 1
     },
+
+    // Selling price (current price)
     price: {
       type: Number,
       required: true
-    }
+    },
+
+    // Original MRP price
+    originalPrice: {
+      type: Number,
+      required: true
+    },
   },
   { _id: false }
 );
