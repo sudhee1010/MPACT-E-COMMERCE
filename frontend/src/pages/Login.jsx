@@ -314,6 +314,8 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from "../api/axios";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
+
 // Module CSS styles
 const styles = {
   container: {
@@ -458,6 +460,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
+  const { setUser } = useAuth();
+
 
   // const handleSubmit = (e) => {
   //   e.preventDefault();
@@ -471,35 +475,6 @@ export default function LoginPage() {
   //   // navigate("/home"); // enable after auth
   // };
 
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   if (!email || !password) {
-//     alert("Please fill all fields");
-//     return;
-//   }
-
-//   try {
-//     const res = await axios.post(
-//       "http://localhost:5000/api/auth/login",
-//       { email, password }
-//     );
-
-//     // store token
-//     localStorage.setItem("token", res.data.token);
-//     localStorage.setItem("user", JSON.stringify(res.data.user));
-
-//     alert("Login successful");
-//     navigate("/home"); // or dashboard
-
-//   } catch (error) {
-//     alert(
-//       error.response?.data?.message || "Login failed"
-//     );
-//   }
-// };
-
-
 const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -509,7 +484,10 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    await api.post("/api/auth/login", { email, password });
+    const res = await api.post("/api/auth/login", { email, password });
+
+    // 🔥 SAVE USER TO CONTEXT
+    setUser(res.data.user);
 
     toast.success("Login successful");
     navigate("/");
@@ -520,6 +498,29 @@ const handleSubmit = async (e) => {
     );
   }
 };
+
+
+
+// const handleSubmit = async (e) => {
+//   e.preventDefault();
+
+//   if (!email || !password) {
+//     toast.error("Please fill all fields");
+//     return;
+//   }
+
+//   try {
+//     await api.post("/api/auth/login", { email, password });
+
+//     toast.success("Login successful");
+//     navigate("/");
+
+//   } catch (error) {
+//     toast.error(
+//       error.response?.data?.message || "Login failed"
+//     );
+//   }
+// };
 
 
 

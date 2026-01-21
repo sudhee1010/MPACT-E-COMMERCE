@@ -1,130 +1,94 @@
-import  Navbar  from "../../components/Navbar";
-// import Footer from "../../components/Footer";
-import React from 'react'
+import Navbar from "../../components/Navbar";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-import  { useState } from 'react';
-import { Search, ShoppingCart, User, Menu, X, Calendar, Clock, UserCircle } from 'lucide-react';
+import { Search, Menu, X, Calendar, Clock, UserCircle } from "lucide-react";
+import api from "../../services/api";
+import toast from "react-hot-toast";
 
 const MPACTBlog = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [featuredArticles, setFeaturedArticles] = useState([]);
+  const [latestArticles, setLatestArticles] = useState([]);
+  const [filteredBlogs, setFilteredBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
-  function navigateFunction() {
-    navigate("/Nutrition");
-  }
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get("/blog-categories");
+        setCategories(["All", ...res.data.map((cat) => cat.name)]);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        toast.error("Failed to load categories");
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  
-  const filters = ['All', 'Nutrition', 'Recipes', 'Wellness', 'Ingredients', 'Fitness', 'Sustainability'];
+  // Fetch blogs
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        setLoading(true);
 
-  const featuredArticles = [
-    {
-      id: 1,
-      tag: 'Nutrition',
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=600&fit=crop',
-      title: 'The Science Behind Protein Absorption: What You Need to Know',
-      description: 'Understanding how your body processes protein can help you maximize your fitness gains and overall health.',
-      tags: ['#Protein', '#Health', '#Science'],
-      date: 'Dec 8, 2025',
-      author: 'Mike Chen',
-      readTime: '7 min read'
-    },
-    {
-      id: 2,
-      tag: 'Recipes',
-      image: 'https://images.unsplash.com/photo-1533777324565-a040eb52facd?w=800&h=600&fit=crop',
-      title: '10 Quick and Healthy Breakfast Ideas for Busy Mornings',
-      description: 'Start your day right with these nutritious breakfast options that take less than 15 minutes to prepare.',
-      tags: ['#Breakfast', '#Healthy Eating', '#Quick Meals'],
-      date: 'Dec 5, 2025',
-      author: 'Mike Chen',
-      readTime: '7 min read'
-    }
-  ];
+        // Build query params
+        let queryParams = {};
 
-  const latestArticles = [
-    {
-      id: 3,
-      tag: 'Wellness',
-      image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop',
-      title: 'How Natural Ingredients Boost Wellness',
-      description: 'Discover the power of natural, whole-food ingredients and their impact on sustained energy throughout the day.',
-      tags: ['#Energy', '#Nutrition', '#Ingredients'],
-      date: 'Dec 1, 2025',
-      author: 'Emily Rodriguez',
-      readTime: '5 min read'
-    },
-    {
-      id: 4,
-      tag: 'Nutrition',
-      image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=400&h=300&fit=crop',
-      title: 'The Ultimate Guide to Reading Nutrition Labels',
-      description: 'Learn how to decode nutrition labels and make informed choices about the food you eat.',
-      tags: ['#Education', '#Health', '#Nutrition'],
-      date: 'Dec 28, 2025',
-      author: 'Dr. Sarah Lee',
-      readTime: '6 min read'
-    },
-    {
-      id: 5,
-      tag: 'Nutrition',
-      image: 'https://images.unsplash.com/photo-1523251451807-aab9b844ed3f?w=400&h=300&fit=crop',
-      title: 'Peanut Butter Power: Benefits Beyond Protein',
-      description: 'Peanut butter is more than just a protein source. Explore its hidden health benefits and creative uses.',
-      tags: ['#Peanut Butter', '#Protein', '#Health Benefits'],
-      date: 'Dec 26, 2025',
-      author: 'Mike Chen',
-      readTime: '5 min read'
-    },
-    {
-      id: 6,
-      tag: 'Fitness',
-      image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop',
-      title: 'Pre-Workout vs Post-Workout Nutrition: What\'s Best?',
-      description: 'Timing is everything when it comes to fueling your workouts. Here\'s what science says about meal timing.',
-      tags: ['#Pre-Workout', '#Nutrition', '#Fitness'],
-      date: 'Dec 23, 2025',
-      author: 'Emily Rodriguez',
-      readTime: '6 min read'
-    },
-    {
-      id: 7,
-      tag: 'Sustainability',
-      image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&h=300&fit=crop',
-      title: 'Sustainable Snacking: How We Source Our Ingredients',
-      description: 'Take a behind-the-scenes look at our commitment to sustainable and ethically-sourced ingredient sourcing.',
-      tags: ['#Sustainability', '#Ingredients', '#Ethics'],
-      date: 'Dec 20, 2025',
-      author: 'Dr. Sarah Lee',
-      readTime: '7 min read'
-    },
-    {
-      id: 8,
-      tag: 'Recipes',
-      image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop',
-      title: '5 Creative Ways to Use Protein Wafers in Your Recipes',
-      description: 'Think protein wafers are just a snack? Think again! Here are some delicious recipes that might surprise your meals.',
-      tags: ['#Recipes', '#Creative', '#Protein Wafers'],
-      date: 'Dec 18, 2025',
-      author: 'Mike Chen',
-      readTime: '5 min read'
-    },
-    {
-      id: 9,
-      tag: 'Ingredients',
-      image: 'https://images.unsplash.com/photo-1587735243615-c03f25aaff15?w=400&h=300&fit=crop',
-      title: 'Understanding Jaggery: The Ancient Sweetener Making a Comeback',
-      description: 'Why jaggery is becoming the go-to natural sweetener and how it compares to refined sugar.',
-      tags: ['#Jaggery', '#Natural', '#Sweeteners'],
-      date: 'Dec 15, 2025',
-      author: 'Emily Rodriguez',
-      readTime: '5 min read'
-    }
-  ];
+        if (activeFilter !== "All") {
+          // Find category slug
+          const categoryRes = await api.get("/blog-categories");
+          const selectedCategory = categoryRes.data.find(
+            (cat) => cat.name === activeFilter,
+          );
+          if (selectedCategory) {
+            queryParams.category = selectedCategory._id;
+          }
+        }
+
+        if (searchQuery) {
+          queryParams.search = searchQuery;
+        }
+
+        // Fetch all blogs
+        const blogsRes = await api.get("/blogs", { params: queryParams });
+
+        // Fetch featured blogs
+        // const featuredRes = await api.get("/blogs/featured");
+
+        // setFeaturedArticles(featuredRes.data);
+        // setLatestArticles(blogsRes.data.filter((blog) => !blog.isFeatured));
+        
+        // Split blogs into featured and latest based on isFeatured
+        const featured = blogsRes.data.filter((blog) => blog.isFeatured);
+        const latest = blogsRes.data.filter((blog) => !blog.isFeatured);
+        
+        setFeaturedArticles(featured);
+        setLatestArticles(latest);
+        //setFilteredBlogs(blogsRes.data);
+
+
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+        toast.error("Failed to load blogs");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlogs();
+  }, [activeFilter, searchQuery]);
+
+  const navigateToArticle = (slug) => {
+    navigate(`/blog/${slug}`);
+  };
+
+  const totalArticles = featuredArticles.length + latestArticles.length;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -156,6 +120,7 @@ const MPACTBlog = () => {
           overflow: hidden;
           background-color: #1f2937;
           transition: all 0.3s ease;
+          cursor: pointer;
         }
 
         .featured-article-card:hover {
@@ -278,6 +243,7 @@ const MPACTBlog = () => {
           display: flex;
           flex-direction: column;
           transition: all 0.3s ease;
+          cursor: pointer;
         }
 
         .latest-article-card:hover {
@@ -349,6 +315,28 @@ const MPACTBlog = () => {
           color: #facc15;
         }
 
+        /* Loading Spinner */
+        .loading-spinner {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 400px;
+        }
+
+        .spinner {
+          border: 4px solid #374151;
+          border-top: 4px solid #facc15;
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
         /* Tablet Styles (641px - 1024px) */
         @media (min-width: 641px) {
           .container {
@@ -376,7 +364,7 @@ const MPACTBlog = () => {
 
           .latest-image {
             height: 220px;
-      }
+          }
         }
 
         /* Desktop Styles (768px+) for Featured Cards */
@@ -581,13 +569,8 @@ const MPACTBlog = () => {
       {/* Header */}
       <header className="header">
         <div className="header-container container">
-        
-          
-          {/* Desktop Navigation */}
-
           <div className="header-icons">
-            {/*  */}
-            <button 
+            <button
               className="mobile-menu-btn icon-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -596,23 +579,49 @@ const MPACTBlog = () => {
           </div>
 
           {/* Mobile Navigation */}
-          <nav className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
-             <a href="#" className="nav-link">HOME</a>
-            <a href="#" className="nav-link">PRODUCTS</a>
-            <a href="#" className="nav-link">ABOUT US</a>
-            <a href="#" className="nav-link active">BLOG</a>
-            <a href="#" className="nav-link">WISHLIST</a>
-          </nav> 
+          <nav className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
+            <a href="/" className="nav-link">
+              HOME
+            </a>
+            <a href="/products" className="nav-link">
+              PRODUCTS
+            </a>
+            <a href="/about" className="nav-link">
+              ABOUT US
+            </a>
+            <a href="/blog" className="nav-link active">
+              BLOG
+            </a>
+            <a href="/wishlist" className="nav-link">
+              WISHLIST
+            </a>
+          </nav>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section style={{ textAlign: 'center', padding: '3rem 1rem' }}>
-        <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: '700', marginBottom: '1rem', letterSpacing: '-0.025em' }}>
+      <section style={{ textAlign: "center", padding: "3rem 1rem" }}>
+        <h1
+          style={{
+            fontSize: "clamp(2rem, 5vw, 3.5rem)",
+            fontWeight: "700",
+            marginBottom: "1rem",
+            letterSpacing: "-0.025em",
+          }}
+        >
           MPACT BLOG
         </h1>
-        <p style={{ color: '#9ca3af', marginBottom: '2rem', fontSize: 'clamp(0.875rem, 2vw, 1.125rem)', maxWidth: '48rem', margin: '0 auto 2rem' }}>
-          Discover insights on nutrition, wellness, and healthy living from our team of experts.
+        <p
+          style={{
+            color: "#9ca3af",
+            marginBottom: "2rem",
+            fontSize: "clamp(0.875rem, 2vw, 1.125rem)",
+            maxWidth: "48rem",
+            margin: "0 auto 2rem",
+          }}
+        >
+          Discover insights on nutrition, wellness, and healthy living from our
+          team of experts.
         </p>
 
         {/* Search Bar */}
@@ -629,109 +638,205 @@ const MPACTBlog = () => {
 
         {/* Filter Buttons */}
         <div className="filter-buttons">
-          {filters.map((filter) => (
+          {categories.map((filter) => (
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`filter-btn ${activeFilter === filter ? 'active' : ''}`}
+              className={`filter-btn ${activeFilter === filter ? "active" : ""}`}
             >
               {filter}
             </button>
           ))}
         </div>
 
-        <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>9 articles found</p>
+        <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+          {totalArticles} articles found
+        </p>
       </section>
 
-      <div className="container" style={{ paddingBottom: '4rem' }}>
-        {/* Featured Articles */}
-        <section style={{ marginBottom: '4rem' }}>
-          <h2 className="section-title">FEATURED ARTICLES</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {featuredArticles.map((article) => (
-              <div key={article.id} className="featured-article-card">
-                <div className="featured-image-wrapper">
-                  <img
-                    src={article.image}
-                    alt={article.title}
-                    className="featured-image"
-                  />
-                  <span className="article-tag">{article.tag}</span>
-                </div>
-                <div className="featured-content">
-                  <div className="article-meta">
-                    <span className="meta-item">
-                      <Calendar size={16} />
-                      {article.date}
-                    </span>
-                    <span className="meta-item">
-                      <UserCircle size={16} />
-                      {article.author}
-                    </span>
-                    <span className="meta-item">
-                      <Clock size={16} />
-                      {article.readTime}
-                    </span>
-                  </div>
-                  <h3 className="article-title">{article.title}</h3>
-                  <p className="article-description">{article.description}</p>
-                  <div className="article-tags">
-                    {article.tags.map((tag, idx) => (
-                      <span key={idx} className="tag">{tag}</span>
-                    ))}
-                  </div>
-                  <div className="read-more-btn" onClick={()=> navigateFunction("/Nutrition")}>Read More <span>→</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+      <div className="container" style={{ paddingBottom: "4rem" }}>
+        {loading ? (
+          <div className="loading-spinner">
+            <div className="spinner"></div>
           </div>
-        </section>
+        ) : (
+          <>
+            {/* Featured Articles */}
+            {featuredArticles.length > 0 && (
+              <section style={{ marginBottom: "4rem" }}>
+                <h2 className="section-title">FEATURED ARTICLES</h2>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2rem",
+                  }}
+                >
+                  {featuredArticles.map((article) => (
+                    <div
+                      key={article._id}
+                      className="featured-article-card"
+                      onClick={() => navigateToArticle(article.slug)}
+                    >
+                      <div className="featured-image-wrapper">
+                        <img
+                          src={article.coverImage}
+                          alt={article.title}
+                          // src={article.coverImage?.[0]?.url}
+                          // src={`http://localhost:5000/${article.coverImage}`}
 
-        {/* Latest Articles */}
-        <section>
-          <h2 className="section-title">LATEST ARTICLES</h2>
-          <div className="latest-articles-grid">
-            {latestArticles.map((article) => (
-              <div key={article.id} className="latest-article-card">
-                <div style={{ position: 'relative' }}>
-                  <img
-                    src={article.image}
-                    alt={article.title}
-                    className="latest-image"
-                  />
-                  <span className="article-tag">{article.tag}</span>
+                          // alt={article.title}
+                          className="featured-image"
+                        />
+                        <span className="article-tag">
+                          {article.category?.name}
+                        </span>
+                      </div>
+                      <div className="featured-content">
+                        <div className="article-meta">
+                          <span className="meta-item">
+                            <Calendar size={16} />
+                            {new Date(article.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )}
+                          </span>
+                          {/* <span className="meta-item">
+                            <UserCircle size={16} />
+                            Admin
+                          </span> */}
+                          <span className="meta-item">
+                            <UserCircle size={16} />
+                            {article.author}
+                          </span>
+
+                          <span className="meta-item">
+                            <Clock size={16} />
+                            {article.readTime} min read
+                          </span>
+                        </div>
+                        <h3 className="article-title">{article.title}</h3>
+                        <p className="article-description">
+                          {article.description}
+                        </p>
+                        <div className="article-tags">
+                          {article.tags.map((tag, idx) => (
+                            <span key={idx} className="tag">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="read-more-btn">
+                          Read More <span>→</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="latest-content">
-                  <div className="article-meta" style={{ fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-                    <span className="meta-item">
-                      <Calendar size={14} />
-                      {article.date}
-                    </span>
-                    <span className="meta-item">
-                      <UserCircle size={14} />
-                      {article.author}
-                    </span>
-                    <span className="meta-item">
-                      <Clock size={14} />
-                      {article.readTime}
-                    </span>
-                  </div>
-                  <h3 className="latest-title">{article.title}</h3>
-                  <p className="latest-description">{article.description}</p>
-                  <div className="article-tags" style={{ marginBottom: '1rem' }}>
-                    {article.tags.map((tag, idx) => (
-                      <span key={idx} className="tag">{tag}</span>
-                    ))}
-                  </div>
-                  <div className="read-more-btn" style={{ fontSize: '0.875rem' }}   onClick={()=> navigateFunction("/Nutrition")}>
-                    Read More <span>→</span>
-                  </div>
+              </section>
+            )}
+
+            {/* Latest Articles */}
+            {latestArticles.length > 0 && (
+              <section>
+                <h2 className="section-title">LATEST ARTICLES</h2>
+                <div className="latest-articles-grid">
+                  {latestArticles.map((article) => (
+                    <div
+                      key={article._id}
+                      className="latest-article-card"
+                      onClick={() => navigateToArticle(article.slug)}
+                    >
+                      <div style={{ position: "relative" }}>
+                        <img
+                          // src={`http://localhost:5000/${article.coverImage}`}
+                            src={article.coverImage}
+  alt={article.title}
+                          // alt={article.title}
+                          className="latest-image"
+                        />
+                        <span className="article-tag">
+                          {article.category?.name}
+                        </span>
+                      </div>
+                      <div className="latest-content">
+                        <div
+                          className="article-meta"
+                          style={{
+                            fontSize: "0.75rem",
+                            marginBottom: "0.75rem",
+                          }}
+                        >
+                          <span className="meta-item">
+                            <Calendar size={14} />
+                            {new Date(article.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )}
+                          </span>
+                          <span className="meta-item">
+                            <UserCircle size={14} />
+                            {article.author}
+                          </span>
+                          <span className="meta-item">
+                            <Clock size={14} />
+                            {article.readTime} min read
+                          </span>
+                        </div>
+                        <h3 className="latest-title">{article.title}</h3>
+                        <p className="latest-description">
+                          {article.description}
+                        </p>
+                        <div
+                          className="article-tags"
+                          style={{ marginBottom: "1rem" }}
+                        >
+                          {article.tags.map((tag, idx) => (
+                            <span key={idx} className="tag">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div
+                          className="read-more-btn"
+                          style={{ fontSize: "0.875rem" }}
+                        >
+                          Read More <span>→</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              </section>
+            )}
+
+            {/* No Results */}
+            {!loading &&
+              featuredArticles.length === 0 &&
+              latestArticles.length === 0 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "4rem 1rem",
+                    color: "#9ca3af",
+                  }}
+                >
+                  <p style={{ fontSize: "1.25rem", marginBottom: "1rem" }}>
+                    No articles found
+                  </p>
+                  <p>Try adjusting your search or filter criteria</p>
+                </div>
+              )}
+          </>
+        )}
       </div>
     </div>
   );

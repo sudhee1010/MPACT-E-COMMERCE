@@ -11,6 +11,7 @@ export const createBlog = async (req, res) => {
     tags,
     readTime,
     isFeatured,
+    author,
   } = req.body;
 
   const blog = await Blog.create({
@@ -22,6 +23,7 @@ export const createBlog = async (req, res) => {
     tags: tags ? tags.split(",") : [],
     readTime,
     isFeatured,
+    author:  author || "MPACT Team",
     coverImage: req.file?.path,
   });
 

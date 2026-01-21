@@ -1,8 +1,9 @@
-
 import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
+import PrivateRoute from "./components/PrivateRoute";
+
 
 
 import Loader from "./components/Loader";
@@ -31,8 +32,7 @@ import NewProfile from "./pages/profile/Newprofile.jsx"
 import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import VerifyEmail from "./pages/VerifyEmail";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
+import WishlistPage from "./pages/Wishlist.jsx";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -49,8 +49,7 @@ function App() {
       {loading && <Loader onFinish={() => setLoading(false)} />}
 
 
-//TOAST
-          <Toaster
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 3000,
@@ -69,7 +68,16 @@ function App() {
           <Route path="/seeMore" element={<SeeMore />} />
           <Route path="/productspec/:id" element={<ProductPage />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/profile" element={<NewProfile />} />
+          {/* <Route path="/profile" element={<NewProfile />} /> */}
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <NewProfile />
+              </PrivateRoute>
+            }
+          />
+
           <Route path="/help" element={<HelpSupport />} />
 
 
@@ -93,8 +101,9 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/wishlist" element={<WishlistPage/>} />
+
+
 
 
         </Routes>

@@ -1,111 +1,180 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
 import { Heart } from "lucide-react";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 export default function Products() {
   const [categories, setCategories] = useState([]);
   const [productsByCategory, setProductsByCategory] = useState({});
   // const [quantities, setQuantities] = useState({});
-  const [favorites, setFavorites] = useState({});
+  const [wishlist, setWishlist] = useState([]);;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const isLoggedIn = Boolean(localStorage.getItem("token"));
+  // const isLoggedIn = Boolean(localStorage.getItem("token"));
   const navigate = useNavigate();
 
 
   /* ================= FETCH CATEGORIES ================= */
+  // useEffect(() => {
+  //   const fetchCategories = async () => {
+  //     try {
+  //       const { data } = await axios.get(
+  //         "http://localhost:5000/api/categories"
+  //       );
+  //       setCategories(data);
+  //     } catch (err) {
+  //       setError("Failed to load categories");
+  //     }
+  //   };
+  //   fetchCategories();
+  // }, []);
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/categories"
-        );
-        setCategories(data);
-      } catch (err) {
-        setError("Failed to load categories");
-      }
-    };
-    fetchCategories();
+    api
+      .get("/api/categories")
+      .then((res) => setCategories(res.data))
+      .catch(() => setError("Failed to load categories"));
   }, []);
 
   /* ================= FETCH PRODUCTS PER CATEGORY ================= */
+  // useEffect(() => {
+  //   const fetchProducts = async () => {
+  //     try {
+  //       setLoading(true);
+
+  //       const results = await Promise.all(
+  //         categories.map((cat) =>
+  //           axios.get("http://localhost:5000/api/products", {
+  //             params: { category: cat._id },
+  //           })
+  //         )
+  //       );
+
+  //       const grouped = {};
+  //       categories.forEach((cat, index) => {
+  //         grouped[cat.name] = results[index].data.products || [];
+  //       });
+
+  //       setProductsByCategory(grouped);
+  //     } catch (err) {
+  //       setError("Failed to load products");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   if (categories.length) fetchProducts();
+  // }, [categories]);
+
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
+    if (!categories.length) return;
 
-        const results = await Promise.all(
-          categories.map((cat) =>
-            axios.get("http://localhost:5000/api/products", {
-              params: { category: cat._id },
-            })
-          )
-        );
-
+    Promise.all(
+      categories.map((cat) =>
+        api.get("/api/products", {
+          params: { category: cat._id },
+        })
+      )
+    )
+      .then((results) => {
         const grouped = {};
-        categories.forEach((cat, index) => {
-          grouped[cat.name] = results[index].data.products || [];
+        categories.forEach((cat, i) => {
+          grouped[cat.name] = results[i].data.products || [];
         });
-
         setProductsByCategory(grouped);
-      } catch (err) {
-        setError("Failed to load products");
-      } finally {
         setLoading(false);
-      }
-    };
-
-    if (categories.length) fetchProducts();
+      })
+      .catch(() => setError("Failed to load products"));
   }, [categories]);
 
-  /* ================= FAVORITE HANDLER ================= */
-  const toggleFavorite = (productId) => {
-    setFavorites((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
+  /* ================= FETCH WISHLIST ================= */
+  useEffect(() => {
+    api
+      .get("/api/wishlist")
+      .then((res) => {
+        setWishlist(res.data.wishlist.map((p) => p._id));
+      })
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          // user not logged in → silently ignore
+        }
+      });
+  }, []);
+
+  /* ================= ❤️ TOGGLE WISHLIST ================= */
+  const toggleWishlist = async (productId) => {
+    try {
+      const res = await api.post("/api/wishlist/toggle", { productId });
+
+      if (res.data.action === "added") {
+        setWishlist((prev) => [...prev, productId]);
+      } else {
+        setWishlist((prev) => prev.filter((id) => id !== productId));
+      }
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setShowLoginModal(true);
+      }
+    }
   };
 
   /* ================= UI ================= */
+  // if (loading) {
+  //   return (
+  //     <>
+  //       <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
+  //         Loading products...
+  //       </p>
+  //     </>
+  //   );
+  // }
+
+  // if (error) {
+  //   return (
+  //     <>
+  //       <p style={{ textAlign: "center", marginTop: 100, color: "red" }}>
+  //         {error}
+  //       </p>
+  //     </>
+  //   );
+  // }
+
   if (loading) {
     return (
-      <>
-        <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
-          Loading products...
-        </p>
-      </>
+      <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
+        Loading products...
+      </p>
     );
   }
 
   if (error) {
     return (
-      <>
-        <p style={{ textAlign: "center", marginTop: 100, color: "red" }}>
-          {error}
-        </p>
-      </>
+      <p style={{ textAlign: "center", marginTop: 100, color: "red" }}>
+        {error}
+      </p>
     );
   }
-
   return (
     <>
-      <style>{`
-  .page-wrapper {
-    padding-top: 35px;
-  }
+<style>{`
+/* ================= PAGE LAYOUT ================= */
+.page-wrapper {
+  padding-top: 35px;
+}
 
-  .products-page {
-    max-width: 1800px;
-    margin: auto;
-    padding: clamp(16px, 4vw, 60px);
-    min-height: 100vh;
-  }
+.products-page {
+  max-width: 1800px;
+  margin: auto;
+  padding: clamp(16px, 4vw, 60px);
+  min-height: 100vh;
+}
 
-  .page-title {
+/* ================= TITLE ================= */
+.page-title {
   text-align: center;
   font-family: 'Jersey 25', cursive;
   font-size: clamp(32px, 6vw, 72px);
@@ -113,21 +182,22 @@ export default function Products() {
   margin: 24px 0 40px;
   color: black;
   -webkit-text-stroke: 2px #ffeb00;
-  }
+}
 
-  .section {
-    margin-bottom: 64px;
-  }
+/* ================= SECTION ================= */
+.section {
+  margin-bottom: 64px;
+}
 
-  .section-title {
-    color: #ffffff;
-    font-size: clamp(18px, 2.2vw, 24px);
-    margin-bottom: 20px;
-    padding-left: 180px;
-    max-width: 1401px;
-  }
+.section-title {
+  color: #ffffff;
+  font-size: clamp(18px, 2.2vw, 24px);
+  margin-bottom: 20px;
+  padding-left: 180px;
+  max-width: 1401px;
+}
 
-  /* ================= PRODUCT GRID ================= */
+/* ================= PRODUCT GRID ================= */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, 291.51px);
@@ -146,14 +216,14 @@ export default function Products() {
   border: 1.34px solid #ffeb00;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   border-radius: 20px;
   overflow: hidden;
+  transition: box-shadow 0.3s ease;
 }
 
 .product-card:hover {
-box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 }
 
 /* ================= DISCOUNT BADGE ================= */
@@ -222,7 +292,6 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 
 /* ================= IMAGE ================= */
 .product-image-container {
-  position: relative;
   width: 100%;
   height: 360px;
   overflow: hidden;
@@ -243,7 +312,6 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 .product-title {
   font-size: 14px;
   font-weight: 800;
-  line-height: 1.3;
   color: #ffffff;
   padding: 12px 12px 0;
 }
@@ -262,7 +330,6 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
   padding: 3px 6px;
   border-radius: 4px;
   color: #ffeb00;
-  white-space: nowrap;
 }
 
 /* ================= RATING ================= */
@@ -295,17 +362,7 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
   font-size: 20px;
   color: #4caf50;
   font-weight: 800;
-  line-height: 1.2;
 }
-
-.discount-text {
-  display: inline-block;
-  margin-left: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #4caf50;
-}
-
 
 /* ================= ACTION BUTTONS ================= */
 .action-buttons {
@@ -315,58 +372,91 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
   margin-top: auto;
 }
 
-/* Link wrapper */
 .action-link {
   flex: 1;
   display: flex;
   text-decoration: none;
 }
 
-/* Buttons */
 .add-to-cart-btn,
 .buy-btn {
   width: 100%;
   height: 48px;
   font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  cursor: pointer;
   font-family: "Jersey 25", cursive;
   font-weight: 800;
-  transition: background 0.25s ease, color 0.25s ease, border 0.25s ease;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 
-/* Add to cart */
 .add-to-cart-btn {
   background: transparent;
-  color: #ffffff;
+  color: #fff;
   border: 2px solid #ffeb00;
-  border-radius: 8px;
 }
 
-/* Buy now */
-.buy-btn {
-  background: #ffeb00;
-  color: #000;
-  border: 2px solid #ffeb00;
-  border-radius: 8px;
-}
-
-/* Add to Cart hover (outline → filled) */
 .add-to-cart-btn:hover {
   background: #ffeb00;
   color: #000;
 }
 
-/* Buy Now hover (slightly brighter) */
-.buy-btn:hover {
-  background: gold;
+.buy-btn {
+  background: #ffeb00;
   color: #000;
+  border: 2px solid #ffeb00;
 }
 
-/* ================= MOBILE FIX ================= */
+.buy-btn:hover {
+  background: gold;
+}
+
+/* ================= SEE MORE ================= */
+.see-more {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  max-width: 1401px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-right: 8px;
+}
+
+.see-more a {
+  text-decoration: none;
+}
+
+.see-more button {
+  background: transparent;
+  color: #ffeb00;
+  border: 2px solid #ffeb00;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: "Jersey 25", cursive;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+}
+
+.see-more button:hover {
+  background: #ffeb00;
+  color: #000;
+  transform: translateX(4px);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1024px) {
+  .section-title {
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .see-more {
+    justify-content: center;
+  }
+}
+
 @media (max-width: 480px) {
   .product-card {
     width: 100%;
@@ -380,47 +470,14 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
     max-height: 34px;
     overflow: hidden;
   }
-}
-
-  .see-more {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-    max-width: 1401px;
-  }
 
   .see-more button {
-    background-color: #ffeb00;
-    border: none;
-    padding: 10px 20px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  /* ================= MOBILE & TABLET FIXS ================= */
-@media (max-width: 1024px) {
-  .section-title {
-    padding-left: 0;
-    text-align: center;
-  }
-
-  .see-more {
-    justify-content: center;
+    padding: 10px 26px;
+    font-size: 13px;
   }
 }
 
-@media (max-width: 480px) {
-  .section-title {
-    font-size: 18px;
-    margin-bottom: 16px;
-  }
-
-  .see-more button {
-    width: auto;
-    padding: 10px 24px;
-  }
-}
-  /* ================= MODAL ================= */
+/* ================= MODAL ================= */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -465,7 +522,6 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
   height: 48px;
 }
 
-/* Animation */
 @keyframes popIn {
   from {
     transform: scale(0.85);
@@ -476,8 +532,6 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
     opacity: 1;
   }
 }
-
-
 `}</style>
 
       <div className="page-wrapper">
@@ -486,6 +540,7 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
 
           {Object.keys(productsByCategory).map((categoryName) => (
             <div className="section" key={categoryName}>
+           
               <h2 className="section-title">{categoryName}</h2>
 
               <div className="product-grid">
@@ -500,10 +555,11 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                         : ""}
                     </div>
 
+                    {/* ❤️ WISHLIST */}
                     <button
-                      className={`favorite-btn ${favorites[product._id] ? "active" : ""
+                      className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
                         }`}
-                      onClick={() => toggleFavorite(product._id)}
+                      onClick={() => toggleWishlist(product._id)}
                     >
                       <Heart />
                     </button>
@@ -529,9 +585,7 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                       {"★".repeat(Math.round(product.rating || 0))}
                       {"☆".repeat(5 - Math.round(product.rating || 0))}
                     </div>
-
                     <div className="reviews">({product.numReviews || 0})</div>
-
                     {product.originalPrice && (
                       <div className="price-box">
                         <span className="old-price">
@@ -539,34 +593,14 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                         </span>
                       </div>
                     )}
-
                     <div className="price">₹{product.price}</div>
 
-                    {/* <div className="action-buttons">
-                      <Link to="/cart" className="action-link">
-                        <button className="add-to-cart-btn">
-                          🛒&nbsp; Add to Cart
-                        </button>
-                      </Link>
-                      <Link
-                        to={`/productspec/${product._id}`}
-                        className="action-link"
-                      >
-                        <button className="buy-btn">BUY NOW</button>
-                      </Link>
-                    </div> */}
                     <div className="action-buttons">
                       <button
                         className="add-to-cart-btn"
-                        onClick={() => {
-                          if (!isLoggedIn) {
-                            setShowLoginModal(true);
-                          } else {
-                            navigate("/cart");
-                          }
-                        }}
+                        onClick={() => navigate("/cart")}
                       >
-                        🛒&nbsp; Add to Cart
+                        🛒 Add to Cart
                       </button>
 
                       <Link
@@ -576,11 +610,10 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
                         <button className="buy-btn">BUY NOW</button>
                       </Link>
                     </div>
-
                   </div>
                 ))}
               </div>
-
+                 {/* SEE MORE */}
               <div className="see-more">
                 <Link to={`/seemore?category=${categoryName}`}>
                   <button>SEE MORE →</button>
@@ -591,14 +624,15 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
         </div>
       </div>
 
+      {/* 🔐 LOGIN MODAL */}
       {showLoginModal && (
         <div className="modal-overlay">
           <div className="login-modal">
             <h2>Login Required</h2>
-            <p>Please login to add items to your cart.</p>
+            <p>Please login to continue.</p>
 
             <div className="modal-actions">
-              <Link to ="/login" className="action-link">
+              <Link to="/login" className="action-link">
                 <button className="buy-btn">LOGIN</button>
               </Link>
 
@@ -612,7 +646,6 @@ box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
           </div>
         </div>
       )}
-
 
       <Footer />
     </>

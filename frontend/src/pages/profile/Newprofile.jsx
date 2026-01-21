@@ -1,8 +1,95 @@
-import React, { useState } from 'react';
-import { User, Package, Heart, Settings, Edit, Search, UserCircle, ShoppingCart, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Package, Heart, Settings, Edit, Search, UserCircle, ShoppingCart, Camera, Eye, EyeOff } from 'lucide-react';
+import api from "../../api/axios";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+
+
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    address: ""
+  });
+
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/auth/profile");
+        setUser(res.data);
+        setFormData({
+          name: res.data.name || "",
+          phone: res.data.phone || "",
+          address: res.data.address || ""
+        });
+      } catch (error) {
+        toast.error("Please login to continue");
+        navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  //fetching orders
+  const fetchMyOrders = async () => {
+    try {
+      setOrdersLoading(true);
+      const res = await api.get("/api/orders/my-orders");
+      setOrders(res.data);   // assuming backend returns array
+    } catch (error) {
+      toast.error("Failed to load orders");
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const fetchWishlist = async () => {
+    try {
+      setWishlistLoading(true);
+      const res = await api.get("/api/wishlist");
+      setWishlist(res.data.wishlist);   // assuming backend returns wishlist array
+    } catch (error) {
+      toast.error("Failed to load wishlist");
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+
+
+
+  if (loading) {
+    return <div style={{ color: "white", textAlign: "center", marginTop: "5rem" }}>
+      Loading profile...
+    </div>;
+  }
+
+  if (!user) return null;
+
+
 
   return (
     <>
@@ -348,7 +435,6 @@ export default function ProfilePage() {
         .form-group {
           display: flex;
           flex-direction: column;
-          // max-width:400px
         }
 
         .form-group.full-width {
@@ -369,7 +455,12 @@ export default function ProfilePage() {
           padding: 0.75rem 1rem;
           color: #d1d5db;
           font-size: 1rem;
-          transition: border-color 0.2s;
+          transition: all 0.2s;
+        }
+
+        .form-input.dim {
+          opacity: 0.4;
+          pointer-events: none;
         }
 
         .form-input:focus {
@@ -391,7 +482,12 @@ export default function ProfilePage() {
           font-size: 1rem;
           resize: none;
           font-family: inherit;
-          transition: border-color 0.2s;
+          transition: all 0.2s;
+        }
+
+        .form-textarea.dim {
+          opacity: 0.4;
+          pointer-events: none;
         }
 
         .form-textarea:focus {
@@ -750,8 +846,6 @@ export default function ProfilePage() {
       `}</style>
 
       <div className="container">
-        
-
         {/* Main Content */}
         <main className="main-content">
           {/* Profile Header */}
@@ -766,18 +860,55 @@ export default function ProfilePage() {
                     <Camera className="camera-icon" />
                   </button>
                 </div>
-                
+
                 <div className="profile-details">
-                  <h1 className="profile-name">John Doe</h1>
-                  <p className="profile-email">john.doe@example.com</p>
-                  <p className="profile-member">Member since January 2024</p>
+                  <h1 className="profile-name">{user.name}</h1>
+                  <p className="profile-email">{user.email}</p>
+                  {user.address && (
+                    <p className="profile-email">{user.address}</p>
+                  )}
+                  <p className="profile-member">
+                    Member since {new Date(user.createdAt).toLocaleDateString()}
+                  </p>
+
                 </div>
               </div>
 
-              <button className="edit-btn">
+              {/* <button className="edit-btn" onClick={() => setIsEditing(!isEditing)}>
                 <Edit size={18} />
-                Edit Profile
+                {isEditing ? 'Save Profile' : 'Edit Profile'}
+              </button> */}
+              <button
+                className="edit-btn"
+                onClick={async () => {
+                  if (isEditing) {
+                    // SAVE PROFILE
+                    try {
+                      const res = await api.put("/api/auth/update-profile", formData);
+
+                      toast.success("Profile updated successfully");
+
+                      setUser(res.data.user);
+                      setFormData({
+                        name: res.data.user.name || "",
+                        phone: res.data.user.phone || "",
+                        address: res.data.user.address || "",
+                      });
+                      setIsEditing(false);
+
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || "Failed to update profile");
+                    }
+                  } else {
+                    // ENTER EDIT MODE
+                    setIsEditing(true);
+                  }
+                }}
+              >
+                <Edit size={18} />
+                {isEditing ? 'Save Profile' : 'Edit Profile'}
               </button>
+
             </div>
           </div>
 
@@ -791,24 +922,40 @@ export default function ProfilePage() {
               <span className="tab-text-full">Profile Info</span>
               <span className="tab-text-short">Profile</span>
             </button>
-            
-            <button
+
+            {/* <button
               onClick={() => setActiveTab('orders')}
               className={`tab-btn ${activeTab === 'orders' ? 'active' : 'inactive'}`}
+            > */}
+            <button
+              onClick={() => {
+                setActiveTab('orders');
+                fetchMyOrders();
+              }}
+              className={`tab-btn ${activeTab === 'orders' ? 'active' : 'inactive'}`}
             >
+
               <Package size={18} />
               <span className="tab-text-full">My Orders</span>
               <span className="tab-text-short">Orders</span>
             </button>
-            
-            <button
+
+            {/* <button
               onClick={() => setActiveTab('wishlist')}
               className={`tab-btn ${activeTab === 'wishlist' ? 'active' : 'inactive'}`}
+            > */}
+            <button
+              onClick={() => {
+                setActiveTab('wishlist');
+                fetchWishlist();
+              }}
+              className={`tab-btn ${activeTab === 'wishlist' ? 'active' : 'inactive'}`}
             >
+
               <Heart size={18} />
               Wishlist
             </button>
-            
+
             <button
               onClick={() => setActiveTab('settings')}
               className={`tab-btn ${activeTab === 'settings' ? 'active' : 'inactive'}`}
@@ -822,260 +969,498 @@ export default function ProfilePage() {
           {activeTab === 'profile' && (
             <div className="form-section">
               <h2 className="form-title">Personal Information</h2>
-              
+
               <div className="form-grid">
                 <div className="form-group">
                   <label className="form-label">Full Name</label>
                   <input
                     type="text"
-                    defaultValue="John Doe"
-                    className="form-input"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter your name"
+                    className={`form-input ${!isEditing ? 'dim' : ''}`}
+                    disabled={!isEditing}
+
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
                   <input
                     type="email"
-                    defaultValue="john.doe@example.com"
-                    className="form-input"
+                    value={user.email}
+                    placeholder="Enter your Email"
+                    className={`form-input ${!isEditing ? 'dim' : ''}`}
+                    disabled
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">Phone Number</label>
                   <input
                     type="tel"
-                    defaultValue="+1 (555) 123-4567"
-                    className="form-input"
+                    value={formData.phone || ""}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder=""
+                    className={`form-input ${!isEditing ? 'dim' : ''}`}
+                    disabled={!isEditing}
+
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">Member Since</label>
                   <input
                     type="text"
-                    defaultValue="January 2024"
+                    value={new Date(user.createdAt).toLocaleDateString()}
+                    placeholder=""
                     disabled
-                    className="form-input"
+                    className={`form-input ${!isEditing ? 'dim' : ''}`}
                   />
                 </div>
-                
+
                 <div className="form-group full-width">
                   <label className="form-label">Shipping Address</label>
                   <textarea
                     rows="3"
-                    defaultValue="123 Fitness Street, Gym City, GY 12345"
-                    className="form-textarea"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="Update your address"
+                    className={`form-textarea ${!isEditing ? 'dim' : ''}`}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
             </div>
           )}
 
+
           {activeTab === 'orders' && (
-  <div className="form-section">
-    <h2 className="form-title">Order History</h2>
-    
-    <div className="order-list">
-      {/* Order 1 */}
-      <div className="order-card">
-        <div className="order-content">
-          <img 
-            src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=100&h=100&fit=crop" 
-            alt="Product" 
-            className="order-image"
-          />
-          
-          <div className="order-details">
-            <h3 className="order-id">#ORD-2024-001</h3>
-            <p className="order-date">Dec 28, 2024</p>
-            <p className="order-items">2 items</p>
-          </div>
-        </div>
-        
-        <div className="order-actions">
-          <span className="status-badge delivered">Delivered</span>
-          <button className="view-details-btn">View Details</button>
-          <p className="order-price">₹2000</p>
-        </div>
-      </div>
+            <div className="form-section">
+              <h2 className="form-title">Order History</h2>
 
-      {/* Order 2 */}
-      <div className="order-card">
-        <div className="order-content">
-          <img 
-            src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=100&h=100&fit=crop" 
-            alt="Product" 
-            className="order-image"
-          />
-          
-          <div className="order-details">
-            <h3 className="order-id">#ORD-2024-002</h3>
-            <p className="order-date">Dec 25, 2024</p>
-            <p className="order-items">1 item</p>
-          </div>
-        </div>
-        
-        <div className="order-actions">
-          <span className="status-badge transit">In Transit</span>
-          <button className="view-details-btn">View Details</button>
-          <p className="order-price">₹2400</p>
-        </div>
-      </div>
+              {ordersLoading ? (
+                <p className="empty-state">Loading orders...</p>
+              ) : orders.length === 0 ? (
+                <p className="empty-state">You have no orders.</p>
+              ) : (
+                <div className="order-list">
+                  {orders.map((order) => (
+                    <div className="order-card" key={order._id}>
+                      <div className="order-content">
+                        <img
+                          src={order.items[0]?.product?.image}
+                          alt="Product"
+                          className="order-image"
+                        />
 
-      {/* Order 3 */}
-      <div className="order-card">
-        <div className="order-content">
-          <img 
-            src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=100&h=100&fit=crop" 
-            alt="Product" 
-            className="order-image"
-          />
-          
-          <div className="order-details">
-            <h3 className="order-id">#ORD-2024-003</h3>
-            <p className="order-date">Dec 20, 2024</p>
-            <p className="order-items">3 items</p>
-          </div>
-        </div>
-        
-        <div className="order-actions">
-          <span className="status-badge delivered">Delivered</span>
-          <button className="view-details-btn">View Details</button>
-          <p className="order-price">₹1800</p>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+                        <div className="order-details">
+                          <h3 className="order-id">#{order._id}</h3>
+                          <p className="order-date">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                          <p className="order-items">{order.items.length} items</p>
+                        </div>
+                      </div>
+
+                      <div className="order-actions">
+                        <span className={`status-badge ${order.status === "Delivered" ? "delivered" : "transit"}`}>
+                          {order.status}
+                        </span>
+                        <button className="view-details-btn">View Details</button>
+                        <p className="order-price">₹{order.totalPrice}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+
 
           {activeTab === 'wishlist' && (
-  <div className="form-section">
-    <h2 className="form-title">My Wishlist</h2>
-    
-    <div className="wishlist-grid">
-      {/* Product 1 */}
-      <div className="wishlist-card">
-        <div className="wishlist-image-container">
-          <img 
-            src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=400&h=300&fit=crop" 
-            alt="Product" 
-            className="wishlist-image"
-          />
-        </div>
-        
-        <div className="wishlist-content">
-          <h3 className="wishlist-product-name">PROTEIN WAFERS - VARIETY PACK</h3>
-          <p className="wishlist-price">₹2000</p>
-          
-          <div className="wishlist-actions">
-            <button className="add-to-cart-btn">Add to Cart</button>
-            <button className="remove-btn">×</button>
-          </div>
-        </div>
-      </div>
+            <div className="form-section">
+              <h2 className="form-title">My Wishlist</h2>
 
-      {/* Product 2 */}
-      <div className="wishlist-card">
-        <div className="wishlist-image-container">
-          <img 
-            src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop" 
-            alt="Product" 
-            className="wishlist-image"
-          />
-        </div>
-        
-        <div className="wishlist-content">
-          <h3 className="wishlist-product-name">PEANUT BUTTER - CRUNCHY</h3>
-          <p className="wishlist-price">₹2400</p>
-          
-          <div className="wishlist-actions">
-            <button className="add-to-cart-btn">Add to Cart</button>
-            <button className="remove-btn">×</button>
-          </div>
-        </div>
-      </div>
+              {wishlistLoading ? (
+                <p className="empty-state">Loading wishlist...</p>
+              ) : wishlist.length === 0 ? (
+                <p className="empty-state">Your wishlist is empty.</p>
+              ) : (
+                <div className="wishlist-grid">
+                  {wishlist.map((item) => (
+                    <div className="wishlist-card" key={item._id}>
+                      <div className="wishlist-image-container">
+                        <img
+                          src={item.images?.[0]?.url}
+                          alt={item.name}
+                          className="wishlist-image"
+                        />
+                      </div>
 
-      {/* Product 3 */}
-      <div className="wishlist-card">
-        <div className="wishlist-image-container">
-          <img 
-            src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=400&h=300&fit=crop" 
-            alt="Product" 
-            className="wishlist-image"
-          />
-        </div>
-        
-        <div className="wishlist-content">
-          <h3 className="wishlist-product-name">CRISPY WAFERS - CHOCOLATE</h3>
-          <p className="wishlist-price">₹1800</p>
-          
-          <div className="wishlist-actions">
-            <button className="add-to-cart-btn-disabled" disabled>Out of Stock</button>
-            <button className="remove-btn">×</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+                      <div className="wishlist-content">
+                        <h3 className="wishlist-product-name">{item.name}</h3>
+                        <p className="wishlist-price">₹{item.price}</p>
 
-         {activeTab === 'settings' && (
-  <div className="form-section">
-    <h2 className="form-title">Account Settings</h2>
-    
-    <div className="settings-container">
-      {/* Change Password Section */}
-      <div className="settings-card">
-        <h3 className="settings-section-title">Change Password</h3>
-        <p className="settings-description">Update your password to keep your account secure</p>
-        <button className="update-password-btn">Update Password</button>
-      </div>
+                        <div className="wishlist-actions">
+                          {item.countInStock > 0 ? (
+                            <button className="add-to-cart-btn">
+                              Add to Cart
+                            </button>
+                          ) : (
+                            <button className="add-to-cart-btn-disabled" disabled>
+                              Out of Stock
+                            </button>
+                          )}
 
-      {/* Email Notifications Section */}
-      <div className="settings-card">
-        <h3 className="settings-section-title">Email Notifications</h3>
-        
-        <div className="notification-options">
-          <label className="notification-item">
-            <input type="checkbox" defaultChecked className="notification-checkbox" />
-            <span className="notification-label">Order updates</span>
-          </label>
-          
-          <label className="notification-item">
-            <input type="checkbox" defaultChecked className="notification-checkbox" />
-            <span className="notification-label">Promotional emails</span>
-          </label>
-          
-          <label className="notification-item">
-            <input type="checkbox" className="notification-checkbox" />
-            <span className="notification-label">Newsletter</span>
-          </label>
-        </div>
-      </div>
+                          <button
+                            className="remove-btn"
+                            onClick={async () => {
+                              try {
+                                await api.delete(`/api/wishlist/${item._id}`);
+                                toast.success("Removed from wishlist");
+                                fetchWishlist(); // refresh list
+                              } catch {
+                                toast.error("Failed to remove item");
+                              }
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-      {/* Delete Account Section */}
-      <div className="settings-card-danger">
-        <h3 className="settings-section-title-danger">Delete Account</h3>
-        <p className="settings-description">Permanently delete your account and all associated data</p>
-        <button className="delete-account-btn">Delete Account</button>
-      </div>
 
-      {/* Log Out */}
-      <button className="logout-btn">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-    <polyline points="16 17 21 12 16 7"></polyline>
-    <line x1="21" y1="12" x2="9" y2="12"></line>
-  </svg>
-  Log Out
-</button>
-    </div>
-  </div>
-)}
+
+
+          {activeTab === 'settings' && (
+            <div className="form-section">
+              <h2 className="form-title">Account Settings</h2>
+
+              <div className="settings-container">
+                {/* Change Password Section */}
+                <div className="settings-card">
+                  <h3 className="settings-section-title">Change Password</h3>
+                  <p className="settings-description">Update your password to keep your account secure</p>
+                  {/* <button className="update-password-btn">Update Password</button> */}
+                  <button
+                    className="update-password-btn"
+                    // onClick={() => setShowPasswordModal(true)}
+                    onClick={() => {
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setShowCurrentPassword(false);
+                      setShowNewPassword(false);
+                      setShowPasswordModal(true);
+                    }}
+                  >
+                    Update Password
+                  </button>
+
+                </div>
+
+                {/* Email Notifications Section */}
+                {/* <div className="settings-card">
+                  <h3 className="settings-section-title">Email Notifications</h3>
+
+                  <div className="notification-options">
+                    <label className="notification-item">
+                      <input type="checkbox" defaultChecked className="notification-checkbox" />
+                      <span className="notification-label">Order updates</span>
+                    </label>
+
+                    <label className="notification-item">
+                      <input type="checkbox" defaultChecked className="notification-checkbox" />
+                      <span className="notification-label">Promotional emails</span>
+                    </label>
+
+                    <label className="notification-item">
+                      <input type="checkbox" className="notification-checkbox" />
+                      <span className="notification-label">Newsletter</span>
+                    </label>
+                  </div>
+                </div> */}
+
+                {/* Delete Account Section */}
+                <div className="settings-card-danger">
+                  <h3 className="settings-section-title-danger">Delete Account</h3>
+                  <p className="settings-description">Permanently delete your account and all associated data</p>
+                  {/* <button className="delete-account-btn">Delete Account</button> */}
+                  <button
+                    className="delete-account-btn"
+                    onClick={() => setShowDeleteModal(true)}
+                  >
+                    Delete Account
+                  </button>
+
+
+                </div>
+                {/* Log Out */}
+                <button
+                  className="logout-btn"
+                  onClick={async () => {
+                    try {
+                      await api.post("/api/auth/logout"); // backend clears cookie
+                      toast.success("Logged out successfully");
+                      navigate("/");
+                    } catch {
+                      toast.error("Logout failed");
+                    }
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  Log Out
+                </button>
+
+              </div>
+            </div>
+          )}
         </main>
       </div>
+
+      {showPasswordModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: "#3e3e44",
+            padding: "2rem",
+            borderRadius: "8px",
+            width: "350px",
+            border: "2px solid #facc15"
+          }}>
+            <h3 style={{ color: "white", marginBottom: "1rem" }}>Update Password</h3>
+
+            {/* <input
+              type="password"
+              placeholder="Current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="form-input"
+              style={{ marginBottom: "1rem" }}
+            /> */}
+            <div style={{ position: "relative", marginBottom: "1rem" }}>
+              <input
+                type={showCurrentPassword ? "text" : "password"}
+                placeholder="Current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="form-input"
+                style={{ paddingRight: "40px" }}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#facc15",
+                  fontSize: "1.1rem"
+                }}
+              >
+                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+
+            {/* <input
+              type="password"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="form-input"
+              style={{ marginBottom: "1rem" }}
+            /> */}
+            <div style={{ position: "relative", marginBottom: "1rem" }}>
+              <input
+                type={showNewPassword ? "text" : "password"}
+                placeholder="New password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="form-input"
+                style={{ paddingRight: "40px" }}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#facc15",
+                  fontSize: "1.1rem"
+                }}
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            <div style={{ position: "relative", marginBottom: "1rem" }}>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="form-input"
+                style={{ paddingRight: "40px" }}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#facc15",
+                  fontSize: "1.1rem"
+                }}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+
+
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <button
+                type="button"
+                className="update-password-btn"
+                onClick={async () => {
+                  if (newPassword !== confirmPassword) {
+                    toast.error("New password and confirm password do not match");
+                    return;
+                  }
+
+                  try {
+                    await api.put("/api/auth/update-password", {
+                      currentPassword,
+                      newPassword,
+                    });
+
+                    toast.success("Password updated successfully");
+                    setShowPasswordModal(false);
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setShowCurrentPassword(false);
+                    setShowNewPassword(false);
+                    setShowConfirmPassword(false);
+                  } catch (err) {
+                    toast.error(err.response?.data?.message || "Failed to update password");
+                  }
+                }}
+              >
+                Save
+              </button>
+
+
+              <button
+                type="button"
+                className="delete-account-btn"
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setShowCurrentPassword(false);
+                  setShowNewPassword(false);
+                  setShowConfirmPassword(false);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }}
+              >
+                Cancel
+              </button>
+
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.7)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: "#3e3e44",
+            padding: "2rem",
+            borderRadius: "10px",
+            width: "380px",
+            border: "2px solid #dc2626"
+          }}>
+            <h3 style={{ color: "#dc2626", marginBottom: "0.75rem" }}>
+              Delete Account
+            </h3>
+
+            <p style={{ color: "#d1d5db", marginBottom: "1.5rem", fontSize: "0.95rem" }}>
+              Are you sure you want to permanently delete your account?
+              This action <b>cannot be undone</b>.
+            </p>
+
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+              <button
+                className="update-password-btn"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="delete-account-btn"
+                onClick={async () => {
+                  try {
+                    await api.delete("/api/auth/delete-me");
+                    toast.success("Account deleted successfully");
+                    navigate("/signup"); // or home
+                  } catch {
+                    toast.error("Failed to delete account");
+                  }
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -7,7 +7,7 @@ import {
   verifyOTP, forgotPassword,
   resetPassword, sendPhoneOTP,
   verifyPhoneOTP,googleLogin,
-  registerAdmin,logoutUser,getCustomerProfile
+  registerAdmin,logoutUser,getCustomerProfile,updatePassword,deleteMe,updateCustomerProfile
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -24,6 +24,11 @@ router.post("/phone/verify-otp", verifyPhoneOTP);
 router.post("/google-login", googleLogin);
 router.post("/logout", protect, logoutUser);
 router.get("/profile", protect, getCustomerProfile);
+router.put("/update-password", protect, updatePassword);
+router.delete("/delete-me", protect, deleteMe);
+router.put("/update-profile", protect, updateCustomerProfile);
+
+
 
 
 export default router;

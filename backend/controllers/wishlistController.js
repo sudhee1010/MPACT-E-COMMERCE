@@ -51,7 +51,6 @@ export const getWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate(
       "wishlist",
-      "name price images"
     );
 
     return res.status(200).json({
