@@ -23,6 +23,7 @@ import blogRoutes from "./routes/blogRoutes.js";
 import blogCategoryRoutes from "./routes/blogCategoryRoutes.js";
 import cookieParser from "cookie-parser";
 import aboutusRoutes from "./routes/aboutusRoutes.js"
+import addressRoutes from "./routes/addressRoutes.js";
 
 
 dotenv.config();
@@ -66,6 +67,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/blog-categories", blogCategoryRoutes);
 app.use("/api/aboutus", aboutusRoutes);
+app.use("/api/address", addressRoutes);
 
 const PORT = process.env.PORT || 5000;
 
