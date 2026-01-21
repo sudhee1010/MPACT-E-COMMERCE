@@ -277,9 +277,9 @@ export default function Navbar() {
 
         {/* RIGHT ICONS */}
         <div className="nav-icons">
-          <Link to="/seeMore">
+          {/* <Link to="/seeMore">
             <img src="/icons/search.png" alt="Search" />
-          </Link>
+          </Link> */}
 
 
           <Link to="/signup">
@@ -293,10 +293,18 @@ export default function Navbar() {
             onClick={() => setCartOpen(true)}
           /> */}
 
-          <div
+          {/* <div
             style={{ position: "relative", cursor: "pointer" }}
             onClick={() => setOpenSideCart(true)}
-          >
+          > */}
+          <div
+  style={{ position: "relative", cursor: "pointer" }}
+  onClick={() => {
+    if (user) setOpenSideCart(true);
+    else setShowLoginModal(true);
+  }}
+>
+
             <ShoppingCart
               size={22}
               color="black"     // 🔥 GUARANTEED BLACK
@@ -343,7 +351,9 @@ export default function Navbar() {
 
       {/* ================= SIDE CART ================= */}
       {/* <SideCart open={cartOpen} onClose={() => setCartOpen(false)} /> */}
-      <SideCart />
+      {/* <SideCart /> */}
+      {user && <SideCart />}
+
 
       {/* ================= LOGIN REQUIRED MODAL ================= */}
       {showLoginModal && (

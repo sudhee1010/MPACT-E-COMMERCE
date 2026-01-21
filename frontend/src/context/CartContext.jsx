@@ -21,25 +21,57 @@ export const CartProvider = ({ children }) => {
 //     }
 //   };
 
+// const refreshCart = async () => {
+//   try {
+//     const res = await getCartApi();
+//     setCartItems(res.data.items || []);
+//   } catch (err) {
+//     // silently fail if not logged in
+//     console.log("Refresh cart error", err?.response?.data?.message || err.message);
+//   }
+// };
+
 const refreshCart = async () => {
+  if (!user) return;   // 🔥 STOP UNAUTHORIZED CALL
   try {
     const res = await getCartApi();
     setCartItems(res.data.items || []);
   } catch (err) {
-    // silently fail if not logged in
-    console.log("Refresh cart error", err?.response?.data?.message || err.message);
+    if (err.response?.status !== 401) {
+      console.log("Refresh cart error", err.message);
+    }
   }
 };
 
 
+
+
   // 🔥 Auto load cart when user logs in or page refreshes
+// useEffect(() => {
+//   if (user) {
+//     refreshCart();
+//   } else {
+//     setCartItems([]); // clear cart on logout
+//      setOpenSideCart(false);
+//   }
+// }, [user]);
+
 useEffect(() => {
-  if (user) {
-    refreshCart();
+  if (!user) {
+    setCartItems([]);
+    setOpenSideCart(false);   // 🔥 FORCE CLOSE SIDECART ON LOGOUT
   } else {
-    setCartItems([]); // clear cart on logout
+    refreshCart();
   }
 }, [user]);
+
+
+useEffect(() => {
+  console.log("USER:", user);
+  console.log("CART:", cartItems);
+}, [user, cartItems]);
+
+
 
 
   // Cart count

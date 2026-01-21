@@ -7,6 +7,7 @@ import api from "../api/axios";
 import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
+import { Link } from "react-router-dom";
 
 
 
@@ -39,6 +40,11 @@ export default function ProductPage() {
 
   const [searchParams] = useSearchParams();
   const categoryName = decodeURIComponent(searchParams.get("category"));
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { refreshCart, setOpenSideCart } = useCart();
+  const requireLogin = () => {
+    setShowLoginModal(true);
+  };
 
 
 
@@ -204,6 +210,24 @@ export default function ProductPage() {
       });
   }, [])
 
+  // const toggleWishlist = async (productId) => {
+  //   try {
+  //     await api.post("/api/wishlist/toggle", { productId });
+
+  //     setWishlistIds((prev) => {
+  //       const updated = new Set(prev);
+  //       updated.has(productId)
+  //         ? updated.delete(productId)
+  //         : updated.add(productId);
+  //       return updated;
+  //     });
+  //   } catch (err) {
+  //     alert("Please login");
+  //   }
+  // };
+
+
+
   const toggleWishlist = async (productId) => {
     try {
       await api.post("/api/wishlist/toggle", { productId });
@@ -216,9 +240,32 @@ export default function ProductPage() {
         return updated;
       });
     } catch (err) {
-      alert("Please login");
+      if (err.response?.status === 401) {
+        requireLogin();
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
+
+
+
+
+  // const moveToCart = async (productId) => {
+  //   try {
+  //     await api.post("/api/wishlist/move-to-cart", { productId });
+
+  //     setWishlistIds((prev) => {
+  //       const updated = new Set(prev);
+  //       updated.delete(productId);
+  //       return updated;
+  //     });
+  //   } catch (err) {
+  //     if (err.response?.status === 401) {
+  //       alert("Please login to move items to cart");
+  //     }
+  //   }
+  // };
 
 
   const moveToCart = async (productId) => {
@@ -232,12 +279,10 @@ export default function ProductPage() {
       });
     } catch (err) {
       if (err.response?.status === 401) {
-        alert("Please login to move items to cart");
+        requireLogin();
       }
     }
   };
-
-
 
 
 
@@ -517,6 +562,32 @@ export default function ProductPage() {
             ))}
           </div> */}
 
+
+
+          {showLoginModal && (
+            <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
+              <div className="login-modal" onClick={(e) => e.stopPropagation()}>
+                <h2>Login Required</h2>
+                <p>Please login to continue.</p>
+
+                <div className="modal-actions">
+                  <Link to="/login" style={{ flex: 1 }}>
+                    <button className="login-btn">LOGIN</button>
+                  </Link>
+
+                  <button
+                    className="cancel-btn"
+                    onClick={() => setShowLoginModal(false)}
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+
+
           {loading ? (
             <p style={{ textAlign: "center", marginTop: 100 }}>
               Loading products...
@@ -529,6 +600,7 @@ export default function ProductPage() {
                   product={p}
                   wishlistIds={wishlistIds}
                   toggleWishlist={toggleWishlist}
+                  requireLogin={requireLogin}
                 />
 
               ))}
@@ -1070,6 +1142,122 @@ export default function ProductPage() {
           color: #000;
         }
 
+/* ================= MODAL (IMAGE MATCH STYLE) ================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+/* Main modal box */
+.login-modal {
+  background: radial-gradient(circle at top, #1c1c1c, #0f0f0f);
+  border: 3px solid #ffeb00;
+  border-radius: 22px;
+  padding: 34px 36px;
+  width: 100%;
+  max-width: 620px;   /* wider like screenshot */
+  text-align: center;
+  box-shadow: 0 0 30px rgba(255, 235, 0, 0.3);
+  animation: popIn 0.25s ease-out;
+}
+
+/* Title */
+.login-modal h2 {
+  color: #ffeb00;
+  font-family: "Jersey 25", cursive;
+  font-size: clamp(26px, 4vw, 36px);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+/* Subtitle */
+.login-modal p {
+  color: #ffffff;
+  font-size: 15px;
+  margin-bottom: 28px;
+  opacity: 0.95;
+}
+
+/* Button row */
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* Buttons base */
+.modal-actions button {
+  flex: 1;
+  height: 54px;
+  border-radius: 10px;
+  font-family: "Jersey 25", cursive;
+  font-size: 16px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* LOGIN button (yellow filled) */
+.modal-actions .login-btn {
+  background: #ffeb00;
+  color: #000;
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 235, 0, 0.4);
+}
+
+.modal-actions .login-btn:hover {
+  background: #ffd700;
+  transform: translateY(-2px);
+}
+
+/* CANCEL button (outlined) */
+.modal-actions .cancel-btn {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #ffeb00;
+}
+
+.modal-actions .cancel-btn:hover {
+  background: rgba(255, 235, 0, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-modal {
+    padding: 26px 20px;
+    border-radius: 18px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    height: 48px;
+    width: 100%;
+  }
+}
+
+/* Animation */
+@keyframes popIn {
+  from {
+    transform: scale(0.88);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
         /* RESPONSIVE */
         @media (max-width: 768px) {
           .filterSidebar {
@@ -1199,6 +1387,7 @@ export default function ProductPage() {
           }
         }
       `}</style>
+
       <Footer />
     </>
   );
@@ -1295,23 +1484,28 @@ export default function ProductPage() {
 // };
 /* ================= CARD ================= */
 
-const ProductCard = ({ product, wishlistIds, toggleWishlist }) => {
+const ProductCard = ({ product, wishlistIds, toggleWishlist, requireLogin }) => {
   const [qty, setQty] = useState(1);
   const { refreshCart, setOpenSideCart } = useCart();
+  // const [showLoginModal, setShowLoginModal] = useState(false);
 
-
-    const handleAddToCart = async (productId) => {
+  const handleAddToCart = async (productId) => {
     try {
-      await addToCartApi(productId, 1);
+      await addToCartApi(productId, qty);
       toast.success("Product added to cart 🛒");
-       await refreshCart();
-    setOpenSideCart(true);
+      await refreshCart();
+      setOpenSideCart(true);
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Please login to add to cart"
-      );
+      if (error.response?.status === 401) {
+        requireLogin(); // parent handles modal
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
+
+
+
 
   return (
     <div className="card">
@@ -1408,3 +1602,5 @@ const SearchIcon = () => (
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
+
+

@@ -36,7 +36,9 @@ export default function SideCart() {
   //   }
   // };
 
-  const increaseQty = async (productId, currentQty) => {
+  const increaseQty = async (productId, currentQty, stock) => {
+      if (currentQty >= stock) return; // 🔥 stop over stock
+
     try {
       // 🔥 Optimistically update UI first
       setCartItems(prev =>
@@ -49,6 +51,7 @@ export default function SideCart() {
 
       // Then update backend
       await updateCartItemApi(productId, currentQty + 1);
+      refreshCart();
 
     } catch (err) {
       console.log("Increase qty error:", err);
@@ -88,6 +91,7 @@ export default function SideCart() {
       );
 
       await updateCartItemApi(productId, currentQty - 1);
+      refreshCart();
 
     } catch (err) {
       console.log("Decrease qty error:", err);
@@ -142,6 +146,14 @@ export default function SideCart() {
       refreshCart();
     }
   }, [openSideCart]);
+
+
+  useEffect(() => {
+  if (!cartItems.length) {
+    setOpenSideCart(false);
+  }
+}, [cartItems]);
+
 
 
   const fetchCart = async () => {
@@ -309,7 +321,7 @@ export default function SideCart() {
                 <div className="qty">
                   <button onClick={() => decreaseQty(item.product._id, item.quantity)}>-</button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => increaseQty(item.product._id, item.quantity)}>+</button>
+                  <button onClick={() => increaseQty(item.product._id, item.quantity , item.product.countInStock)}>+</button>
                 </div>
               </div>
 

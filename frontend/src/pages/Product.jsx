@@ -129,18 +129,19 @@ export default function Products() {
     }
   };
 
-const handleAddToCart = async (productId) => {
-  try {
-    await addToCartApi(productId, 1);
-    await refreshCart();
-    setOpenSideCart(true);
-    toast.success("Product added to cart 🛒");
-  } catch (error) {
-    toast.error(
-      error.response?.data?.message || "Please login to add to cart"
-    );
+  const handleAddToCart = async (productId) => {
+    try {
+      await addToCartApi(productId, 1);
+      await refreshCart();
+      setOpenSideCart(true);
+      toast.success("Product added to cart 🛒");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Please login to add to cart"); {
+        setShowLoginModal(true);
+      }
+    };
   }
-};
 
 
 
@@ -182,7 +183,7 @@ const handleAddToCart = async (productId) => {
   }
   return (
     <>
-<style>{`
+      <style>{`
 /* ================= PAGE LAYOUT ================= */
 .page-wrapper {
   padding-top: 35px;
@@ -562,7 +563,7 @@ const handleAddToCart = async (productId) => {
 
           {Object.keys(productsByCategory).map((categoryName) => (
             <div className="section" key={categoryName}>
-           
+
               <h2 className="section-title">{categoryName}</h2>
 
               <div className="product-grid">
@@ -635,7 +636,7 @@ const handleAddToCart = async (productId) => {
                   </div>
                 ))}
               </div>
-                 {/* SEE MORE */}
+              {/* SEE MORE */}
               <div className="see-more">
                 <Link to={`/seemore?category=${categoryName}`}>
                   <button>SEE MORE →</button>
