@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Home, Briefcase, User, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -7,6 +7,8 @@ const Checkout = () => {
   const navigate = useNavigate();
 
   const [addressType, setAddressType] = useState("home");
+  const [loading, setLoading] = useState(false);
+
 
   const [form, setForm] = useState({
     name: "",
@@ -20,7 +22,7 @@ const Checkout = () => {
   });
 
   const [errors, setErrors] = useState({});
-    /* ================= FETCH ADDRESS ================= */
+  /* ================= FETCH ADDRESS ================= */
   useEffect(() => {
     const fetchAddress = async () => {
       try {
@@ -46,7 +48,7 @@ const Checkout = () => {
 
     fetchAddress();
   }, []);
-/* ================= FORM HANDLING ================= */
+  /* ================= FORM HANDLING ================= */
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -75,6 +77,7 @@ const Checkout = () => {
     if (!validate()) return;
 
     try {
+      setLoading(true);
       await api.post("/api/address", {
         addressType: addressType === "work" ? "Work" : "Home",
         fullName: form.name,
@@ -87,7 +90,21 @@ const Checkout = () => {
         pincode: form.pincode,
       });
 
-      navigate("/pay");
+      // navigate("/pay");
+      const res = await api.post("/api/orders", {
+        shippingAddress: {
+          address: form.address1,
+          city: form.city,
+          pincode: form.pincode,
+          phone: form.phone
+        },
+        paymentMethod: "Razorpay"
+      });
+
+      // navigate("/pay", { state: { order: res.data } });
+      navigate("/pay", { state: { orderId: res.data._id } });
+
+
     } catch (error) {
       alert("Failed to save address. Please try again.");
     }
@@ -205,13 +222,13 @@ const Checkout = () => {
             <button className="outline" onClick={() => navigate("/cart")}>
               Back to Cart
             </button>
-            <button className="primary" onClick={handleContinue}>
-              CONTINUE TO PAYMENT
+            <button className="primary" onClick={handleContinue} disabled={loading}>
+                {loading ? "Processing..." : "CONTINUE TO PAYMENT"}
             </button>
           </div>
         </div>
       </div>
- {/* INTERNAL CSS */}
+      {/* INTERNAL CSS */}
       <style>{`
         * { box-sizing: border-box; }
         body { margin: 0; }

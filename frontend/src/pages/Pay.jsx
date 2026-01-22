@@ -479,27 +479,78 @@
 
 
 
-import React from "react";
-import axios from "axios";
+// import React from "react";
+import React, { useEffect, useState } from "react";
+// import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import api from "../api/axios";
+import { getOrderByIdApi } from "../api/ordersApi";
+
+
+
 
 const Pay = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // const { orderId } = location.state || {};
+  const orderId = location.state?.orderId;
 
-  const orderId = "6969f5cb465325fad07f5950"; 
-  // ⚠️ Replace with actual orderId from your order creation flow
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
+  // if (!order) return <p>No order found</p>;
+  // const orderId = order._id;
+
+  // const [orders, setOrders] = useState(null);
+  // const [loading, setLoading] = useState(true);
+
+
+  // 🔥 Fetch order securely via cookies
+  useEffect(() => {
+    if (!orderId) return;
+
+    const fetchOrder = async () => {
+      try {
+        const res = await getOrderByIdApi(orderId);
+        setOrder(res.data);
+      } catch (err) {
+        console.error("Failed to fetch order:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [orderId]);
+
+  useEffect(() => {
+  document.body.style.overflow = showCancelModal ? "hidden" : "auto";
+}, [showCancelModal]);
+
+useEffect(() => {
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, []);
+
+
+
+
+  // const orderId = "6969f5cb465325fad07f5950"; 
 
   const handlePay = async () => {
     try {
       // 1️⃣ Create Razorpay order (backend)
-      const { data } = await axios.post(
-        "http://localhost:5000/api/payment/create-order",
-        { orderId },{
-         headers:{
-          Authorization:`Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NDhkOGI0Nzc5MGJiYzAxOWQwYTE4ZiIsImlhdCI6MTc2ODU1MTczMiwiZXhwIjoxNzY5MTU2NTMyfQ.rWTP7f38JEalc0h41AVZnXuT5Ubj7icMvQktLmVbzZw`
-         }
-        }
-      );
+      const { data } = await api.post(
+        "/api/payment/create-order",
+        { orderId });
+      //   headers: {
+      //     Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NDhkOGI0Nzc5MGJiYzAxOWQwYTE4ZiIsImlhdCI6MTc2ODU1MTczMiwiZXhwIjoxNzY5MTU2NTMyfQ.rWTP7f38JEalc0h41AVZnXuT5Ubj7icMvQktLmVbzZw`
+      //   }
+      // }
+      // );
 
       const options = {
         key: data.key,
@@ -511,8 +562,8 @@ const Pay = () => {
 
         handler: async function (response) {
           // 2️⃣ Verify payment (backend)
-          await axios.post(
-            "http://localhost:5000/api/payment/verify",
+          await api.post(
+            "/api/payment/verify",
             {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -521,9 +572,20 @@ const Pay = () => {
             }
           );
 
-          alert("Payment successful");
-          navigate("/success");
+          // alert("Payment successful");
+          // navigate("/success");
+          navigate("/order-success", { state: { orderId } });
         },
+
+        modal: {
+  ondismiss: function () {
+    document.body.style.overflow = "auto";  // 🔥 RESTORE SCROLL
+    setShowCancelModal(true);
+  }
+},
+
+
+
 
         theme: { color: "#facc15" }
       };
@@ -536,37 +598,95 @@ const Pay = () => {
     }
   };
 
+  if (!orderId) return <p>No order found</p>;
+  if (loading) return <p>Loading order...</p>;
+  if (!order) return <p>Order not found</p>;
+
   return (
     <div style={styles.page}>
       <div style={styles.card}>
         <h2>ORDER SUMMARY</h2>
 
-        <div style={styles.row}>
+        {/* <div style={styles.row}>
           <span>Subtotal</span>
           <span>₹2000</span>
-        </div>
+        </div> */}
 
-        <div style={{ ...styles.row, color: "#22c55e" }}>
-          <span>Discount</span>
-          <span>-₹200</span>
-        </div>
 
         <div style={styles.row}>
+          <span>Subtotal</span>
+          <span>₹{order.totalAmount - order.taxAmount}</span>
+        </div>
+
+        {/* <div style={{ ...styles.row, color: "#22c55e" }}>
+          <span>Discount</span>
+          <span>-₹200</span>
+        </div> */}
+
+        {/* <div style={styles.row}>
           <span>Packing Charges</span>
           <span>₹50</span>
-        </div>
+        </div> */}
 
         <hr />
 
-        <div style={styles.total}>
+        {/* <div style={styles.total}>
           <span>Total</span>
           <span>₹1850</span>
+        </div> */}
+
+
+        <div style={styles.row}>
+          <span>Tax</span>
+          <span>₹{order.taxAmount.toFixed(2)}</span>
         </div>
+
+        <div style={styles.total}>
+          <span>Total</span>
+          <span>₹{order.totalAmount}</span>
+        </div>
+
+
+
 
         <button style={styles.btn} onClick={handlePay}>
           PROCEED TO PAY
         </button>
       </div>
+
+      {showCancelModal && (
+  <div style={cancelStyles.overlay}>
+    <div style={cancelStyles.modal}>
+      <h3 style={{ color: "#facc15", marginBottom: "12px" }}>
+        Payment Cancelled
+      </h3>
+      <p style={{ marginBottom: "20px" }}>
+        You cancelled the payment. You can retry it from your cart page.
+      </p>
+
+      <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+        <button
+          style={cancelStyles.primary}
+          onClick={() =>{
+            document.body.style.overflow = "auto"; 
+             navigate("/cart")}}
+        >
+          Go to cart
+        </button>
+
+        <button
+          style={cancelStyles.secondary}
+          onClick={() =>{
+            document.body.style.overflow = "auto";
+             setShowCancelModal(false)}}
+        >
+          Stay Here
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
@@ -609,5 +729,43 @@ const styles = {
     cursor: "pointer"
   }
 };
+
+const cancelStyles = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999
+  },
+  modal: {
+    background: "#1f1f1f",
+    border: "2px solid #facc15",
+    borderRadius: "12px",
+    padding: "24px",
+    width: "320px",
+    textAlign: "center",
+    color: "white"
+  },
+  primary: {
+    background: "#facc15",
+    border: "none",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  secondary: {
+    background: "transparent",
+    border: "1px solid #facc15",
+    color: "#facc15",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    cursor: "pointer"
+  }
+};
+
 
 export default Pay;

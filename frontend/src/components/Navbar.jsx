@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { ShoppingCart } from "lucide-react";
+import toast from "react-hot-toast";
 
 
 
@@ -295,15 +296,29 @@ export default function Navbar() {
 
           {/* <div
             style={{ position: "relative", cursor: "pointer" }}
-            onClick={() => setOpenSideCart(true)}
+            onClick={() => {
+              if (user) setOpenSideCart(true);
+              else setShowLoginModal(true);
+            }}
           > */}
+
           <div
-  style={{ position: "relative", cursor: "pointer" }}
-  onClick={() => {
-    if (user) setOpenSideCart(true);
-    else setShowLoginModal(true);
-  }}
->
+            style={{ position: "relative", cursor: "pointer" }}
+            onClick={() => {
+              if (!user) {
+                setShowLoginModal(true);
+                return;
+              }
+
+              if (cartCount === 0) {
+                toast.error("Your cart is empty");
+                return;
+              }
+
+              setOpenSideCart(true);
+            }}
+          >
+
 
             <ShoppingCart
               size={22}
@@ -363,7 +378,7 @@ export default function Navbar() {
               Login Required
             </h3>
             <p style={{ marginBottom: "1.5rem" }}>
-              Please login to view your profile.
+              Please login to continue.
             </p>
 
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>

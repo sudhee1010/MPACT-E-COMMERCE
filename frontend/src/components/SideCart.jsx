@@ -6,6 +6,7 @@ import {
   removeCartItemApi,
 } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
+// import toast from "react-hot-toast";
 
 
 
@@ -17,11 +18,13 @@ export default function SideCart() {
     setCartItems,
     refreshCart,
     openSideCart,
-    setOpenSideCart
+    setOpenSideCart,
+    cartMeta
   } = useCart();
 
 
-  const packingCharge = 20;
+
+  // const packingCharge = 20;
 
   // const increaseQty = async (productId, currentQty) => {
   //   try {
@@ -37,7 +40,7 @@ export default function SideCart() {
   // };
 
   const increaseQty = async (productId, currentQty, stock) => {
-      if (currentQty >= stock) return; // 🔥 stop over stock
+    if (currentQty >= stock) return; // 🔥 stop over stock
 
     try {
       // 🔥 Optimistically update UI first
@@ -132,7 +135,10 @@ export default function SideCart() {
   const discount = totalMRP - totalPrice;
 
   // Final Amount
-  const finalAmount = totalPrice + packingCharge;
+  // const finalAmount = totalPrice + packingCharge;
+  // const finalAmount = totalPrice;
+
+
 
 
   // useEffect(() => {
@@ -149,10 +155,16 @@ export default function SideCart() {
 
 
   useEffect(() => {
-  if (!cartItems.length) {
-    setOpenSideCart(false);
-  }
-}, [cartItems]);
+    if (!cartItems.length) {
+      setOpenSideCart(false);
+    }
+
+    //  if (cartItems.length===0) {
+    //   toast.error("Your cart is empty");
+    //  }else{
+    //   setOpenSideCart(true);
+    // }
+  }, [cartItems]);
 
 
 
@@ -299,10 +311,10 @@ export default function SideCart() {
           {cartItems.map(item => (
             <div className="item" key={item.product._id}>
               {/* <img src={item.product.images[0].url || "/placeholder.png"} alt="" /> */}
-                 <img
-                        src={item.product.images?.[0]?.url || "/images/Product1.png"}
-                        alt={item.product.name}
-                      />
+              <img
+                src={item.product.images?.[0]?.url || "/images/Product1.png"}
+                alt={item.product.name}
+              />
 
               <div>
                 <h4>{item.product.name}</h4>
@@ -321,7 +333,7 @@ export default function SideCart() {
                 <div className="qty">
                   <button onClick={() => decreaseQty(item.product._id, item.quantity)}>-</button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => increaseQty(item.product._id, item.quantity , item.product.countInStock)}>+</button>
+                  <button onClick={() => increaseQty(item.product._id, item.quantity, item.product.countInStock)}>+</button>
                 </div>
               </div>
 
@@ -345,15 +357,27 @@ export default function SideCart() {
                 <span>-₹{discount}</span>
               </div>
 
-              <div className="row">
+              {/* <div className="row">
                 <span>Packing</span>
                 <span>₹{packingCharge}</span>
+              </div> */}
+
+
+              <div className="row">
+                <span>Tax</span>
+                <span>₹{cartMeta.taxAmount.toFixed(2)}</span>
               </div>
 
               <div className="row green">
                 <span>Total</span>
-                <span>₹{finalAmount}</span>
+                <span>₹{cartMeta.totalWithTax.toFixed(2)}</span>
               </div>
+
+
+              {/* <div className="row green">
+                <span>Total</span>
+                <span>₹{finalAmount}</span>
+              </div> */}
             </div>
 
 

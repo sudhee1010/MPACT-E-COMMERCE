@@ -21,7 +21,9 @@ export const placeOrder = async (req, res) => {
       name: item.product.name,
       quantity: item.quantity,
       price: item.price,
-      image: item.product.images[0]
+      // image: item.product.images[0]
+        image: item.product.images?.[0]?.url || ""
+
     }));
 
     // 💰 Base final amount
@@ -83,11 +85,11 @@ Total: ₹${grandTotal} (including tax).`
 
 
     // 🔹 Clear cart after order
-    cart.items.splice(0, cart.items.length);   // clear array safely
-    cart.markModified('items');                // force mongoose to detect change
-    cart.totalPrice = 0;
-    cart.appliedCoupon = null;
-    await cart.save();
+    // cart.items.splice(0, cart.items.length);  
+    // cart.markModified('items');                
+    // cart.totalPrice = 0;
+    // cart.appliedCoupon = null;
+    // await cart.save();
 
 
     res.status(201).json(order);

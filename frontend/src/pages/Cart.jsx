@@ -310,10 +310,11 @@ export default function Cart() {
   const {
     cartItems,
     setCartItems,
-    refreshCart
+    refreshCart,
+    cartMeta
   } = useCart();
 
-  const packingCharges = 20;
+  // const packingCharges = 20;
 
   // 🔥 PRICE CALCULATIONS (SAME AS SIDECART)
   const totalMRP = cartItems.reduce(
@@ -327,7 +328,11 @@ export default function Cart() {
   );
 
   const discount = totalMRP - totalPrice;
-  const finalAmount = totalPrice + packingCharges;
+  // const finalAmount = totalPrice + packingCharges;
+    // const finalAmount = totalPrice;
+    const finalAmount = cartMeta.totalWithTax;
+
+
 
   // 🔥 LOAD CART WHEN PAGE OPENS
   useEffect(() => {
@@ -534,17 +539,28 @@ export default function Cart() {
               <span>-₹{discount}</span>
             </div>
 
-            <div className="row">
+            {/* <div className="row">
               <span>Packing & other charges</span>
               <span>₹{packingCharges}</span>
-            </div>
+            </div> */}
+
+            <div className="row">
+  <span>Tax</span>
+  <span>₹{cartMeta.taxAmount.toFixed(2)}</span>
+</div>
+
 
             <hr />
 
-            <div className="row green">
+            {/* <div className="row green">
               <span>Total Amount</span>
               <span>₹{finalAmount}</span>
-            </div>
+            </div> */}
+            <div className="row green">
+  <span>Total Amount</span>
+  <span>₹{finalAmount.toFixed(2)}</span>
+</div>
+
 
             <div className="save">
               You will save ₹{discount} on this order

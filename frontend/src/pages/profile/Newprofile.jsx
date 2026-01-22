@@ -1046,31 +1046,77 @@ export default function ProfilePage() {
               ) : (
                 <div className="order-list">
                   {orders.map((order) => (
-                    <div className="order-card" key={order._id}>
-                      <div className="order-content">
-                        <img
-                          src={order.items[0]?.product?.image}
-                          alt="Product"
-                          className="order-image"
-                        />
+                    // <div className="order-card" key={order._id}>
+                    //   <div className="order-content">
+                    //     <img
+                    //       src={order.items[0]?.product?.image}
+                    //       alt="Product"
+                    //       className="order-image"
+                    //     />
 
-                        <div className="order-details">
-                          <h3 className="order-id">#{order._id}</h3>
-                          <p className="order-date">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </p>
-                          <p className="order-items">{order.items.length} items</p>
-                        </div>
-                      </div>
+                    //     <div className="order-details">
+                    //       <h3 className="order-id">#{order._id}</h3>
+                    //       <p className="order-date">
+                    //         {new Date(order.createdAt).toLocaleDateString()}
+                    //       </p>
+                    //       <p className="order-items">{order.items.length} items</p>
+                    //     </div>
+                    //   </div>
 
-                      <div className="order-actions">
-                        <span className={`status-badge ${order.status === "Delivered" ? "delivered" : "transit"}`}>
-                          {order.status}
-                        </span>
-                        <button className="view-details-btn">View Details</button>
-                        <p className="order-price">₹{order.totalPrice}</p>
-                      </div>
-                    </div>
+                    //   <div className="order-actions">
+                    //     <span className={`status-badge ${order.status === "Delivered" ? "delivered" : "transit"}`}>
+                    //       {order.status}
+                    //     </span>
+                    //     <button className="view-details-btn">View Details</button>
+                    //     <p className="order-price">₹{order.totalPrice}</p>
+                    //   </div>
+                    // </div>
+
+                    
+<div className="order-card" key={order._id}>
+  <div className="order-content">
+    <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+      {order.orderItems.map((item, idx) => (
+        <div key={idx} style={{ textAlign: "center" }}>
+          <img
+            src={
+              item.image?.url ||
+              item.image ||
+              "/images/Product1.png"
+            }
+            alt={item.name}
+            className="order-image"
+            style={{ width: "60px", height: "60px", objectFit: "cover" }}
+          />
+          <p style={{ fontSize: "12px", marginTop: "6px", color: "#d1d5db" }}>
+            {item.name}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    <div className="order-details">
+      <p className="order-date">
+        Ordered on {new Date(order.createdAt).toLocaleDateString()}
+      </p>
+      <p className="order-items">
+        {order.orderItems.length} item(s)
+      </p>
+    </div>
+  </div>
+
+  <div className="order-actions">
+    <span className={`status-badge ${order.orderStatus === "delivered" ? "delivered" : "transit"}`}>
+      {order.orderStatus}
+    </span>
+
+    <button className="view-details-btn">View Details</button>
+
+    <p className="order-price">₹{order.totalAmount}</p>
+  </div>
+</div>
+
+
                   ))}
                 </div>
               )}
