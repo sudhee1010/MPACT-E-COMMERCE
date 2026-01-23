@@ -20,12 +20,18 @@ const reviewSchema = new mongoose.Schema(
       min: 1,
       max: 5
     },
-
+    
     comment: {
       type: String,
       required: true
     },
-
+    
+    images: [
+   {
+     url: { type: String },
+     public_id: { type: String }
+   }
+],
     isApproved: {
       type: Boolean,
       default: false
