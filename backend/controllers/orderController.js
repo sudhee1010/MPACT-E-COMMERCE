@@ -103,7 +103,7 @@ Total: ₹${grandTotal} (including tax).`
 // ✅ Get logged-in user's orders
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).sort({
+    const orders = await Order.find({ user: req.user._id, paymentStatus: "paid"}).sort({
       createdAt: -1
     });
     res.json(orders);

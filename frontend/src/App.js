@@ -35,6 +35,8 @@ import VerifyEmail from "./pages/VerifyEmail";
 import WishlistPage from "./pages/Wishlist.jsx";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import OrderDetails from "./pages/OrderDetails";
+
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -103,9 +105,11 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/wishlist" element={<WishlistPage/>} />
-           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/orders/:id" element={<OrderDetails />} />
+
 
 
 
