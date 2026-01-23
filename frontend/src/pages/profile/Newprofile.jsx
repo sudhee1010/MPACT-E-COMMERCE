@@ -3,6 +3,7 @@ import { User, Package, Heart, Settings, Edit, Search, UserCircle, ShoppingCart,
 import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { addToCartApi } from "../../api/cartApi";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -77,6 +78,29 @@ export default function ProfilePage() {
       setWishlistLoading(false);
     }
   };
+const handleAddToCart = async (productId) => {
+  try {
+    // 1️⃣ Add product to cart
+    await addToCartApi(productId, 1);
+
+    // 2️⃣ Remove product from wishlist
+    await api.delete(`/api/wishlist/${productId}`);
+
+    // 3️⃣ Refresh wishlist UI
+    fetchWishlist();
+
+    toast.success("Added to cart 🛒");
+
+    // 4️⃣ Redirect to cart
+    navigate("/cart");
+  } catch (error) {
+    toast.error(
+      error.response?.data?.message || "Please login to add to cart"
+    );
+    navigate("/login");
+  }
+};
+
 
 
 
@@ -1158,7 +1182,8 @@ export default function ProfilePage() {
 
                         <div className="wishlist-actions">
                           {item.countInStock > 0 ? (
-                            <button className="add-to-cart-btn">
+                            <button className="add-to-cart-btn"
+                            onClick={() => handleAddToCart(item._id)}>
                               Add to Cart
                             </button>
                           ) : (
