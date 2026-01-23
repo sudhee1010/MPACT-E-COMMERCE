@@ -81,6 +81,7 @@ export default function SideCart() {
       if (currentQty <= 1) {
         const res = await removeCartItemApi(productId);
         setCartItems(res.data.items);
+        refreshCart();
         return;
       }
 
@@ -112,6 +113,7 @@ export default function SideCart() {
 
       // 🔥 UPDATE STATE DIRECTLY
       setCartItems(res.data.items);
+          refreshCart();
 
     } catch (err) {
       console.log("Remove item error:", err);

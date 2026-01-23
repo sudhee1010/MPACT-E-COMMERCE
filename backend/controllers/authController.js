@@ -8,6 +8,7 @@ import { verifyGoogleToken } from "../utils/googleVerify.js";
 /* ===========================
    EMAIL REGISTER LOGIN
 =========================== */
+
 // export const registerUser = async (req, res) => {
 //   try {
 //     const { name, email, password, phone } = req.body;
@@ -25,18 +26,27 @@ import { verifyGoogleToken } from "../utils/googleVerify.js";
 //       password: hashedPassword,
 //       phone,
 //       isEmailVerified: false,
-//       role:"customer"
+//       role: "customer",
+//     });
+
+//     const token = generateToken(user._id);
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "strict",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
 //     });
 
 //     res.status(201).json({
-//       token: generateToken(user._id),user
+//       message: "Registered successfully. Please verify email.",
+//       user,
 //     });
-
-
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
 // };
+
 
 export const registerUser = async (req, res) => {
   try {
@@ -58,23 +68,14 @@ export const registerUser = async (req, res) => {
       role: "customer",
     });
 
-    const token = generateToken(user._id);
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
     res.status(201).json({
-      message: "Registered successfully. Please verify email.",
-      user,
+      message: "Registered successfully. Please verify your email via OTP.",
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 
@@ -212,6 +213,50 @@ export const sendOTP = async (req, res) => {
 /* ===========================
    VERIFY EMAIL OTP
 =========================== */
+// export const verifyOTP = async (req, res) => {
+//   try {
+//     const { email, otp } = req.body;
+
+//     const user = await User.findOne({ email });
+
+//     if (
+//       !user ||
+//       user.otp !== otp.toString() ||
+//       user.otpExpiry < Date.now()
+//     ) {
+//       return res.status(400).json({ message: "Invalid or expired OTP" });
+//     }
+
+//     user.isEmailVerified = true;
+//     user.otp = null;
+//     user.otpExpiry = null;
+//     await user.save();
+
+//     // res.json({
+//     //   message: "Email verified",
+//     //   token: generateToken(user._id)
+//     // });
+//     const token = generateToken(user._id);
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "strict",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     res.json({
+//       message: "Email verified",
+//       user,
+//     });
+
+
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -231,10 +276,6 @@ export const verifyOTP = async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
-    // res.json({
-    //   message: "Email verified",
-    //   token: generateToken(user._id)
-    // });
     const token = generateToken(user._id);
 
     res.cookie("token", token, {
@@ -245,15 +286,15 @@ export const verifyOTP = async (req, res) => {
     });
 
     res.json({
-      message: "Email verified",
+      message: "Email verified & logged in",
       user,
     });
-
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 /* ===========================
    FORGOT PASSWORD

@@ -1,125 +1,132 @@
-// import React, { useEffect, useState } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
-// import api from "../api/axios";
-
-// export default function OrderDetails() {
-//   const { id } = useParams();
-//   const navigate = useNavigate();
-//   const [order, setOrder] = useState(null);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     const fetchOrder = async () => {
-//       try {
-//         const res = await api.get(`/api/orders/${id}`);
-//         setOrder(res.data);
-//       } catch (err) {
-//         console.error("Failed to load order", err);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchOrder();
-//   }, [id]);
-
-//   if (loading) return <p style={{ color: "white", textAlign: "center" }}>Loading order...</p>;
-//   if (!order) return <p style={{ color: "white", textAlign: "center" }}>Order not found</p>;
-
-//   return (
-//     <div style={{ padding: "2rem", color: "white", background: "#2f2f2f", minHeight: "100vh" }}>
-//       <button onClick={() => navigate(-1)} style={{ marginBottom: "1rem" }}>
-//         ← Back
-//       </button>
-
-//       <h2>Order #{order._id}</h2>
-//       <p>Status: {order.orderStatus}</p>
-//       <p>Payment: {order.paymentStatus}</p>
-//       <p>Date: {new Date(order.createdAt).toLocaleString()}</p>
-
-//       <hr />
-
-//       <h3>Items</h3>
-//       {order.orderItems.map((item) => (
-//         <div
-//           key={item._id}
-//           style={{
-//             display: "flex",
-//             gap: "1rem",
-//             marginBottom: "1rem",
-//             border: "1px solid #facc15",
-//             padding: "1rem",
-//             borderRadius: "8px"
-//           }}
-//         >
-//           <img
-//             src={item.image}
-//             alt={item.name}
-//             style={{ width: "80px", height: "80px", objectFit: "cover" }}
-//           />
-//           <div>
-//             <h4>{item.name}</h4>
-//             <p>Qty: {item.quantity}</p>
-//             <p>Price: ₹{item.price}</p>
-//           </div>
-//         </div>
-//       ))}
-
-//       <hr />
-
-//       <h3>Shipping Address</h3>
-//       <p>{order.shippingAddress.address}</p>
-//       <p>{order.shippingAddress.city} - {order.shippingAddress.pincode}</p>
-//       <p>Phone: {order.shippingAddress.phone}</p>
-
-//       <hr />
-
-//       <h3>Price Summary</h3>
-//       <p>Tax: ₹{order.taxAmount.toFixed(2)}</p>
-//       <h2>Total: ₹{order.totalAmount}</h2>
-//     </div>
-//   );
-// }
-
-
-
-
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import toast from "react-hot-toast";
 
 export default function OrderDetails() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [order, setOrder] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [retrying, setRetrying] = useState(false);
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const res = await api.get(`/api/orders/${id}`);
-        setOrder(res.data);
-      } catch (err) {
-        console.error("Failed to load order", err);
-      } finally {
-        setLoading(false);
-      }
+
+
+    useEffect(() => {
+        const fetchOrder = async () => {
+            try {
+                const res = await api.get(`/api/orders/${id}`);
+                setOrder(res.data);
+            } catch (err) {
+                console.error("Failed to load order", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrder();
+    }, [id]);
+
+    useEffect(() => {
+        document.body.style.overflow = showCancelModal ? "hidden" : "auto";
+    }, [showCancelModal]);
+
+
+
+    const handleRetryPayment = async () => {
+        if (retrying) return;
+        setRetrying(true);
+        try {
+            const { data } = await api.post("/api/payment/create-order", {
+                orderId: order._id
+            });
+
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency,
+                name: "MPACT",
+                description: "Retry Order Payment",
+                order_id: data.razorpayOrderId,
+
+                handler: async function (response) {
+                    await api.post("/api/payment/verify", {
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                        orderId: order._id
+                    });
+
+                    // window.location.reload(); 
+                    const refreshed = await api.get(`/api/orders/${order._id}`);
+                    setOrder(refreshed.data);
+
+                },
+
+                modal: {
+                    ondismiss: function () {
+                        setShowCancelModal(true);
+                    }
+                },
+
+
+                theme: { color: "#facc15" }
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+        } catch (error) {
+            console.error("Retry payment error:", error);
+            toast.error("Unable to retry payment");
+        }
+        finally {
+            setRetrying(false);
+        }
     };
-    fetchOrder();
-  }, [id]);
 
-  if (loading) {
-    return <p style={{ color: "white", textAlign: "center", marginTop: "4rem" }}>Loading order...</p>;
-  }
 
-  if (!order) {
-    return <p style={{ color: "white", textAlign: "center", marginTop: "4rem" }}>Order not found</p>;
-  }
+    if (loading) {
+        return <p style={{ color: "white", textAlign: "center", marginTop: "4rem" }}>Loading order...</p>;
+    }
 
-  return (
-    <>
-      <style>{`
+    if (!order) {
+        return <p style={{ color: "white", textAlign: "center", marginTop: "4rem" }}>Order not found</p>;
+    }
+
+
+    const modalStyles = {
+        overlay: {
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999
+        },
+        modal: {
+            background: "#1f1f1f",
+            border: "2px solid #facc15",
+            borderRadius: "12px",
+            padding: "24px",
+            width: "300px",
+            textAlign: "center",
+            color: "white"
+        },
+        primary: {
+            background: "#facc15",
+            border: "none",
+            padding: "10px 18px",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            cursor: "pointer"
+        }
+    };
+
+
+    return (
+        <>
+            <style>{`
         .order-page {
           min-height: 100vh;
           background: #2f2f2f;
@@ -220,68 +227,141 @@ export default function OrderDetails() {
             align-items: flex-start;
           }
         }
+
+
       `}</style>
 
-      <div className="order-page">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          ← Back to Orders
-        </button>
 
-        {/* HEADER */}
-        <div className="order-header">
-          <div>
-            <h2>Order #{order._id}</h2>
-            <p>{new Date(order.createdAt).toLocaleString()}</p>
-          </div>
-          <div>
-            <span className={`badge ${order.paymentStatus === "paid" ? "paid" : "pending"}`}>
-              {order.paymentStatus.toUpperCase()}
-            </span>
-          </div>
-        </div>
+            <div className="order-page">
+                <button className="back-btn" onClick={() => navigate(-1)}>
+                    ← Back to Orders
+                </button>
 
-        {/* ITEMS */}
-        <div className="section">
-          <h3>Ordered Items</h3>
-          <div className="items-grid">
-            {order.orderItems.map((item) => (
-              <div className="item-card" key={item._id}>
-                <img src={item.image} alt={item.name} />
-                <div>
-                  <h4>{item.name}</h4>
-                  <p>Qty: {item.quantity}</p>
-                  <p>₹{item.price}</p>
+                {/* HEADER */}
+                <div className="order-header">
+                    <div>
+                        <h2>Order #{order._id}</h2>
+                        <p>{new Date(order.createdAt).toLocaleString()}</p>
+                    </div>
+                    <div>
+                        <span className={`badge ${order.paymentStatus === "paid" ? "paid" : "pending"}`}>
+                            {order.paymentStatus.toUpperCase()}
+                        </span>
+                    </div>
+
+                    {order.paymentStatus === "pending" && order.orderStatus !== "cancelled" && (
+                        <button
+                            disabled={retrying}
+                            onClick={handleRetryPayment}
+                            style={{
+                                marginTop: "12px",
+                                background: "#facc15",
+                                color: "black",
+                                border: "none",
+                                padding: "10px 18px",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontWeight: "bold",
+                                opacity: retrying ? 0.6 : 1,
+                                cursor: retrying ? "not-allowed" : "pointer"
+                            }}
+                        >
+                            {retrying ? "Opening..." : "Retry Payment"}
+                        </button>
+                    )}
+
+                    <span
+                        className="badge"
+                        style={{
+                            background:
+                                order.orderStatus === "cancelled"
+                                    ? "#dc2626"
+                                    : order.orderStatus === "delivered"
+                                        ? "#22c55e"
+                                        : "#3b82f6",
+                            color: "white",
+                            marginLeft: "10px"
+                        }}
+                    >
+                        {order.orderStatus.toUpperCase()}
+                    </span>
+
+
+
+
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* SHIPPING */}
-        <div className="section">
-          <h3>Shipping Address</h3>
-          <p>{order.shippingAddress.address}</p>
-          <p>
-            {order.shippingAddress.city} - {order.shippingAddress.pincode}
-          </p>
-          <p>📞 {order.shippingAddress.phone}</p>
-        </div>
+                {/* ITEMS */}
+                <div className="section">
+                    <h3>Ordered Items</h3>
+                    <div className="items-grid">
+                        {order.orderItems.map((item) => (
+                            <div className="item-card" key={item._id}>
+                                {/* <img src={item.image} alt={item.name} /> */}
+                                <img
+                                    src={item.image || "/images/Product1.png"}
+                                    alt={item.name}
+                                />
 
-        {/* SUMMARY */}
-        <div className="section">
-          <h3>Price Summary</h3>
-          <div className="price-row">
-            <span>Tax</span>
-            <span>₹{order.taxAmount.toFixed(2)}</span>
-          </div>
-          <hr />
-          <div className="price-row total">
-            <span>Total</span>
-            <span>₹{order.totalAmount}</span>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+                                <div>
+                                    <h4>{item.name}</h4>
+                                    <p>Qty: {item.quantity}</p>
+                                    <p>₹{item.price}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* SHIPPING */}
+                <div className="section">
+                    <h3>Shipping Address</h3>
+                    <p>{order.shippingAddress.address}</p>
+                    <p>
+                        {order.shippingAddress.city} - {order.shippingAddress.pincode}
+                    </p>
+                    <p>📞 {order.shippingAddress.phone}</p>
+                </div>
+
+                {/* SUMMARY */}
+                <div className="section">
+                    <h3>Price Summary</h3>
+                    <div className="price-row">
+                        <span>Subtotal</span>
+                        <span>₹{(order.totalAmount - order.taxAmount).toFixed(2)}</span>
+                    </div>
+                    <div className="price-row">
+                        <span>Tax</span>
+                        <span>₹{order.taxAmount.toFixed(2)}</span>
+                    </div>
+                    <hr />
+                    <div className="price-row total">
+                        <span>Total</span>
+                        <span>₹{order.totalAmount}</span>
+                    </div>
+                </div>
+                {showCancelModal && (
+                    <div style={modalStyles.overlay}>
+                        <div style={modalStyles.modal}>
+                            <h3 style={{ color: "#facc15", marginBottom: "12px" }}>
+                                Payment Cancelled
+                            </h3>
+                            <p style={{ marginBottom: "20px" }}>
+                                You cancelled the payment. You can retry again anytime.
+                            </p>
+                            <button
+                                style={modalStyles.primary}
+                                onClick={() => setShowCancelModal(false)}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+
+            </div>
+        </>
+    );
 }
 
