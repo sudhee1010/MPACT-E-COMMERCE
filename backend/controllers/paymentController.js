@@ -230,6 +230,16 @@ export const createPaymentOrder = async (req, res) => {
       return res.status(400).json({ message: "Invalid order amount" });
     }
 
+    if (order.user.toString() !== req.user._id.toString()) {
+  return res.status(403).json({ message: "Not authorized" });
+}
+
+if (order.orderStatus === "cancelled") {
+  return res.status(400).json({ message: "Order is cancelled" });
+}
+
+
+
     const razorpayOrder = await razorpay.orders.create({
       amount: Math.round(order.totalAmount * 100), // paise
       currency: "INR",
@@ -290,6 +300,16 @@ export const verifyPayment = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    if (order.user.toString() !== req.user._id.toString()) {
+  return res.status(403).json({ message: "Not authorized" });
+}
+
+if (order.orderStatus === "cancelled") {
+  return res.status(400).json({ message: "Order was cancelled" });
+}
+
+
+
     // 🔐 Prevent duplicate verification
     if (order.paymentStatus === "paid") {
       return res.status(400).json({ message: "Order already paid" });
@@ -298,7 +318,7 @@ export const verifyPayment = async (req, res) => {
     /* ================= UPDATE ORDER ================= */
     order.paymentStatus = "paid";
     order.orderStatus = "placed";
-    order.isVisible = true;
+    // order.isVisible = true;
     order.paymentResult = {
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
@@ -337,8 +357,10 @@ export const verifyPayment = async (req, res) => {
         ) {
           coupon.usersUsed.push(order.user);
         }
+        coupon.usedCount = (coupon.usedCount || 0) + 1;
 
-        coupon.usedCount += 1;
+
+        // coupon.usedCount += 1;
 
         await coupon.save();
       }
@@ -377,6 +399,11 @@ export const cancelPayment = async (req, res) => {
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 
+    if (order.user.toString() !== req.user._id.toString()) {
+  return res.status(403).json({ message: "Not authorized" });
+}
+
+
     if (order.paymentStatus === "paid") {
       return res.status(400).json({ message: "Cannot cancel a paid order" });
     }
@@ -388,6 +415,11 @@ export const cancelPayment = async (req, res) => {
 
     await order.save();
     res.json({ message: "Order cancelled", order });
+    
+    if (order.orderStatus === "cancelled") {
+  return res.status(400).json({ message: "Order already cancelled" });
+}
+
 
   } catch (error) {
     console.error("Cancel payment error:", error);

@@ -75,6 +75,14 @@ const orderSchema = new mongoose.Schema(
       required: true
     },
 
+    deliveredAt: Date,
+    returnedAt: Date,
+    isReturned: {
+      type: Boolean,
+      default: false
+    },
+
+
     totalAmount: {
       type: Number,
       required: true

@@ -274,16 +274,21 @@ export const placeOrder = async (req, res) => {
     const taxAmount = taxableAmount * TAX_RATE;
     const totalAmount = taxableAmount + taxAmount;
 
-    /* ================= PREVENT DUPLICATE PENDING ================= */
-    const existingPending = await Order.findOne({
-      user: req.user._id,
-      paymentStatus: "pending",
-      orderType
-    });
+/* ================= PREVENT DUPLICATE SAME-CART PENDING ================= */
+if (orderType === "cart" && cart) {
+  const existingPending = await Order.findOne({
+    user: req.user._id,
+    paymentStatus: "pending",
+    orderType: "cart",
+    totalAmount,
+    "orderItems.product": { $all: cart.items.map(i => i.product._id) }
+  });
 
-    if (existingPending) {
-      return res.status(200).json(existingPending);
-    }
+  if (existingPending) {
+    return res.status(200).json(existingPending);
+  }
+}
+
 
     /* ================= CREATE ORDER ================= */
     const order = await Order.create({
@@ -313,11 +318,11 @@ Total: ₹${totalAmount.toFixed(2)}`
     });
 
     /* ================= CLEAR CART ================= */
-    if (cart) {
-      cart.items = [];
-      cart.appliedCoupon = null;
-      await cart.save();
-    }
+    // if (cart) {
+    //   cart.items = [];
+    //   cart.appliedCoupon = null;
+    //   await cart.save();
+    // }
 
     res.status(201).json(order);
 
@@ -398,4 +403,49 @@ export const cancelOrder = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+
+export const returnOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (order.orderStatus !== "delivered") {
+      return res.status(400).json({ message: "Only delivered orders can be returned" });
+    }
+
+    if (order.isReturned) {
+      return res.status(400).json({ message: "Order already returned" });
+    }
+
+    const now = new Date();
+    const diffDays =
+      (now - new Date(order.deliveredAt)) / (1000 * 60 * 60 * 24);
+
+    if (diffDays > 7) {
+      return res.status(400).json({ message: "Return window expired" });
+    }
+
+    order.isReturned = true;
+    order.returnedAt = now;
+    order.orderStatus = "returned";
+    order.paymentStatus = "refunded";
+
+    await order.save();
+
+    res.json({ message: "Order returned successfully", order });
+
+  } catch (error) {
+    console.error("Return Order Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
