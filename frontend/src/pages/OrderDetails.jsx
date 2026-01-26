@@ -147,7 +147,6 @@ export default function OrderDetails() {
     };
 
 
-
     if (loading) {
         return <p style={{ color: "white", textAlign: "center", marginTop: "4rem" }}>Loading order...</p>;
     }
@@ -155,6 +154,14 @@ export default function OrderDetails() {
     if (!order) {
         return <p style={{ color: "white", textAlign: "center", marginTop: "4rem" }}>Order not found</p>;
     }
+
+
+    const canReturn =
+        order?.orderStatus === "delivered" &&
+        !order?.isReturned &&
+        order?.deliveredAt &&
+        (new Date() - new Date(order.deliveredAt)) / (1000 * 60 * 60 * 24) <= 7;
+
 
 
     const modalStyles = {
@@ -289,6 +296,17 @@ export default function OrderDetails() {
   color: black;
 }
 
+.returned {
+  background: #f97316;
+  color: black;
+}
+
+.cancelled { background: #dc2626; }
+.delivered { background: #22c55e; }
+.processing { background: #3b82f6; }
+
+
+
 
         @media (max-width: 600px) {
           .item-card {
@@ -347,21 +365,87 @@ export default function OrderDetails() {
                         </button>
                     )}
 
+
+                    {order.orderStatus !== "cancelled" &&
+                        order.orderStatus !== "delivered" &&
+                        order.paymentStatus !== "refunded" && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        await api.put(`/api/orders/${order._id}/cancel`, {
+                                            cancelledBy: "user"
+                                        });
+                                        const refreshed = await api.get(`/api/orders/${order._id}`);
+                                        setOrder(refreshed.data);
+                                        toast.success("Order cancelled successfully");
+                                    } catch (err) {
+                                        toast.error(err.response?.data?.message || "Cancel failed");
+                                    }
+                                }}
+                                style={{
+                                    background: "#dc2626",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "10px 18px",
+                                    borderRadius: "8px",
+                                    fontWeight: "bold",
+                                    cursor: "pointer",
+                                    marginTop: "10px"
+                                }}
+                            >
+                                Cancel Order
+                            </button>
+                        )}
+
+
+                    {canReturn && (
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await api.put(`/api/orders/${order._id}/return`);
+                                    const refreshed = await api.get(`/api/orders/${order._id}`);
+                                    setOrder(refreshed.data);
+                                    toast.success("Order returned & refunded");
+                                } catch (err) {
+                                    toast.error(err.response?.data?.message || "Return failed");
+                                }
+                            }}
+                            style={{
+                                background: "#f97316",
+                                color: "black",
+                                border: "none",
+                                padding: "10px 18px",
+                                borderRadius: "8px",
+                                fontWeight: "bold",
+                                cursor: "pointer",
+                                marginTop: "10px"
+                            }}
+                        >
+                            Return Order
+                        </button>
+                    )}
+
+
+
                     <span
                         className="badge"
                         style={{
                             background:
                                 order.orderStatus === "cancelled"
                                     ? "#dc2626"
-                                    : order.orderStatus === "delivered"
-                                        ? "#22c55e"
-                                        : "#3b82f6",
+                                    : order.orderStatus === "returned"
+                                        ? "#f97316"
+                                        : order.orderStatus === "delivered"
+                                            ? "#22c55e"
+                                            : "#3b82f6",
                             color: "white",
                             marginLeft: "10px"
                         }}
                     >
                         {order.orderStatus.toUpperCase()}
+
                     </span>
+
                 </div>
 
 

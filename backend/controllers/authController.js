@@ -4,6 +4,8 @@ import generateToken from "../utils/generateToken.js";
 import { generateOTP } from "../utils/sendOTP.js";
 import sendEmail from "../utils/sendEmail.js";
 import { verifyGoogleToken } from "../utils/googleVerify.js";
+import cloudinary from "../config/cloudinary.js";
+
 
 /* ===========================
    EMAIL REGISTER LOGIN
@@ -478,6 +480,7 @@ export const getCustomerProfile = async (req, res) => {
       email: user.email,
       phone: user.phone,
       address: user.address,
+      profileImage: user.profileImage || { url: "", public_id: "" },
       role: user.role,
       isEmailVerified: user.isEmailVerified,
       isPhoneVerified: user.isPhoneVerified,
@@ -493,7 +496,7 @@ export const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     sameSite: "strict",
-    secure: true,
+    // secure: true,
     secure: process.env.NODE_ENV === "production"
   });
 
@@ -559,7 +562,7 @@ export const updateCustomerProfile = async (req, res) => {
     // Update fields
     user.name = req.body.name || user.name;
     user.phone = req.body.phone || user.phone;
-    user.address = req.body.address || user.address; 
+    user.address = req.body.address || user.address;
 
     const updatedUser = await user.save();
 
@@ -581,8 +584,45 @@ export const updateCustomerProfile = async (req, res) => {
 };
 
 
+export const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
 
+    const user = await User.findById(req.user._id);
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    // 🔥 Delete old image from Cloudinary
+    if (user.profileImage?.public_id) {
+      await cloudinary.uploader.destroy(user.profileImage.public_id);
+    }
 
+    // Save new image
+    user.profileImage = {
+      url: req.file.path,
+      public_id: req.file.filename
+    };
 
+    await user.save();
+
+    res.json({
+      message: "Profile image updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Image upload failed" });
+  }
+};
