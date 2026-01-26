@@ -78,28 +78,28 @@ export default function ProfilePage() {
       setWishlistLoading(false);
     }
   };
-const handleAddToCart = async (productId) => {
-  try {
-    // 1️⃣ Add product to cart
-    await addToCartApi(productId, 1);
+  const handleAddToCart = async (productId) => {
+    try {
+      // 1️⃣ Add product to cart
+      await addToCartApi(productId, 1);
 
-    // 2️⃣ Remove product from wishlist
-    await api.delete(`/api/wishlist/${productId}`);
+      // 2️⃣ Remove product from wishlist
+      await api.delete(`/api/wishlist/${productId}`);
 
-    // 3️⃣ Refresh wishlist UI
-    fetchWishlist();
+      // 3️⃣ Refresh wishlist UI
+      fetchWishlist();
 
-    toast.success("Added to cart 🛒");
+      toast.success("Added to cart 🛒");
 
-    // 4️⃣ Redirect to cart
-    navigate("/cart");
-  } catch (error) {
-    toast.error(
-      error.response?.data?.message || "Please login to add to cart"
-    );
-    navigate("/login");
-  }
-};
+      // 4️⃣ Redirect to cart
+      navigate("/cart");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Please login to add to cart"
+      );
+      navigate("/login");
+    }
+  };
 
 
 
@@ -1066,7 +1066,10 @@ const handleAddToCart = async (productId) => {
               {ordersLoading ? (
                 <p className="empty-state">Loading orders...</p>
               ) : orders.length === 0 ? (
-                <p className="empty-state">You have no orders.</p>
+                // <p className="empty-state">You have no orders.</p>
+                <p className="empty-state">
+                  You haven't placed any orders yet.
+                </p>
               ) : (
                 <div className="order-list">
                   {orders.map((order) => (
@@ -1130,9 +1133,20 @@ const handleAddToCart = async (productId) => {
                       </div>
 
                       <div className="order-actions">
-                        <span className={`status-badge ${order.orderStatus === "delivered" ? "delivered" : "transit"}`}>
+                        {/* <span className={`status-badge ${order.orderStatus === "delivered" ? "delivered" : "transit"}`}>
                           {order.orderStatus}
+                        </span> */}
+                        <span className={`status-badge ${order.paymentStatus === "pending"
+                            ? "transit"
+                            : order.orderStatus === "delivered"
+                              ? "delivered"
+                              : "transit"
+                          }`}>
+                          {order.paymentStatus === "pending"
+                            ? "Payment Pending"
+                            : order.orderStatus}
                         </span>
+
 
                         {/* <button className="view-details-btn">View Details</button> */}
                         <button
@@ -1141,6 +1155,16 @@ const handleAddToCart = async (productId) => {
                         >
                           View Details
                         </button>
+
+                        {order.paymentStatus === "pending" && order.isVisible && (
+                          <button
+                            className="view-details-btn"
+                            onClick={() => navigate(`/orders/${order._id}`)}
+                          >
+                            Retry Payment
+                          </button>
+                        )}
+
 
 
                         <p className="order-price">₹{order.totalAmount}</p>
@@ -1183,7 +1207,7 @@ const handleAddToCart = async (productId) => {
                         <div className="wishlist-actions">
                           {item.countInStock > 0 ? (
                             <button className="add-to-cart-btn"
-                            onClick={() => handleAddToCart(item._id)}>
+                              onClick={() => handleAddToCart(item._id)}>
                               Add to Cart
                             </button>
                           ) : (

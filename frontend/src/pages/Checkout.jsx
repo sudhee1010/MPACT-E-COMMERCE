@@ -2,12 +2,18 @@ import React, { useState, useEffect } from "react";
 import { Home, Briefcase, User, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Checkout = () => {
   const navigate = useNavigate();
 
   const [addressType, setAddressType] = useState("home");
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const isDirectBuy = location.state?.directBuy;
+  const directProduct = location.state?.product;
+
 
 
   const [form, setForm] = useState({
@@ -90,8 +96,7 @@ const Checkout = () => {
         pincode: form.pincode,
       });
 
-      // navigate("/pay");
-      const res = await api.post("/api/orders", {
+      const orderPayload = {
         shippingAddress: {
           address: form.address1,
           city: form.city,
@@ -99,14 +104,42 @@ const Checkout = () => {
           phone: form.phone
         },
         paymentMethod: "Razorpay"
-      });
+      };
+
+      if (isDirectBuy && directProduct) {
+        orderPayload.orderItems = [
+          {
+            product: directProduct._id,
+            name: directProduct.name,
+            qty: directProduct.qty,
+            price: directProduct.price,
+            image: directProduct.image
+          }
+        ];
+      }
+
+      // navigate("/pay");
+      // const res = await api.post("/api/orders", {
+      //   shippingAddress: {
+      //     address: form.address1,
+      //     city: form.city,
+      //     pincode: form.pincode,
+      //     phone: form.phone
+      //   },
+      //   paymentMethod: "Razorpay"
+      // });
+
+      const res = await api.post("/api/orders", orderPayload);
+
 
       // navigate("/pay", { state: { order: res.data } });
       navigate("/pay", { state: { orderId: res.data._id } });
 
 
     } catch (error) {
-      alert("Failed to save address. Please try again.");
+      toast.error("Failed to save address. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -219,11 +252,16 @@ const Checkout = () => {
 
           {/* ACTIONS */}
           <div className="actions">
-            <button className="outline" onClick={() => navigate("/cart")}>
+            {/* <button className="outline" onClick={() => navigate("/cart")}> */}
+            <button
+              className="outline"
+              onClick={() => navigate(isDirectBuy ? "/" : "/cart")}
+            >
+
               Back to Cart
             </button>
             <button className="primary" onClick={handleContinue} disabled={loading}>
-                {loading ? "Processing..." : "CONTINUE TO PAYMENT"}
+              {loading ? "Processing..." : "CONTINUE TO PAYMENT"}
             </button>
           </div>
         </div>

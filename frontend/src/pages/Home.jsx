@@ -1294,85 +1294,6 @@ const MPACTLandingPage = () => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  //   const [products] = useState([
-  //   {
-  //     id: 1,
-  //     title: "EXTRA HUNGRY?",
-  //     name: "PROTEIN WAFERS - VARIETY PACK OF 10",
-  //     brand: "SNICKERS",
-  //     price: 2000,
-  //     oldPrice: 2999,
-  //     discount: "26% OFF",
-  //     image: proteinGym,   // ✅ FIXED
-  //     rating: 5,
-  //     reviews: 199,
-  //     specs: [
-  //       "NO PRESERVATIVES",
-  //       "JAGGERY BASED",
-  //       "NO ADDED COLOURS",
-  //       "NO GLUCOSE ADDED",
-  //       "80 % PEANUT",
-  //     ],
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "EXTRA HUNGRY?",
-  //     name: "PROTEIN WAFERS - VARIETY PACK OF 10",
-  //     brand: "SNICKERS",
-  //     price: 2000,
-  //     oldPrice: 2999,
-  //     discount: "26% OFF",
-  //     image: proteinGym,   // ✅ FIXED
-  //     rating: 5,
-  //     reviews: 199,
-  //     specs: [
-  //       "NO PRESERVATIVES",
-  //       "JAGGERY BASED",
-  //       "NO ADDED COLOURS",
-  //       "NO GLUCOSE ADDED",
-  //       "80 % PEANUT",
-  //     ],
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "EXTRA HUNGRY?",
-  //     name: "PROTEIN WAFERS - VARIETY PACK OF 10",
-  //     brand: "SNICKERS",
-  //     price: 2000,
-  //     oldPrice: 2999,
-  //     discount: "26% OFF",
-  //     image: proteinGym,   // ✅ FIXED
-  //     rating: 5,
-  //     reviews: 199,
-  //     specs: [
-  //       "NO PRESERVATIVES",
-  //       "JAGGERY BASED",
-  //       "NO ADDED COLOURS",
-  //       "NO GLUCOSE ADDED",
-  //       "80 % PEANUT",
-  //     ],
-  //   },
-  //   {
-  //     id: 4,
-  //     title: "EXTRA HUNGRY?",
-  //     name: "PROTEIN WAFERS - VARIETY PACK OF 10",
-  //     brand: "SNICKERS",
-  //     price: 2000,
-  //     oldPrice: 2999,
-  //     discount: "26% OFF",
-  //     image: proteinGym,   // ✅ FIXED
-  //     rating: 5,
-  //     reviews: 199,
-  //     specs: [
-  //       "NO PRESERVATIVES",
-  //       "JAGGERY BASED",
-  //       "NO ADDED COLOURS",
-  //       "NO GLUCOSE ADDED",
-  //       "80 % PEANUT",
-  //     ],
-  //   },
-  // ]);
-
 
   const handlePrevSlide = () => {
     setCurrentSlide(prev => (prev === 0 ? heroSlides.length - 1 : prev - 1));
@@ -1382,60 +1303,44 @@ const MPACTLandingPage = () => {
     setCurrentSlide(prev => (prev === heroSlides.length - 1 ? 0 : prev + 1));
   };
 
-  // const handleBuyNow = async (productId) => {
-  //   try {
-  //     await addToCart(productId, 1);
-
-  //     setCartMessage("✅ Product added to cart");
-  //     setTimeout(() => setCartMessage(""), 3000);
-  //   } catch (error) {
-  //     if (error.response?.status === 401) {
-  //       setShowLoginModal(true);
-  //     }
 
 
 
 // const handleBuyNow = async (productId) => {
 //   try {
-//     // ❌ DO NOT add to cart for Buy Now
-//     // await addToCartApi(productId, 1);
+//     await addToCartApi(productId, 1);
 
-//     navigate("/checkout", {
-//       state: {
-//         isDirect: true,
-//         productId: productId,
-//         qty: 1,
-//       },
-//     });
+//     setCartMessage("✅ Product added to cart");
+//     setTimeout(() => setCartMessage(""), 3000);
+
+//     // 🔥 THIS WAS MISSING
+//     navigate("/checkout"); // or "/checkout"
 //   } catch (error) {
 //     if (error.response?.status === 401) {
 //       setShowLoginModal(true);
 //     } else {
-//       setCartMessage("❌ Failed to proceed");
+//       setCartMessage("❌ Failed to add to cart");
 //       setTimeout(() => setCartMessage(""), 3000);
 //     }
 //   }
 // };
 
 
-const handleBuyNow = async (productId) => {
-  try {
-    await addToCartApi(productId, 1);
-
-    setCartMessage("✅ Product added to cart");
-    setTimeout(() => setCartMessage(""), 3000);
-
-    // 🔥 THIS WAS MISSING
-    navigate("/checkout"); // or "/checkout"
-  } catch (error) {
-    if (error.response?.status === 401) {
-      setShowLoginModal(true);
-    } else {
-      setCartMessage("❌ Failed to add to cart");
-      setTimeout(() => setCartMessage(""), 3000);
+const handleBuyNow = (product) => {
+  navigate("/checkout", {
+    state: {
+      directBuy: true,
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.url,
+        qty: 1
+      }
     }
-  }
+  });
 };
+
 
 
 
@@ -2019,7 +1924,7 @@ return (
                     </div>
 
                     <button
-                      onClick={() => handleBuyNow(product._id)}
+                      onClick={() => handleBuyNow(product)}
                       style={{
                         width: "100%",
                         backgroundColor: "#facc15",

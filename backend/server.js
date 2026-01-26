@@ -26,6 +26,7 @@ import cookieParser from "cookie-parser";
 import aboutusRoutes from "./routes/aboutusRoutes.js"
 import addressRoutes from "./routes/addressRoutes.js";
 import { cleanupUnverifiedUsers } from "./utils/cleanupUnverifiedUsers.js";
+import { startOrderCleanupJob } from "./utils/orderCleanup.js";
 
 
 
@@ -45,6 +46,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 cron.schedule("*/30 * * * *", cleanupUnverifiedUsers);
+startOrderCleanupJob();
 
 
 // Test route

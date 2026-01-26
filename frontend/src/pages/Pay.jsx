@@ -1,520 +1,378 @@
-// import React, { useState } from "react";
-// import { Smartphone, CreditCard, Truck } from "lucide-react";
+// import React, { useEffect, useState } from "react";
+// // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
+// import { useLocation } from "react-router-dom";
+// import api from "../api/axios";
+// import { getOrderByIdApi } from "../api/ordersApi";
+// import toast from "react-hot-toast";
+
+
 
 // const Pay = () => {
 //   const navigate = useNavigate();
+//   const location = useLocation();
+//   // const { orderId } = location.state || {};
+//   const orderId = location.state?.orderId;
 
-//   /* ================= STATE ================= */
-//   const [method, setMethod] = useState("upi");
-//   const [upiApp, setUpiApp] = useState("");
-//   const [upiId, setUpiId] = useState("");
+//   const [order, setOrder] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [showCancelModal, setShowCancelModal] = useState(false);
+//   const isDirectBuy = order?.orderType === "direct";
 
-//   const [cardNumber, setCardNumber] = useState("");
-//   const [cardName, setCardName] = useState("");
-//   const [expiry, setExpiry] = useState("");
-//   const [cvv, setCvv] = useState("");
 
-//   const [error, setError] = useState("");
 
-//   /* ================= VALIDATION ================= */
-//   const handlePay = () => {
-//     setError("");
+//   // if (!order) return <p>No order found</p>;
+//   // const orderId = order._id;
 
-//     if (method === "upi") {
-//       if (!upiId || !upiApp) {
-//         setError("Please enter UPI ID and select a UPI app");
-//         return;
+//   // const [orders, setOrders] = useState(null);
+//   // const [loading, setLoading] = useState(true);
+
+
+//   // 🔥 Fetch order securely via cookies
+//   useEffect(() => {
+//     if (!orderId) return;
+
+//     const fetchOrder = async () => {
+//       try {
+//         const res = await getOrderByIdApi(orderId);
+//         setOrder(res.data);
+//       } catch (err) {
+//         console.error("Failed to fetch order:", err);
+//       } finally {
+//         setLoading(false);
 //       }
-//     }
+//     };
 
-//     if (method === "card") {
-//       if (
-//         cardNumber.length !== 16 ||
-//         !cardName ||
-//         !/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry) ||
-//         cvv.length !== 3
-//       ) {
-//         setError("Please enter valid card details");
-//         return;
-//       }
-//     }
+//     fetchOrder();
+//   }, [orderId]);
 
-//     // COD → no validation needed
-//     navigate("/success");
+//   useEffect(() => {
+//     document.body.style.overflow = showCancelModal ? "hidden" : "auto";
+//   }, [showCancelModal]);
+
+//   useEffect(() => {
+//     return () => {
+//       document.body.style.overflow = "auto";
+//     };
+//   }, []);
+
+
+
+
+//   // const orderId = "6969f5cb465325fad07f5950"; 
+
+//   const handlePay = async () => {
+//     try {
+//       // 1️⃣ Create Razorpay order (backend)
+//       const { data } = await api.post(
+//         "/api/payment/create-order",
+//         { orderId });
+//       //   headers: {
+//       //     Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NDhkOGI0Nzc5MGJiYzAxOWQwYTE4ZiIsImlhdCI6MTc2ODU1MTczMiwiZXhwIjoxNzY5MTU2NTMyfQ.rWTP7f38JEalc0h41AVZnXuT5Ubj7icMvQktLmVbzZw`
+//       //   }
+//       // }
+//       // );
+
+//       const options = {
+//         key: data.key,
+//         amount: data.amount,
+//         currency: data.currency,
+//         name: "MPACT",
+//         description: "Order Payment",
+//         order_id: data.razorpayOrderId,
+
+//         handler: async function (response) {
+//           // 2️⃣ Verify payment (backend)
+//           await api.post(
+//             "/api/payment/verify",
+//             {
+//               razorpay_order_id: response.razorpay_order_id,
+//               razorpay_payment_id: response.razorpay_payment_id,
+//               razorpay_signature: response.razorpay_signature,
+//               orderId
+//             }
+//           );
+
+//           // alert("Payment successful");
+//           // navigate("/success");
+//           navigate("/order-success", { state: { orderId } });
+//         },
+
+//         modal: {
+//           ondismiss: function () {
+//             document.body.style.overflow = "auto";  
+//             setShowCancelModal(true);
+//           }
+//         },
+
+//         theme: { color: "#facc15" }
+//       };
+
+//       const razorpay = new window.Razorpay(options);
+//       razorpay.open();
+//     } catch (err) {
+//       console.error(err);
+//       toast.error("Payment failed");
+//     }
 //   };
 
+//   if (!orderId) return <p>No order found</p>;
+//   if (loading) return <p>Loading order...</p>;
+//   if (!order) return <p>Order not found</p>;
+
 //   return (
-//     <div className="payment-page">
-//       <div className="payment-container">
-//         <h1>SELECT PAYMENT METHOD</h1>
+//     <div style={styles.page}>
+//       <div style={styles.card}>
+//         <h2>ORDER SUMMARY</h2>
 
-//         <div className="payment-layout">
-//           {/* ================= LEFT ================= */}
-//           <div className="payment-methods">
-//             {/* UPI */}
-//             <div
-//               className={`method ${method === "upi" ? "active" : ""}`}
-//               onClick={() => setMethod("upi")}
-//             >
-//               <div className="method-title">
-//                 <span className="radio" />
-//                 <Smartphone size={18} />
-//                 UPI Payment
-//               </div>
+//         {/* <div style={styles.row}>
+//           <span>Subtotal</span>
+//           <span>₹2000</span>
+//         </div> */}
 
-//               {method === "upi" && (
-//                 <div className="method-body">
-//                   <input
-//                     type="text"
-//                     placeholder="Enter UPI ID (e.g. yourname@paytm)"
-//                     value={upiId}
-//                     onChange={(e) => setUpiId(e.target.value)}
-//                   />
 
-//                   <div className="upi-apps">
-//                     {["phonepe", "paytm", "gpay"].map((app) => (
-//                       <button
-//                         key={app}
-//                         className={
-//                           upiApp === app ? "upi-btn active" : "upi-btn"
-//                         }
-//                         onClick={(e) => {
-//                           e.stopPropagation();
-//                           setUpiApp(app);
-//                         }}
-//                       >
-//                         {app === "gpay" ? "Google Pay" : app.toUpperCase()}
-//                       </button>
-//                     ))}
-//                   </div>
-//                 </div>
-//               )}
-//             </div>
+//         <div style={styles.row}>
+//           <span>Subtotal</span>
+//           <span>₹{order.totalAmount - order.taxAmount}</span>
+//         </div>
 
-//             {/* CARD */}
-//             <div
-//               className={`method ${method === "card" ? "active" : ""}`}
-//               onClick={() => setMethod("card")}
-//             >
-//               <div className="method-title">
-//                 <span className="radio" />
-//                 <CreditCard size={18} />
-//                 Credit / Debit Card
-//               </div>
+//         {/* <div style={{ ...styles.row, color: "#22c55e" }}>
+//           <span>Discount</span>
+//           <span>-₹200</span>
+//         </div> */}
 
-//               {method === "card" && (
-//                 <div className="method-body">
-//                   <input
-//                     type="text"
-//                     placeholder="Card Number"
-//                     maxLength={16}
-//                     value={cardNumber}
-//                     onChange={(e) =>
-//                       setCardNumber(e.target.value.replace(/\D/g, ""))
-//                     }
-//                   />
+//         {/* <div style={styles.row}>
+//           <span>Packing Charges</span>
+//           <span>₹50</span>
+//         </div> */}
 
-//                   <input
-//                     type="text"
-//                     placeholder="Cardholder Name"
-//                     value={cardName}
-//                     onChange={(e) => setCardName(e.target.value)}
-//                   />
+//         <hr />
 
-//                   <div className="row-inputs">
-//                     <input
-//                       type="text"
-//                       placeholder="MM/YY"
-//                       maxLength={5}
-//                       value={expiry}
-//                       onChange={(e) => setExpiry(e.target.value)}
-//                     />
-//                     <input
-//                       type="password"
-//                       placeholder="CVV"
-//                       maxLength={3}
-//                       value={cvv}
-//                       onChange={(e) =>
-//                         setCvv(e.target.value.replace(/\D/g, ""))
-//                       }
-//                     />
-//                   </div>
-//                 </div>
-//               )}
-//             </div>
+//         {/* <div style={styles.total}>
+//           <span>Total</span>
+//           <span>₹1850</span>
+//         </div> */}
 
-//             {/* COD */}
-//             <div
-//               className={`method ${method === "cod" ? "active" : ""}`}
-//               onClick={() => setMethod("cod")}
-//             >
-//               <div className="method-title">
-//                 <span className="radio" />
-//                 <Truck size={18} />
-//                 Cash on Delivery
-//               </div>
-//             </div>
-//           </div>
 
-//           {/* ================= RIGHT ================= */}
-//           <div className="summary">
-//             <h3>ORDER SUMMARY</h3>
+//         <div style={styles.row}>
+//           <span>Tax</span>
+//           <span>₹{order.taxAmount.toFixed(2)}</span>
+//         </div>
 
-//             <div className="summary-content">
-//               <div className="row">
-//                 <span>Subtotal</span>
-//                 <span>₹2000</span>
-//               </div>
+//         <div style={styles.total}>
+//           <span>Total</span>
+//           <span>₹{order.totalAmount}</span>
+//         </div>
 
-//               <div className="row green">
-//                 <span>Discount</span>
-//                 <span>-₹200</span>
-//               </div>
 
-//               <div className="row">
-//                 <span>Packing Charges</span>
-//                 <span>₹50</span>
-//               </div>
 
-//               <hr />
 
-//               <div className="total">
-//                 <span>Total</span>
-//                 <span>₹1850</span>
-//               </div>
-//             </div>
+//         <button style={styles.btn} onClick={handlePay}>
+//           PROCEED TO PAY
+//         </button>
+//       </div>
 
-//             {error && (
-//               <p
-//                 style={{
-//                   color: "#ef4444",
-//                   fontSize: "14px",
-//                   marginBottom: "12px",
+//       {/* {showCancelModal && (
+//         <div style={cancelStyles.overlay}>
+//           <div style={cancelStyles.modal}>
+//             <h3 style={{ color: "#facc15", marginBottom: "12px" }}>
+//               Payment Cancelled
+//             </h3>
+//             <p style={{ marginBottom: "20px" }}>
+//               You cancelled the payment. You can retry it from your cart page.
+//             </p>
+
+//             <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+//               <button
+//                 style={cancelStyles.primary}
+//                 onClick={() => {
+//                   document.body.style.overflow = "auto";
+//                   navigate("/cart")
 //                 }}
 //               >
-//                 {error}
-//               </p>
-//             )}
+//                 Go to cart
+//               </button>
 
-//             <button className="pay-btn" onClick={handlePay}>
-//               PROCEED TO PAY
-//             </button>
+//               <button
+//                 style={cancelStyles.secondary}
+//                 onClick={() => {
+//                   document.body.style.overflow = "auto";
+//                   setShowCancelModal(false)
+//                 }}
+//               >
+//                 Stay Here
+//               </button>
+//             </div>
 //           </div>
 //         </div>
-//       </div>
-//             {/* CSS */}
-//             <style>{`
-//             /* ================= RESET ================= */
-//             * {
-//             box-sizing: border-box;
-//             }
+//       )} */}
 
-//             /* ================= PAGE ================= */
-//             .payment-page {
-//             min-height: 100vh;
-//             background: #2f2f2f;
-//             color: white;
-//             font-family: 'Jersey 25', sans-serif;
-//             }
 
-//             .payment-container {
-//             max-width: 1300px;
-//             margin: auto;
-//             padding: 60px 24px;
-//             }
+//       {showCancelModal && (
+//         <div style={cancelStyles.overlay}>
+//           <div style={cancelStyles.modal}>
+//             <h3 style={{ color: "#facc15", marginBottom: "12px" }}>
+//               Payment Cancelled
+//             </h3>
+//             <p style={{ marginBottom: "20px" }}>
+//               You cancelled the payment. You can continue shopping or retry.
+//             </p>
 
-//             h1 {
-//             font-size: 32px;
-//             margin-bottom: 32px;
-//             }
+//             <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+//               <button
+//                 style={cancelStyles.primary}
+//                 onClick={() => {
+//                   document.body.style.overflow = "auto";
+//                   navigate(isDirectBuy ? "/" : "/cart");
+//                 }}
+//               >
+//                 {isDirectBuy ? "Go to Home" : "Go to Cart"}
+//               </button>
 
-//             /* ================= LAYOUT ================= */
-//             .payment-layout {
-//             display: grid;
-//             grid-template-columns: 2fr 1fr;
-//             gap: 32px;
-//             align-items: start; /* 🔑 PREVENTS SUMMARY HEIGHT STRETCH */
-//             }
-
-//             /* ================= METHODS ================= */
-//             .payment-methods {
-//             display: flex;
-//             flex-direction: column;
-//             gap: 20px;
-//             }
-
-//             .method {
-//             border: 2px solid #555;
-//             border-radius: 16px;
-//             padding: 20px 24px;
-//             cursor: pointer;
-//             transition: all 0.3s ease;
-//             background: #2f2f2f;
-//             }
-
-//             .method.active {
-//             border-color: #facc15;
-//             background: #45422c;
-//             }
-
-//             .method-title {
-//             display: flex;
-//             align-items: center;
-//             gap: 14px;
-//             font-size: 20px;
-//             }
-
-//             .radio {
-//             width: 18px;
-//             height: 18px;
-//             border-radius: 50%;
-//             border: 2px solid #aaa;
-//             }
-
-//             .method.active .radio {
-//             background: #facc15;
-//             border-color: #facc15;
-//             }
-
-//             .method-body {
-//             margin-top: 20px;
-//             display: flex;
-//             flex-direction: column;
-//             gap: 14px;
-//             }
-
-//             /* ================= INPUTS ================= */
-//             input {
-//             width: 100%;
-//             height: 46px;
-//             border-radius: 10px;
-//             border: 2px solid #facc15;
-//             background: #2f2f2f;
-//             color: white;
-//             padding: 0 14px;
-//             font-size: 14px;
-//             }
-
-//             .row-inputs {
-//             display: grid;
-//             grid-template-columns: 1fr 1fr;
-//             gap: 12px;
-//             }
-
-//             /* ================= AUTOFILL FIX ================= */
-//             input:-webkit-autofill,
-//             input:-webkit-autofill:hover,
-//             input:-webkit-autofill:focus {
-//             -webkit-text-fill-color: white;
-//             -webkit-box-shadow: 0 0 0px 1000px #2f2f2f inset;
-//             transition: background-color 9999s ease-in-out 0s;
-//             }
-
-//             /* ================= UPI ================= */
-//             .upi-apps {
-//             display: flex;
-//             gap: 12px;
-//             flex-wrap: wrap;
-//             }
-
-//             .upi-btn {
-//             padding: 10px 18px;
-//             border-radius: 12px;
-//             border: 2px solid transparent;
-//             background: white;
-//             color: black;
-//             font-weight: bold;
-//             cursor: pointer;
-//             transition: all 0.25s ease;
-//             }
-
-//             .upi-btn:hover,
-//             .upi-btn.active {
-//             border-color: #facc15;
-//             background: #facc15;
-//             }
-
-//             /* ================= SUMMARY ================= */
-//             .summary {
-//             border: 2px solid #facc15;
-//             border-radius: 18px;
-//             padding: 24px;
-//             display: flex;
-//             flex-direction: column;
-//             }
-
-//             .summary h3 {
-//             margin-bottom: 24px;
-//             }
-
-//             .row {
-//             display: flex;
-//             justify-content: space-between;
-//             margin-bottom: 14px;
-//             }
-
-//             .row.green {
-//             color: #22c55e;
-//             }
-
-//             hr {
-//             border: none;
-//             height: 1px;
-//             background: #666;
-//             margin: 18px 0;
-//             }
-
-//             .total {
-//             display: flex;
-//             justify-content: space-between;
-//             font-size: 20px;
-//             font-weight: bold;
-//             color: #facc15;
-//             margin-bottom: 20px;
-//             }
-
-//             .pay-btn {
-//             width: 100%;
-//             height: 54px;
-//             border-radius: 14px;
-//             border: none;
-//             background: #facc15;
-//             font-weight: bold;
-//             cursor: pointer;
-//             margin-top: auto; /* 🔑 BUTTON GOES DOWN WITHOUT HEIGHT INCREASE */
-//             }
-
-//             /* ================= STICKY SUMMARY (DESKTOP) ================= */
-//             @media (min-width: 1025px) {
-//             .summary {
-//                 position: sticky;
-//                 top: 120px;
-//                 align-self: start;
-//             }
-//             }
-
-//             /* ================= TABLET ================= */
-//             @media (max-width: 1024px) {
-//             .payment-layout {
-//                 grid-template-columns: 1fr;
-//             }
-
-//             h1 {
-//                 text-align: center;
-//             }
-//             }
-
-//             /* ================= MOBILE ================= */
-//             @media (max-width: 600px) {
-//             .payment-container {
-//                 padding: 24px 14px;
-//             }
-
-//             h1 {
-//                 font-size: 22px;
-//                 line-height: 1.3;
-//                 text-align: center;
-//             }
-
-//             .method {
-//                 padding: 16px;
-//             }
-
-//             .method-title {
-//                 font-size: 16px;
-//                 gap: 10px;
-//             }
-
-//             .method-body {
-//                 margin-top: 14px;
-//                 gap: 10px;
-//             }
-
-//             input {
-//                 height: 42px;
-//                 font-size: 13px;
-//             }
-
-//             .row-inputs {
-//                 grid-template-columns: 1fr;
-//             }
-
-//             .upi-btn {
-//                 flex: 1 1 100%;
-//                 padding: 10px;
-//                 font-size: 14px;
-//                 text-align: center;
-//             }
-
-//             .summary {
-//                 padding: 18px;
-//             }
-
-//             .summary h3 {
-//                 font-size: 16px;
-//             }
-
-//             .row {
-//                 font-size: 14px;
-//             }
-
-//             .total {
-//                 font-size: 18px;
-//             }
-
-//             .pay-btn {
-//                 height: 48px;
-//                 font-size: 14px;
-//             }
-//             }
-// `}</style>
-
+//               <button
+//                 style={cancelStyles.secondary}
+//                 onClick={() => {
+//                   document.body.style.overflow = "auto";
+//                   setShowCancelModal(false);
+//                 }}
+//               >
+//                 Stay Here
+//               </button>
+//             </div>
+//           </div>
 //         </div>
-//     );
+//       )}
+//     </div>
+//   );
 // };
+
+// const styles = {
+//   page: {
+//     minHeight: "100vh",
+//     background: "#2f2f2f",
+//     display: "flex",
+//     justifyContent: "center",
+//     alignItems: "center",
+//     color: "white"
+//   },
+//   card: {
+//     width: "380px",
+//     border: "2px solid #facc15",
+//     borderRadius: "18px",
+//     padding: "28px"
+//   },
+//   row: {
+//     display: "flex",
+//     justifyContent: "space-between",
+//     marginBottom: "14px"
+//   },
+//   total: {
+//     display: "flex",
+//     justifyContent: "space-between",
+//     fontSize: "20px",
+//     fontWeight: "bold",
+//     color: "#facc15",
+//     marginBottom: "20px"
+//   },
+//   btn: {
+//     width: "100%",
+//     height: "48px",
+//     background: "#facc15",
+//     border: "none",
+//     borderRadius: "12px",
+//     fontWeight: "bold",
+//     cursor: "pointer"
+//   }
+// };
+
+// const cancelStyles = {
+//   overlay: {
+//     position: "fixed",
+//     inset: 0,
+//     backgroundColor: "rgba(0,0,0,0.6)",
+//     display: "flex",
+//     justifyContent: "center",
+//     alignItems: "center",
+//     zIndex: 9999
+//   },
+//   modal: {
+//     background: "#1f1f1f",
+//     border: "2px solid #facc15",
+//     borderRadius: "12px",
+//     padding: "24px",
+//     width: "320px",
+//     textAlign: "center",
+//     color: "white"
+//   },
+//   primary: {
+//     background: "#facc15",
+//     border: "none",
+//     padding: "10px 16px",
+//     borderRadius: "8px",
+//     fontWeight: "bold",
+//     cursor: "pointer"
+//   },
+//   secondary: {
+//     background: "transparent",
+//     border: "1px solid #facc15",
+//     color: "#facc15",
+//     padding: "10px 16px",
+//     borderRadius: "8px",
+//     cursor: "pointer"
+//   }
+// };
+
 
 // export default Pay;
 
 
 
 
-// import React from "react";
+
+
+
 import React, { useEffect, useState } from "react";
-// import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import api from "../api/axios";
 import { getOrderByIdApi } from "../api/ordersApi";
-
-
-
+import toast from "react-hot-toast";
 
 const Pay = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  // const { orderId } = location.state || {};
-  const orderId = location.state?.orderId;
+  const { orderId: paramOrderId } = useParams();
+
+  const orderId = location.state?.orderId || paramOrderId;
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Coupon + calculation states
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [taxAmount, setTaxAmount] = useState(0);
+  const [finalAmount, setFinalAmount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const isDirectBuy = order?.orderType === "direct";
 
-  // if (!order) return <p>No order found</p>;
-  // const orderId = order._id;
-
-  // const [orders, setOrders] = useState(null);
-  // const [loading, setLoading] = useState(true);
-
-
-  // 🔥 Fetch order securely via cookies
+  /* ================= FETCH ORDER ================= */
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) {
+      navigate("/");
+      return;
+    }
 
     const fetchOrder = async () => {
       try {
         const res = await getOrderByIdApi(orderId);
         setOrder(res.data);
+
+        setDiscount(res.data.discount || 0);
+        setTaxAmount(res.data.taxAmount || 0);
+        setFinalAmount(res.data.totalAmount || 0);
       } catch (err) {
         console.error("Failed to fetch order:", err);
       } finally {
@@ -523,34 +381,50 @@ const Pay = () => {
     };
 
     fetchOrder();
-  }, [orderId]);
+  }, [orderId, navigate]);
+
+  /* ================= BODY SCROLL LOCK ================= */
+  useEffect(() => {
+    document.body.style.overflow = showCancelModal ? "hidden" : "auto";
+  }, [showCancelModal]);
 
   useEffect(() => {
-  document.body.style.overflow = showCancelModal ? "hidden" : "auto";
-}, [showCancelModal]);
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
-useEffect(() => {
-  return () => {
-    document.body.style.overflow = "auto";
+  /* ================= APPLY COUPON ================= */
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    setCouponLoading(true);
+    setCouponError("");
+
+    try {
+      const { data } = await api.post("/api/coupons/apply-on-order", {
+        orderId,
+        code: couponCode.trim()
+      });
+
+      setDiscount(data.discount);
+      setTaxAmount(data.taxAmount);
+      setFinalAmount(data.totalAmount);
+    } catch (err) {
+      setCouponError(err.response?.data?.message || "Failed to apply coupon");
+
+      setDiscount(order.discount || 0);
+      setTaxAmount(order.taxAmount || 0);
+      setFinalAmount(order.totalAmount || 0);
+    } finally {
+      setCouponLoading(false);
+    }
   };
-}, []);
 
-
-
-
-  // const orderId = "6969f5cb465325fad07f5950"; 
-
+  /* ================= RAZORPAY PAYMENT ================= */
   const handlePay = async () => {
     try {
-      // 1️⃣ Create Razorpay order (backend)
-      const { data } = await api.post(
-        "/api/payment/create-order",
-        { orderId });
-      //   headers: {
-      //     Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NDhkOGI0Nzc5MGJiYzAxOWQwYTE4ZiIsImlhdCI6MTc2ODU1MTczMiwiZXhwIjoxNzY5MTU2NTMyfQ.rWTP7f38JEalc0h41AVZnXuT5Ubj7icMvQktLmVbzZw`
-      //   }
-      // }
-      // );
+      const { data } = await api.post("/api/payment/create-order", { orderId });
 
       const options = {
         key: data.key,
@@ -561,31 +435,22 @@ useEffect(() => {
         order_id: data.razorpayOrderId,
 
         handler: async function (response) {
-          // 2️⃣ Verify payment (backend)
-          await api.post(
-            "/api/payment/verify",
-            {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              orderId
-            }
-          );
+          await api.post("/api/payment/verify", {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            orderId
+          });
 
-          // alert("Payment successful");
-          // navigate("/success");
           navigate("/order-success", { state: { orderId } });
         },
 
         modal: {
-  ondismiss: function () {
-    document.body.style.overflow = "auto";  // 🔥 RESTORE SCROLL
-    setShowCancelModal(true);
-  }
-},
-
-
-
+          ondismiss: function () {
+            document.body.style.overflow = "auto";
+            setShowCancelModal(true);
+          }
+        },
 
         theme: { color: "#facc15" }
       };
@@ -594,102 +459,114 @@ useEffect(() => {
       razorpay.open();
     } catch (err) {
       console.error(err);
-      alert("Payment failed");
+      toast.error("Payment failed");
     }
   };
 
   if (!orderId) return <p>No order found</p>;
-  if (loading) return <p>Loading order...</p>;
+  if (loading) return <p style={{ color: "white" }}>Loading...</p>;
   if (!order) return <p>Order not found</p>;
 
+  const subtotal =
+    order.subtotal ??
+    order.orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+  /* ================= UI ================= */
   return (
     <div style={styles.page}>
       <div style={styles.card}>
         <h2>ORDER SUMMARY</h2>
 
-        {/* <div style={styles.row}>
-          <span>Subtotal</span>
-          <span>₹2000</span>
-        </div> */}
-
-
         <div style={styles.row}>
           <span>Subtotal</span>
-          <span>₹{order.totalAmount - order.taxAmount}</span>
+          <span>₹{subtotal}</span>
         </div>
 
-        {/* <div style={{ ...styles.row, color: "#22c55e" }}>
-          <span>Discount</span>
-          <span>-₹200</span>
-        </div> */}
+        {/* COUPON INPUT */}
+        <div style={styles.couponBox}>
+          <input
+            type="text"
+            placeholder="Enter coupon code"
+            value={couponCode}
+            disabled={discount > 0}
+            onChange={(e) => setCouponCode(e.target.value)}
+            style={{
+              ...styles.couponInput,
+              opacity: discount > 0 ? 0.6 : 1
+            }}
+          />
+          <button
+            style={styles.couponBtn}
+            onClick={applyCoupon}
+            disabled={couponLoading || discount > 0}
+          >
+            {discount > 0
+              ? "Applied"
+              : couponLoading
+              ? "Applying..."
+              : "Apply"}
+          </button>
+        </div>
 
-        {/* <div style={styles.row}>
-          <span>Packing Charges</span>
-          <span>₹50</span>
-        </div> */}
+        {couponError && <p style={styles.error}>{couponError}</p>}
 
-        <hr />
-
-        {/* <div style={styles.total}>
-          <span>Total</span>
-          <span>₹1850</span>
-        </div> */}
-
+        {discount > 0 && (
+          <div style={{ ...styles.row, color: "#22c55e" }}>
+            <span>Coupon Discount</span>
+            <span>-₹{discount}</span>
+          </div>
+        )}
 
         <div style={styles.row}>
           <span>Tax</span>
-          <span>₹{order.taxAmount.toFixed(2)}</span>
+          <span>₹{taxAmount.toFixed(2)}</span>
         </div>
+
+        <hr />
 
         <div style={styles.total}>
           <span>Total</span>
-          <span>₹{order.totalAmount}</span>
+          <span>₹{finalAmount.toFixed(2)}</span>
         </div>
-
-
-
 
         <button style={styles.btn} onClick={handlePay}>
           PROCEED TO PAY
         </button>
       </div>
 
+      {/* CANCEL MODAL */}
       {showCancelModal && (
-  <div style={cancelStyles.overlay}>
-    <div style={cancelStyles.modal}>
-      <h3 style={{ color: "#facc15", marginBottom: "12px" }}>
-        Payment Cancelled
-      </h3>
-      <p style={{ marginBottom: "20px" }}>
-        You cancelled the payment. You can retry it from your cart page.
-      </p>
+        <div style={cancelStyles.overlay}>
+          <div style={cancelStyles.modal}>
+            <h3 style={{ color: "#facc15" }}>Payment Cancelled</h3>
+            <p>You cancelled the payment.</p>
 
-      <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-        <button
-          style={cancelStyles.primary}
-          onClick={() =>{
-            document.body.style.overflow = "auto"; 
-             navigate("/cart")}}
-        >
-          Go to cart
-        </button>
-
-        <button
-          style={cancelStyles.secondary}
-          onClick={() =>{
-            document.body.style.overflow = "auto";
-             setShowCancelModal(false)}}
-        >
-          Stay Here
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+            <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+              <button
+                style={cancelStyles.primary}
+                onClick={() =>
+                  navigate(isDirectBuy ? "/" : "/cart")
+                }
+              >
+                {isDirectBuy ? "Go Home" : "Go to Cart"}
+              </button>
+              <button
+                style={cancelStyles.secondary}
+                onClick={() => setShowCancelModal(false)}
+              >
+                Stay here
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 
 const styles = {
   page: {
@@ -727,6 +604,46 @@ const styles = {
     borderRadius: "12px",
     fontWeight: "bold",
     cursor: "pointer"
+  },
+  couponBox: {
+    display: "flex",
+    gap: "8px",
+    margin: "16px 0"
+  },
+  couponInput: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "8px",
+    border: "1px solid #facc15",
+    background: "transparent",
+    color: "white"
+  },
+  couponBtn: {
+    background: "#facc15",
+    border: "none",
+    borderRadius: "8px",
+    padding: "0 14px",
+    cursor: "pointer",
+    fontWeight: "bold"
+  },
+  couponBadge: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "6px",
+    border: "1px solid #facc15",
+    borderRadius: "999px",
+    padding: "6px 12px",
+    fontSize: "13px",
+    fontWeight: "bold",
+    color: "#facc15",
+    background: "rgba(250,204,21,0.15)",
+    marginBottom: "10px"
+  },
+  error: {
+    color: "#ef4444",
+    fontSize: "14px",
+    marginBottom: "10px"
   }
 };
 
@@ -766,6 +683,5 @@ const cancelStyles = {
     cursor: "pointer"
   }
 };
-
 
 export default Pay;

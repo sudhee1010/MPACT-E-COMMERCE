@@ -33,13 +33,71 @@ export default function OrderDetails() {
 
 
 
+    // const handleRetryPayment = async () => {
+    //     if (retrying) return;
+    //     setRetrying(true);
+    //     try {
+    //         const { data } = await api.post("/api/payment/create-order", {
+    //             orderId: order._id
+    //         });
+
+    //         const options = {
+    //             key: data.key,
+    //             amount: data.amount,
+    //             currency: data.currency,
+    //             name: "MPACT",
+    //             description: "Retry Order Payment",
+    //             order_id: data.razorpayOrderId,
+
+    //             handler: async function (response) {
+    //                 await api.post("/api/payment/verify", {
+    //                     razorpay_order_id: response.razorpay_order_id,
+    //                     razorpay_payment_id: response.razorpay_payment_id,
+    //                     razorpay_signature: response.razorpay_signature,
+    //                     orderId: order._id
+    //                 });
+
+    //                 // window.location.reload(); 
+    //                 const refreshed = await api.get(`/api/orders/${order._id}`);
+    //                 setOrder(refreshed.data);
+
+    //             },
+
+    //             modal: {
+    //                 ondismiss: function () {
+    //                     setShowCancelModal(true);
+    //                 }
+    //             },
+
+
+    //             theme: { color: "#facc15" }
+    //         };
+
+    //         const razorpay = new window.Razorpay(options);
+    //         razorpay.open();
+    //     } catch (error) {
+    //         console.error("Retry payment error:", error);
+    //         toast.error("Unable to retry payment");
+    //     }
+    //     finally {
+    //         setRetrying(false);
+    //     }
+    // };
+
+
     const handleRetryPayment = async () => {
         if (retrying) return;
         setRetrying(true);
+
         try {
             const { data } = await api.post("/api/payment/create-order", {
                 orderId: order._id
             });
+
+            if (!data.razorpayOrderId) {
+                toast.error("Unable to initiate payment");
+                return;
+            }
 
             const options = {
                 key: data.key,
@@ -57,10 +115,10 @@ export default function OrderDetails() {
                         orderId: order._id
                     });
 
-                    // window.location.reload(); 
                     const refreshed = await api.get(`/api/orders/${order._id}`);
                     setOrder(refreshed.data);
-
+                    toast.success("Payment successful!");
+                    navigate(`/orders/${order._id}`);
                 },
 
                 modal: {
@@ -69,20 +127,25 @@ export default function OrderDetails() {
                     }
                 },
 
-
                 theme: { color: "#facc15" }
             };
 
             const razorpay = new window.Razorpay(options);
             razorpay.open();
+
         } catch (error) {
             console.error("Retry payment error:", error);
-            toast.error("Unable to retry payment");
-        }
-        finally {
+
+            if (error.response?.data?.message === "Order already paid") {
+                toast.success("Order already paid");
+            } else {
+                toast.error("Unable to retry payment");
+            }
+        } finally {
             setRetrying(false);
         }
     };
+
 
 
     if (loading) {
@@ -221,6 +284,12 @@ export default function OrderDetails() {
           color: #facc15;
         }
 
+        .refunded {
+  background: #f97316;
+  color: black;
+}
+
+
         @media (max-width: 600px) {
           .item-card {
             flex-direction: column;
@@ -243,8 +312,16 @@ export default function OrderDetails() {
                         <h2>Order #{order._id}</h2>
                         <p>{new Date(order.createdAt).toLocaleString()}</p>
                     </div>
+
                     <div>
-                        <span className={`badge ${order.paymentStatus === "paid" ? "paid" : "pending"}`}>
+                        <span
+                            className={`badge ${order.paymentStatus === "paid"
+                                ? "paid"
+                                : order.paymentStatus === "refunded"
+                                    ? "refunded"
+                                    : "pending"
+                                }`}
+                        >
                             {order.paymentStatus.toUpperCase()}
                         </span>
                     </div>
@@ -285,11 +362,8 @@ export default function OrderDetails() {
                     >
                         {order.orderStatus.toUpperCase()}
                     </span>
-
-
-
-
                 </div>
+
 
                 {/* ITEMS */}
                 <div className="section">
@@ -349,12 +423,23 @@ export default function OrderDetails() {
                             <p style={{ marginBottom: "20px" }}>
                                 You cancelled the payment. You can retry again anytime.
                             </p>
-                            <button
+                            {/* <button
                                 style={modalStyles.primary}
                                 onClick={() => setShowCancelModal(false)}
                             >
                                 OK
+                            </button> */}
+                            <button
+                                style={modalStyles.primary}
+                                onClick={async () => {
+                                    const refreshed = await api.get(`/api/orders/${order._id}`);
+                                    setOrder(refreshed.data);
+                                    setShowCancelModal(false);
+                                }}
+                            >
+                                OK
                             </button>
+
                         </div>
                     </div>
                 )}
