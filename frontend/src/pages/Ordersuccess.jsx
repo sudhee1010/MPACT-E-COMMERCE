@@ -1,9 +1,11 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Footer from "../components/Footer";
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
+    const location = useLocation();
+  const { orderId } = location.state || {};
 
   return (
     <>
@@ -203,11 +205,18 @@ export default function OrderSuccess() {
             </svg>
           </div>
 
-          <div className="success-text">Order placed</div>
+          <div className="success-text">Order placed successfully</div>
+
+             {/* 🔥 SHOW ORDER ID */}
+          {orderId && (
+            <p style={{ marginBottom: "20px", opacity: 0.8 }}>
+              Order ID: <strong>{orderId}</strong>
+            </p>
+          )}
 
           <div className="success-actions">
             <button onClick={() => navigate("/")}>Home</button>
-            <button onClick={() => navigate("/trackorder")}>Track Order</button>
+            <button onClick={() => navigate("/orders")}>My Orders</button>
           </div>
         </div>
 

@@ -36,13 +36,17 @@ const orderSchema = new mongoose.Schema(
 
     paymentStatus: {
       type: String,
-      default: "pending" // pending | paid | failed
+      default: "pending" // pending | paid | failed | cancelled
     },
 
     orderStatus: {
       type: String,
       default: "placed" // placed | packed | shipped | delivered | cancelled
     },
+    taxAmount: {
+  type: Number,
+  required: true
+},
 
     totalAmount: {
       type: Number,

@@ -8,38 +8,74 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [openSideCart, setOpenSideCart] = useState(false);
+  const [cartMeta, setCartMeta] = useState({
+  totalPrice: 0,
+  taxAmount: 0,
+  totalWithTax: 0
+});
   const { user } = useAuth();
 
 
   // 🔥 Fetch cart from backend
-//   const refreshCart = async () => {
-//     try {
-//       const res = await getCartApi();
-//       setCartItems(res.data.items || []);
-//     } catch (err) {
-//       console.log("Refresh cart error", err);
+
+// const refreshCart = async () => {
+//   if (!user) return;   // 🔥 STOP UNAUTHORIZED CALL
+//   try {
+//     const res = await getCartApi();
+//     setCartItems(res.data.items || []);
+//   } catch (err) {
+//     if (err.response?.status !== 401) {
+//       console.log("Refresh cart error", err.message);
 //     }
-//   };
+//   }
+// };
 
 const refreshCart = async () => {
+  if (!user) return;
   try {
     const res = await getCartApi();
     setCartItems(res.data.items || []);
+    setCartMeta({
+      totalPrice: res.data.totalPrice || 0,
+      taxAmount: res.data.taxAmount || 0,
+      totalWithTax: res.data.totalWithTax || 0
+    });
   } catch (err) {
-    // silently fail if not logged in
-    console.log("Refresh cart error", err?.response?.data?.message || err.message);
+    if (err.response?.status !== 401) {
+      console.log("Refresh cart error", err.message);
+    }
   }
 };
 
 
+
+
   // 🔥 Auto load cart when user logs in or page refreshes
+// useEffect(() => {
+//   if (user) {
+//     refreshCart();
+//   } else {
+//     setCartItems([]); // clear cart on logout
+//      setOpenSideCart(false);
+//   }
+// }, [user]);
+
 useEffect(() => {
-  if (user) {
-    refreshCart();
+  if (!user) {
+    setCartItems([]);
+    setOpenSideCart(false);   // 🔥 FORCE CLOSE SIDECART ON LOGOUT
   } else {
-    setCartItems([]); // clear cart on logout
+    refreshCart();
   }
 }, [user]);
+
+
+useEffect(() => {
+  console.log("USER:", user);
+  console.log("CART:", cartItems);
+}, [user, cartItems]);
+
+
 
 
   // Cart count
@@ -56,7 +92,8 @@ useEffect(() => {
         cartCount,
         refreshCart,
         openSideCart,
-        setOpenSideCart
+        setOpenSideCart,
+        cartMeta
       }}
     >
       {children}

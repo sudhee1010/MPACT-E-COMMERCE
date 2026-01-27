@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { ShoppingCart } from "lucide-react";
+import toast from "react-hot-toast";
 
 
 
@@ -277,9 +278,9 @@ export default function Navbar() {
 
         {/* RIGHT ICONS */}
         <div className="nav-icons">
-          <Link to="/seeMore">
+          {/* <Link to="/seeMore">
             <img src="/icons/search.png" alt="Search" />
-          </Link>
+          </Link> */}
 
 
           <Link to="/signup">
@@ -293,10 +294,32 @@ export default function Navbar() {
             onClick={() => setCartOpen(true)}
           /> */}
 
+          {/* <div
+            style={{ position: "relative", cursor: "pointer" }}
+            onClick={() => {
+              if (user) setOpenSideCart(true);
+              else setShowLoginModal(true);
+            }}
+          > */}
+
           <div
             style={{ position: "relative", cursor: "pointer" }}
-            onClick={() => setOpenSideCart(true)}
+            onClick={() => {
+              if (!user) {
+                setShowLoginModal(true);
+                return;
+              }
+
+              if (cartCount === 0) {
+                toast.error("Your cart is empty");
+                return;
+              }
+
+              setOpenSideCart(true);
+            }}
           >
+
+
             <ShoppingCart
               size={22}
               color="black"     // 🔥 GUARANTEED BLACK
@@ -343,7 +366,9 @@ export default function Navbar() {
 
       {/* ================= SIDE CART ================= */}
       {/* <SideCart open={cartOpen} onClose={() => setCartOpen(false)} /> */}
-      <SideCart />
+      {/* <SideCart /> */}
+      {user && <SideCart />}
+
 
       {/* ================= LOGIN REQUIRED MODAL ================= */}
       {showLoginModal && (
@@ -353,7 +378,7 @@ export default function Navbar() {
               Login Required
             </h3>
             <p style={{ marginBottom: "1.5rem" }}>
-              Please login to view your profile.
+              Please login to continue.
             </p>
 
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>

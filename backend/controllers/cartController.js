@@ -13,6 +13,40 @@ const calculateTotal = (items) =>
 
 
 // ✅ Get logged-in user's cart
+// export const getCart = async (req, res) => {
+//   try {
+//     const cart = await Cart.findOne({ user: req.user._id }).populate(
+//       "items.product",
+//       "name price originalPrice discountPercent images"
+//     );
+
+//     if (cart) {
+//       cart.items.forEach(item => {
+//         if (item.product?.price) {
+//           item.price = item.product.price;
+//         }
+
+//         if (item.product?.originalPrice) {
+//           item.originalPrice = item.product.originalPrice;
+//         } else {
+//           item.originalPrice = item.product.price;
+//         }
+//       });
+
+
+
+//       cart.totalPrice = calculateTotal(cart.items);
+//       await cart.save();
+//     }
+
+//     res.json(cart || { items: [], totalPrice: 0 });
+//   } catch (error) {
+//     console.error("Get Cart Error:", error);
+//     res.status(500).json({ message: "Failed to fetch cart" });
+//   }
+// };
+
+
 export const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id }).populate(
@@ -21,89 +55,33 @@ export const getCart = async (req, res) => {
     );
 
     if (cart) {
-      // refresh prices from database
-      // cart.items.forEach(item => {
-      //   if (item.product?.price) {
-      //     item.price = item.product.price;
-      //   }
-      // });
-      // cart.items.forEach(item => {
-      //   if (item.product?.price && item.price !== item.product.price) {
-      //     item.price = item.product.price;
-      //   }
-      // });
       cart.items.forEach(item => {
-        if (item.product?.price) {
-          item.price = item.product.price;
-        }
-
-        if (item.product?.originalPrice) {
-          item.originalPrice = item.product.originalPrice;
-        } else {
-          item.originalPrice = item.product.price;
-        }
+        if (item.product?.price) item.price = item.product.price;
+        item.originalPrice = item.product.originalPrice || item.product.price;
       });
-
-
 
       cart.totalPrice = calculateTotal(cart.items);
       await cart.save();
     }
 
-    res.json(cart || { items: [], totalPrice: 0 });
+    const TAX_RATE = 0.05;
+    const taxAmount = cart ? cart.totalPrice * TAX_RATE : 0;
+    const totalWithTax = (cart?.totalPrice || 0) + taxAmount;
+
+    res.json({
+      items: cart?.items || [],
+      totalPrice: cart?.totalPrice || 0,
+      taxAmount,
+      totalWithTax
+    });
   } catch (error) {
-    console.error("Get Cart Error:", error);
     res.status(500).json({ message: "Failed to fetch cart" });
   }
 };
 
 
+
 // ✅ Add to cart
-// export const addToCart = async (req, res) => {
-//   try {
-//     const { productId, quantity } = req.body;
-
-//     const product = await Product.findById(productId);
-//     if (!product || !product.isActive) {
-//       return res.status(404).json({ message: "Product not available" });
-//     }
-
-//     let cart = await Cart.findOne({ user: req.user._id });
-
-//     if (!cart) {
-//       cart = new Cart({ user: req.user._id, items: [] });
-//     }
-
-//     if (!quantity || quantity < 1) {
-//       return res.status(400).json({ message: "Invalid quantity" });
-//     }
-
-
-
-//     const existingItem = cart.items.find(
-//       (item) => item.product.toString() === productId
-//     );
-
-//     if (existingItem) {
-//       existingItem.quantity += quantity;
-//     } else {
-//       cart.items.push({
-//         product: productId,
-//         quantity,
-//         price: product.price
-//       });
-//     }
-
-//     cart.totalPrice = calculateTotal(cart.items);
-//     cart.appliedCoupon = null;
-//     await cart.save();
-
-//     res.json(cart);
-//   } catch (error) {
-//     console.error("Add To Cart Error:", error);
-//     res.status(500).json({ message: "Failed to add item to cart" });
-//   }
-// };
 
 export const addToCart = async (req, res) => {
   try {

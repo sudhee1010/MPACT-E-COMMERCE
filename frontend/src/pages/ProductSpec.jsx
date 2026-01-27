@@ -1053,6 +1053,8 @@ import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useParams } from "react-router-dom";
 import api from "../services/api.js";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 const ProductPage = () => {
@@ -1070,6 +1072,10 @@ const [rating, setRating] = useState(0);
 const [comment, setComment] = useState("");
 const [reviewImages, setReviewImages] = useState([]);
 const [submittingReview, setSubmittingReview] = useState(false);
+const [showTopRated, setShowTopRated] = useState(false);
+const user = JSON.parse(localStorage.getItem("user"));
+const [relatedProducts, setRelatedProducts] = useState([]);
+
 
 
 
@@ -1108,6 +1114,29 @@ const [submittingReview, setSubmittingReview] = useState(false);
 }, [id]);
 
 
+useEffect(() => {
+  if (!product || !product.category) return;
+
+  const fetchRelatedProducts = async () => {
+    try {
+      const res = await api.get(
+        `/products?category=${product.category._id || product.category}&limit=4`
+      );
+
+      const filtered = res.data.products.filter(
+        (p) => p._id !== product._id
+      );
+
+      setRelatedProducts(filtered);
+    } catch (err) {
+      console.error("Failed to load related products", err);
+    }
+  };
+
+  fetchRelatedProducts();
+}, [product]);
+
+
 
 
 useEffect(() => {
@@ -1131,49 +1160,6 @@ useEffect(() => {
 }, [product]);
 
 
-//   const submitReviewHandler = async () => {
-//   if (!rating || !comment.trim()) {
-//     alert("Please provide rating and comment");
-//     return;
-//   }
-
-//   try {
-//     setSubmittingReview(true);
-
-//     const formData = new FormData();
-//     formData.append("rating", rating);
-//     formData.append("comment", comment);
-
-//     reviewImages.forEach((img) => {
-//       formData.append("images", img);
-//     });
-
-//     await api.post(
-//       `/reviews/${product._id}`,
-//       formData,
-//       {
-//         headers: {
-//           "Content-Type": "multipart/form-data",
-//         },
-//         withCredentials: true,
-//       }
-//     );
-
-//     alert("Review submitted successfully. Waiting for approval.");
-
-//     // Reset
-//     setRating(0);
-//     setComment("");
-//     setReviewImages([]);
-//     setShowReviewPopup(false);
-
-//   } catch (err) {
-//     console.error(err);
-//     alert(err.response?.data?.message || "Failed to submit review");
-//   } finally {
-//     setSubmittingReview(false);
-//   }
-// };
 
 const submitReviewHandler = async () => {
   try {
@@ -1196,6 +1182,12 @@ const submitReviewHandler = async () => {
         },
       }
     );
+
+    // ✅ SHOW SUCCESS MESSAGE
+toast.success(
+  "Review submitted successfully! It will be visible after admin approval."
+);
+
 
     setShowReviewPopup(false);
     setRating(0);
@@ -1532,12 +1524,12 @@ const submitReviewHandler = async () => {
     },
     popupContent: {
       width: "100%",
-      maxWidth: 1200,
+      maxWidth: 900,
       background: "#3a3a3a",
       borderRadius: 26,
       border: "2px solid #ffe600",
       padding: "clamp(20px, 4vw, 50px)",
-      color: "#fff"
+      boxSizing: "border-box"
     },
     popupTitle: {
       fontFamily: "'Jersey 25', sans-serif",
@@ -1648,26 +1640,65 @@ const submitReviewHandler = async () => {
       display: "flex",
       flexDirection: "column",
       gap: 10,
-      marginLeft: -15
+      // marginLeft: -15
     },
     reviewCardWithImage: {
       border: "1px solid #ffe600",
-      borderRadius: 10,
+      borderRadius: 16,
       padding: 16,
-      height: "50%"
+       background: "#2f2f2f",
+        width: "100%",
+  boxSizing: "border-box",
+  display: "flex",
+  flexDirection: "column",
+  gap: 10,
     },
+    
+reviewHeader: {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  marginBottom: "8px",
+},
+
+reviewAvatar: {
+   width: "40px",
+  height: "40px",
+  borderRadius: "50%",
+  backgroundColor: "#22c55e",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: "bold",
+  color: "#000",
+  flexShrink: 0,
+},
+
+reviewUserName: {
+  fontSize: "14px",
+  fontWeight: 600,
+  color: "#fff",
+},
     reviewImage: {
-      width: "100%",
+     width: "100%",
       borderRadius: 10,
-      marginBottom: 12
+      marginBottom: 12,
+  maxHeight: 200,
+  objectFit: "cover",
     },
+
     reviewStars: {
       color: "#ffe600",
-      margin: "6px 0"
+      // margin: "6px 0"
+         fontSize: 18,
+        marginBottom: 8,
     },
     reviewText: {
-      fontSize: 13,
-      lineHeight: 1.6
+      // fontSize: 13,
+      // lineHeight: 1.6
+       color: "#ddd",
+       fontSize: 15,
+       lineHeight: "1.5",
     },
     reviewsRightColumn: {
       display: "flex",
@@ -1678,8 +1709,9 @@ const submitReviewHandler = async () => {
       border: "1px solid #ffe600",
       borderRadius: 12,
       padding: 20,
-      height: "30%",
-      width: "120%"
+      background: "#2f2f2f",
+      width: "100%",
+      boxSizing: "border-box"
     },
     rangeSection: {
       padding: "64px 0",
@@ -1851,10 +1883,21 @@ discountText: {
   const images = Array.isArray(product.images)
     ? product.images.map(img => img.url)
     : [];
+    
+    const filteredReviews = showTopRated
+  ? reviews.filter(r => r.rating >= 4)
+  : reviews;
+
+
+    // 🔹 Split reviews for layout
+const imageReviews = filteredReviews.filter(r => r.images?.length > 0);
+const textReviews = filteredReviews.filter( r => !r.images || r.images.length === 0
+);
 
 
   return (
     <>
+      <ToastContainer position="top-center" autoClose={3000} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
       `}</style>
@@ -2147,13 +2190,18 @@ discountText: {
                 </button>
 
                 <button
+                onClick={() => setShowTopRated(prev => !prev)}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "scale(1.06)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "scale(1)";
                   }}
-                  style={styles.topRatedButton}
+                  style={{
+    ...styles.topRatedButton,
+    background: showTopRated ? "#ffe600" : "#4a4a2f",
+    color: showTopRated ? "#000" : "#fff",
+  }}
                 >
                   TOP RATED
                 </button>
@@ -2175,23 +2223,23 @@ discountText: {
                 </h2>
 
                 <div style={styles.popupUser}>
-                  <div style={styles.popupAvatar}>
-                    J
-                  </div>
-                  <div>
-                    <div style={styles.popupUserName}>John</div>
-                    <div style={styles.popupUserSubtext}>
-                      Posting publicaly along this site
-                    </div>
-                  </div>
+                  <div style={styles.popupUser}>
+  <div style={styles.popupAvatar}>
+    {user?.name?.charAt(0).toUpperCase()}
+  </div>
+  <div>
+    <div style={styles.popupUserName}>
+      {user?.name}
+    </div>
+    <div style={styles.popupUserSubtext}>
+      Posting publicly on this site
+    </div>
+  </div>
+</div>
+
                 </div>
 
                 <div style={styles.popupStars}>
-                  {/* {[1, 2, 3, 4, 5].map((i) => (
-                    <span key={i} style={styles.popupStar}>
-                      ★
-                    </span>
-                  ))} */}
 
                   {[1, 2, 3, 4, 5].map((i) => (
                    <span key={i}  style={{
@@ -2215,12 +2263,6 @@ discountText: {
                     onChange={(e) => setComment(e.target.value)}
                   />
                 </div>
-
-                {/* <div style={styles.popupAddPhoto}>
-                  <button style={styles.popupAddPhotoButton}>
-                    📷 Add Photos & images
-                  </button>
-                </div> */}
 
                 <div style={styles.popupAddPhoto}>
   <label style={styles.popupAddPhotoButton}>
@@ -2250,12 +2292,6 @@ discountText: {
                     Cancel
                   </button>
 
-                  {/* <button
-                    onClick={() => setShowReviewPopup(false)}
-                    style={styles.popupPostButton}
-                  >
-                    Post
-                  </button> */}
                   <button
   onClick={submitReviewHandler}
   disabled={submittingReview}
@@ -2279,27 +2315,71 @@ discountText: {
       <p>No reviews yet.</p>
     )}
 
-    {reviews.map((review) => (
-      <div key={review._id} style={styles.reviewCardWithImage}>
-        <strong>{review.user?.name || "User"}</strong>
+  {imageReviews.map((review) => (
+    <div key={review._id} style={styles.reviewCardWithImage}>
 
-        <div style={styles.reviewStars}>
-          {"★".repeat(review.rating)}
-          {"☆".repeat(5 - review.rating)}
+      {/* Header */}
+      <div style={styles.reviewHeader}>
+        <div style={styles.reviewAvatar}>
+          {review.user?.name?.charAt(0).toUpperCase()}
         </div>
-
-        <p style={styles.reviewText}>
-          {review.comment}
-        </p>
+        <div style={styles.reviewUserName}>
+          {review.user?.name}
+        </div>
       </div>
-    ))}
 
-  </div>
+      {/* Image */}
+      <img
+        src={review.images[0].url}
+        alt="Review"
+        style={styles.reviewImage}
+      />
 
-  <div style={styles.reviewsRightColumn}>
-    {/* Empty on purpose – layout preserved */}
-  </div>
+      {/* Stars */}
+      <div style={styles.reviewStars}>
+        {"★".repeat(review.rating)}
+        {"☆".repeat(5 - review.rating)}
+      </div>
+
+      {/* Comment */}
+      <p style={styles.reviewText}>
+        {review.comment}
+      </p>
+
+    </div>
+  ))}
+
 </div>
+<div style={styles.reviewsRightColumn}>
+
+  {textReviews.map((review) => (
+    <div key={review._id} style={styles.reviewCardText}>
+
+      <div style={styles.reviewHeader}>
+        <div style={styles.reviewAvatar}>
+          {review.user?.name?.charAt(0).toUpperCase()}
+        </div>
+        <div style={styles.reviewUserName}>
+          {review.user?.name}
+        </div>
+      </div>
+
+      <div style={styles.reviewStars}>
+        {"★".repeat(review.rating)}
+        {"☆".repeat(5 - review.rating)}
+      </div>
+
+      <p style={styles.reviewText}>
+        {review.comment}
+      </p>
+
+    </div>
+  ))}
+
+</div>
+
+</div>
+
 
         </section>
 
@@ -2307,56 +2387,65 @@ discountText: {
           <h1 style={styles.rangeTitle}>
             Explore Our Range
           </h1>
+   
+         <div style={styles.rangeGrid}>
+  {relatedProducts.map((item) => (
+    <div
+      key={item._id}
+      style={styles.rangeCard}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "scale(1.05)";
+        e.currentTarget.style.boxShadow = "0 18px 36px rgba(0,0,0,0.45)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      <div style={styles.rangeCardImage}>
+        <img
+          src={item.images?.[0]?.url || "/images/chocolate.webp"}
+          alt={item.name}
+          style={styles.rangeCardImg}
+        />
+      </div>
 
-          <div style={styles.rangeGrid}>
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                style={styles.rangeCard}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.05)";
-                  e.currentTarget.style.boxShadow = "0 18px 36px rgba(0,0,0,0.45)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <div style={styles.rangeCardImage}>
-                  <img
-                    src="/images/chocolate.webp"
-                    alt="Protein Wafer"
-                    style={styles.rangeCardImg}
-                  />
-                </div>
+      <div style={styles.rangeCardContent}>
+        <div style={styles.rangeCardTitle}>
+          {item.name}
+        </div>
 
-                <div style={styles.rangeCardContent}>
-                  <div style={styles.rangeCardTitle}>
-                    PROTEIN WAFERS – VARIETY PACK OF 10
-                  </div>
+        <div style={styles.rangeCardSubtitle}>
+          {/* {item.weight || ""} */}
+           {item.countInStock} available
+        </div>
 
-                  <div style={styles.rangeCardSubtitle}>
-                    10
-                  </div>
+        <div style={styles.rangeCardPrice}>
+          <span style={styles.rangeCardPriceMain}>
+            RS : {item.price}
+          </span>
 
-                  <div style={styles.rangeCardPrice}>
-                    <span style={styles.rangeCardPriceMain}>
-                      RS : 2000
-                    </span>
-                    <span style={styles.rangeCardPriceOld}>
-                      RS : 2999
-                    </span>
-                  </div>
+          {/* {item.oldPrice && (
+            <span style={styles.rangeCardPriceOld}>
+              RS : {item.oldPrice}
+            </span>
+          )} */}
+          <span style={styles.rangeCardPriceOld}>
+        RS : {item.originalPrice}
+      </span>
+        </div>
 
-                  <Link to="/checkout">
-                    <button style={styles.rangeCardButton}>
-                      BUY NOW
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+        <Link to={`/product/${item.id}`}>
+          <button style={styles.rangeCardButton}>
+            BUY NOW
+          </button>
+        </Link>
+      </div>
+    </div>
+  ))}
+</div>
+
+
         </section>
 
         <Footer />
