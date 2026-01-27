@@ -28,7 +28,6 @@ const couponSchema = new mongoose.Schema(
       }
     },
 
-
     expiryDate: {
       type: Date,
       required: true
@@ -39,11 +38,11 @@ const couponSchema = new mongoose.Schema(
       default: true
     },
 
-    // Global limit
+    // 🌍 Global usage limit
     maxRedemptions: { type: Number, default: 0 },
     usedCount: { type: Number, default: 0 },
 
-    // Track users who used
+    // 👤 Users who already used this coupon
     usersUsed: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -51,6 +50,7 @@ const couponSchema = new mongoose.Schema(
       }
     ],
 
+    // 🎯 Product specific rules
     applicableProducts: [
       {
         product: {
@@ -63,6 +63,10 @@ const couponSchema = new mongoose.Schema(
           type: Number,
           required: true
         },
+         isFirstOrderOnly: {
+        type: Boolean,
+        default: false
+      },
 
         usedBy: [
           {
@@ -71,7 +75,8 @@ const couponSchema = new mongoose.Schema(
             default: []
           }
         ]
-      }
+      },
+     
     ]
   },
   { timestamps: true }
