@@ -433,6 +433,18 @@ export default function Products() {
 .buy-btn:hover {
   background: gold;
 }
+.add-to-cart-btn-disabled {
+  height: 48px;
+  background: #2a2a2a;
+  color: #9ca3af;
+  border: 2px solid #555;
+  border-radius: 8px;
+  font-family: "Jersey 25", cursive;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
 
 /* ================= SEE MORE ================= */
 .see-more {
@@ -618,7 +630,7 @@ export default function Products() {
                     )}
                     <div className="price">₹{product.price}</div>
 
-                    <div className="action-buttons">
+                    {/* <div className="action-buttons">
                       <button
                         className="add-to-cart-btn"
                         onClick={() => handleAddToCart(product._id)}
@@ -632,7 +644,36 @@ export default function Products() {
                       >
                         <button className="buy-btn">BUY NOW</button>
                       </Link>
+                    </div> */}
+
+                    <div className="action-buttons">
+                      {product.countInStock > 0 ? (
+                        <>
+                          <button
+                            className="add-to-cart-btn"
+                            onClick={() => handleAddToCart(product._id)}
+                          >
+                            🛒 Add to Cart
+                          </button>
+
+                          <Link
+                            to={`/productspec/${product._id}`}
+                            className="action-link"
+                          >
+                            <button className="buy-btn">BUY NOW</button>
+                          </Link>
+                        </>
+                      ) : (
+                        <button
+                          className="add-to-cart-btn-disabled"
+                          disabled
+                          style={{ width: "100%" }}
+                        >
+                          OUT OF STOCK
+                        </button>
+                      )}
                     </div>
+
                   </div>
                 ))}
               </div>
