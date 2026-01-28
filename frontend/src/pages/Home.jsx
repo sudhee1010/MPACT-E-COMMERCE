@@ -2200,7 +2200,7 @@ const MPACTLandingPage = () => {
           </div>
         </div>
       )}
-
+      
       <WhatsAppFloat />
 
     </div>
