@@ -1,16 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { User, Package, Heart, Settings, Edit, Search, UserCircle, ShoppingCart, Camera, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  User,
+  Package,
+  Heart,
+  Settings,
+  Edit,
+  Search,
+  UserCircle,
+  ShoppingCart,
+  Camera,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { addToCartApi } from "../../api/cartApi";
+import { useAuth } from "../../context/AuthContext.jsx";
 // import CropImageModal from "../../components/CropImageModal";
 
-
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
@@ -31,15 +44,25 @@ export default function ProfilePage() {
   // const [cropImage, setCropImage] = useState(null);
   // const [cropModalOpen, setCropModalOpen] = useState(false);
 
-
-
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    address: ""
+    address: "",
   });
 
+  // const handleLogout = async () => {
+  //   try {
+  //     const respose=await api.post("/api/auth/logout"); // backend clears cookie
+  //     setUser(null);
+  //   setIsAuthenticated(false);
+  //     console.log("log",respose);
+      
+  //     toast.success("Logged out successfully");
+  //     navigate("/");
+  //   } catch {
+  //     toast.error("Logout failed");
+  //   }
+  // };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -49,7 +72,7 @@ export default function ProfilePage() {
         setFormData({
           name: res.data.name || "",
           phone: res.data.phone || "",
-          address: res.data.address || ""
+          address: res.data.address || "",
         });
       } catch (error) {
         toast.error("Please login to continue");
@@ -67,7 +90,7 @@ export default function ProfilePage() {
     try {
       setOrdersLoading(true);
       const res = await api.get("/api/orders/my-orders");
-      setOrders(res.data);   // assuming backend returns array
+      setOrders(res.data); // assuming backend returns array
     } catch (error) {
       toast.error("Failed to load orders");
     } finally {
@@ -79,7 +102,7 @@ export default function ProfilePage() {
     try {
       setWishlistLoading(true);
       const res = await api.get("/api/wishlist");
-      setWishlist(res.data.wishlist);   // assuming backend returns wishlist array
+      setWishlist(res.data.wishlist); // assuming backend returns wishlist array
     } catch (error) {
       toast.error("Failed to load wishlist");
     } finally {
@@ -103,12 +126,11 @@ export default function ProfilePage() {
       navigate("/cart");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Please login to add to cart"
+        error.response?.data?.message || "Please login to add to cart",
       );
       navigate("/login");
     }
   };
-
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -127,7 +149,7 @@ export default function ProfilePage() {
       setUploading(true);
 
       const res = await api.put("/api/auth/upload-profile-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       setUser(res.data.user);
@@ -141,20 +163,15 @@ export default function ProfilePage() {
     }
   };
 
-
-
-
-
-
   if (loading) {
-    return <div style={{ color: "white", textAlign: "center", marginTop: "5rem" }}>
-      Loading profile...
-    </div>;
+    return (
+      <div style={{ color: "white", textAlign: "center", marginTop: "5rem" }}>
+        Loading profile...
+      </div>
+    );
   }
 
   if (!user) return null;
-
-
 
   return (
     <>
@@ -926,35 +943,47 @@ export default function ProfilePage() {
                       <img
                         src={previewImage}
                         alt="Preview"
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", opacity: uploading ? 0.6 : 1 }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          opacity: uploading ? 0.6 : 1,
+                        }}
                       />
                     ) : user.profileImage?.url ? (
                       <img
                         src={user.profileImage.url}
                         alt="Profile"
-                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
                       />
                     ) : (
                       <User className="avatar-icon" />
                     )}
 
                     {uploading && (
-                      <div style={{
-                        position: "absolute",
-                        inset: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#1f2937",
-                        fontWeight: "bold",
-                        background: "rgba(250,204,21,0.6)",
-                        borderRadius: "50%"
-                      }}>
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#1f2937",
+                          fontWeight: "bold",
+                          background: "rgba(250,204,21,0.6)",
+                          borderRadius: "50%",
+                        }}
+                      >
                         Uploading...
                       </div>
                     )}
                   </div>
-
 
                   {/* <button className="camera-btn">
                     <Camera className="camera-icon" />
@@ -974,7 +1003,6 @@ export default function ProfilePage() {
                     accept="image/*"
                     onChange={handleImageChange}
                   />
-
                 </div>
 
                 <div className="profile-details">
@@ -986,7 +1014,6 @@ export default function ProfilePage() {
                   <p className="profile-member">
                     Member since {new Date(user.createdAt).toLocaleDateString()}
                   </p>
-
                 </div>
               </div>
 
@@ -1000,7 +1027,10 @@ export default function ProfilePage() {
                   if (isEditing) {
                     // SAVE PROFILE
                     try {
-                      const res = await api.put("/api/auth/update-profile", formData);
+                      const res = await api.put(
+                        "/api/auth/update-profile",
+                        formData,
+                      );
 
                       toast.success("Profile updated successfully");
 
@@ -1011,9 +1041,11 @@ export default function ProfilePage() {
                         address: res.data.user.address || "",
                       });
                       setIsEditing(false);
-
                     } catch (err) {
-                      toast.error(err.response?.data?.message || "Failed to update profile");
+                      toast.error(
+                        err.response?.data?.message ||
+                          "Failed to update profile",
+                      );
                     }
                   } else {
                     // ENTER EDIT MODE
@@ -1022,17 +1054,16 @@ export default function ProfilePage() {
                 }}
               >
                 <Edit size={18} />
-                {isEditing ? 'Save Profile' : 'Edit Profile'}
+                {isEditing ? "Save Profile" : "Edit Profile"}
               </button>
-
             </div>
           </div>
 
           {/* Tabs */}
           <div className="tabs-container">
             <button
-              onClick={() => setActiveTab('profile')}
-              className={`tab-btn ${activeTab === 'profile' ? 'active' : 'inactive'}`}
+              onClick={() => setActiveTab("profile")}
+              className={`tab-btn ${activeTab === "profile" ? "active" : "inactive"}`}
             >
               <User size={18} />
               <span className="tab-text-full">Profile Info</span>
@@ -1045,12 +1076,11 @@ export default function ProfilePage() {
             > */}
             <button
               onClick={() => {
-                setActiveTab('orders');
+                setActiveTab("orders");
                 fetchMyOrders();
               }}
-              className={`tab-btn ${activeTab === 'orders' ? 'active' : 'inactive'}`}
+              className={`tab-btn ${activeTab === "orders" ? "active" : "inactive"}`}
             >
-
               <Package size={18} />
               <span className="tab-text-full">My Orders</span>
               <span className="tab-text-short">Orders</span>
@@ -1062,19 +1092,18 @@ export default function ProfilePage() {
             > */}
             <button
               onClick={() => {
-                setActiveTab('wishlist');
+                setActiveTab("wishlist");
                 fetchWishlist();
               }}
-              className={`tab-btn ${activeTab === 'wishlist' ? 'active' : 'inactive'}`}
+              className={`tab-btn ${activeTab === "wishlist" ? "active" : "inactive"}`}
             >
-
               <Heart size={18} />
               Wishlist
             </button>
 
             <button
-              onClick={() => setActiveTab('settings')}
-              className={`tab-btn ${activeTab === 'settings' ? 'active' : 'inactive'}`}
+              onClick={() => setActiveTab("settings")}
+              className={`tab-btn ${activeTab === "settings" ? "active" : "inactive"}`}
             >
               <Settings size={18} />
               Settings
@@ -1082,7 +1111,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Personal Information Form */}
-          {activeTab === 'profile' && (
+          {activeTab === "profile" && (
             <div className="form-section">
               <h2 className="form-title">Personal Information</h2>
 
@@ -1092,11 +1121,12 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="Enter your name"
-                    className={`form-input ${!isEditing ? 'dim' : ''}`}
+                    className={`form-input ${!isEditing ? "dim" : ""}`}
                     disabled={!isEditing}
-
                   />
                 </div>
 
@@ -1106,7 +1136,7 @@ export default function ProfilePage() {
                     type="email"
                     value={user.email}
                     placeholder="Enter your Email"
-                    className={`form-input ${!isEditing ? 'dim' : ''}`}
+                    className={`form-input ${!isEditing ? "dim" : ""}`}
                     disabled
                   />
                 </div>
@@ -1116,11 +1146,12 @@ export default function ProfilePage() {
                   <input
                     type="tel"
                     value={formData.phone || ""}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     placeholder=""
-                    className={`form-input ${!isEditing ? 'dim' : ''}`}
+                    className={`form-input ${!isEditing ? "dim" : ""}`}
                     disabled={!isEditing}
-
                   />
                 </div>
 
@@ -1131,7 +1162,7 @@ export default function ProfilePage() {
                     value={new Date(user.createdAt).toLocaleDateString()}
                     placeholder=""
                     disabled
-                    className={`form-input ${!isEditing ? 'dim' : ''}`}
+                    className={`form-input ${!isEditing ? "dim" : ""}`}
                   />
                 </div>
 
@@ -1140,9 +1171,11 @@ export default function ProfilePage() {
                   <textarea
                     rows="3"
                     value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, address: e.target.value })
+                    }
                     placeholder="Update your address"
-                    className={`form-textarea ${!isEditing ? 'dim' : ''}`}
+                    className={`form-textarea ${!isEditing ? "dim" : ""}`}
                     disabled={!isEditing}
                   />
                 </div>
@@ -1150,8 +1183,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-
-          {activeTab === 'orders' && (
+          {activeTab === "orders" && (
             <div className="form-section">
               <h2 className="form-title">Order History</h2>
 
@@ -1191,10 +1223,15 @@ export default function ProfilePage() {
                     //   </div>
                     // </div>
 
-
                     <div className="order-card" key={order._id}>
                       <div className="order-content">
-                        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "12px",
+                            flexWrap: "wrap",
+                          }}
+                        >
                           {order.orderItems.map((item, idx) => (
                             <div key={idx} style={{ textAlign: "center" }}>
                               <img
@@ -1205,9 +1242,19 @@ export default function ProfilePage() {
                                 }
                                 alt={item.name}
                                 className="order-image"
-                                style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                                style={{
+                                  width: "60px",
+                                  height: "60px",
+                                  objectFit: "cover",
+                                }}
                               />
-                              <p style={{ fontSize: "12px", marginTop: "6px", color: "#d1d5db" }}>
+                              <p
+                                style={{
+                                  fontSize: "12px",
+                                  marginTop: "6px",
+                                  color: "#d1d5db",
+                                }}
+                              >
                                 {item.name}
                               </p>
                             </div>
@@ -1216,7 +1263,8 @@ export default function ProfilePage() {
 
                         <div className="order-details">
                           <p className="order-date">
-                            Ordered on {new Date(order.createdAt).toLocaleDateString()}
+                            Ordered on{" "}
+                            {new Date(order.createdAt).toLocaleDateString()}
                           </p>
                           <p className="order-items">
                             {order.orderItems.length} item(s)
@@ -1228,17 +1276,19 @@ export default function ProfilePage() {
                         {/* <span className={`status-badge ${order.orderStatus === "delivered" ? "delivered" : "transit"}`}>
                           {order.orderStatus}
                         </span> */}
-                        <span className={`status-badge ${order.paymentStatus === "pending"
-                          ? "transit"
-                          : order.orderStatus === "delivered"
-                            ? "delivered"
-                            : "transit"
-                          }`}>
+                        <span
+                          className={`status-badge ${
+                            order.paymentStatus === "pending"
+                              ? "transit"
+                              : order.orderStatus === "delivered"
+                                ? "delivered"
+                                : "transit"
+                          }`}
+                        >
                           {order.paymentStatus === "pending"
                             ? "Payment Pending"
                             : order.orderStatus}
                         </span>
-
 
                         {/* <button className="view-details-btn">View Details</button> */}
                         <button
@@ -1248,31 +1298,26 @@ export default function ProfilePage() {
                           View Details
                         </button>
 
-                        {order.paymentStatus === "pending" && order.isVisible && (
-                          <button
-                            className="view-details-btn"
-                            onClick={() => navigate(`/orders/${order._id}`)}
-                          >
-                            Retry Payment
-                          </button>
-                        )}
-
-
+                        {order.paymentStatus === "pending" &&
+                          order.isVisible && (
+                            <button
+                              className="view-details-btn"
+                              onClick={() => navigate(`/orders/${order._id}`)}
+                            >
+                              Retry Payment
+                            </button>
+                          )}
 
                         <p className="order-price">₹{order.totalAmount}</p>
                       </div>
                     </div>
-
-
                   ))}
                 </div>
               )}
             </div>
           )}
 
-
-
-          {activeTab === 'wishlist' && (
+          {activeTab === "wishlist" && (
             <div className="form-section">
               <h2 className="form-title">My Wishlist</h2>
 
@@ -1298,12 +1343,17 @@ export default function ProfilePage() {
 
                         <div className="wishlist-actions">
                           {item.countInStock > 0 ? (
-                            <button className="add-to-cart-btn"
-                              onClick={() => handleAddToCart(item._id)}>
+                            <button
+                              className="add-to-cart-btn"
+                              onClick={() => handleAddToCart(item._id)}
+                            >
                               Add to Cart
                             </button>
                           ) : (
-                            <button className="add-to-cart-btn-disabled" disabled>
+                            <button
+                              className="add-to-cart-btn-disabled"
+                              disabled
+                            >
                               Out of Stock
                             </button>
                           )}
@@ -1331,10 +1381,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-
-
-
-          {activeTab === 'settings' && (
+          {activeTab === "settings" && (
             <div className="form-section">
               <h2 className="form-title">Account Settings</h2>
 
@@ -1342,7 +1389,9 @@ export default function ProfilePage() {
                 {/* Change Password Section */}
                 <div className="settings-card">
                   <h3 className="settings-section-title">Change Password</h3>
-                  <p className="settings-description">Update your password to keep your account secure</p>
+                  <p className="settings-description">
+                    Update your password to keep your account secure
+                  </p>
                   {/* <button className="update-password-btn">Update Password</button> */}
                   <button
                     className="update-password-btn"
@@ -1357,7 +1406,6 @@ export default function ProfilePage() {
                   >
                     Update Password
                   </button>
-
                 </div>
 
                 {/* Email Notifications Section */}
@@ -1384,8 +1432,12 @@ export default function ProfilePage() {
 
                 {/* Delete Account Section */}
                 <div className="settings-card-danger">
-                  <h3 className="settings-section-title-danger">Delete Account</h3>
-                  <p className="settings-description">Permanently delete your account and all associated data</p>
+                  <h3 className="settings-section-title-danger">
+                    Delete Account
+                  </h3>
+                  <p className="settings-description">
+                    Permanently delete your account and all associated data
+                  </p>
                   {/* <button className="delete-account-btn">Delete Account</button> */}
                   <button
                     className="delete-account-btn"
@@ -1393,30 +1445,35 @@ export default function ProfilePage() {
                   >
                     Delete Account
                   </button>
-
-
                 </div>
                 {/* Log Out */}
                 <button
                   className="logout-btn"
-                  onClick={async () => {
-                    try {
-                      await api.post("/api/auth/logout"); // backend clears cookie
-                      toast.success("Logged out successfully");
-                      navigate("/");
-                    } catch {
-                      toast.error("Logout failed");
-                    }
-                  }}
+                  onClick={logout}
+                  // onClick={async () => {
+                  //   try {
+                  //     await api.post("/api/auth/logout"); // backend clears cookie
+                  //     toast.success("Logged out successfully");
+                  //     navigate("/");
+                  //   } catch {
+                  //     toast.error("Logout failed");
+                  //   }
+                  // }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
                   </svg>
                   Log Out
                 </button>
-
               </div>
             </div>
           )}
@@ -1424,23 +1481,29 @@ export default function ProfilePage() {
       </div>
 
       {showPasswordModal && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.6)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: "#3e3e44",
-            padding: "2rem",
-            borderRadius: "8px",
-            width: "350px",
-            border: "2px solid #facc15"
-          }}>
-            <h3 style={{ color: "white", marginBottom: "1rem" }}>Update Password</h3>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#3e3e44",
+              padding: "2rem",
+              borderRadius: "8px",
+              width: "350px",
+              border: "2px solid #facc15",
+            }}
+          >
+            <h3 style={{ color: "white", marginBottom: "1rem" }}>
+              Update Password
+            </h3>
 
             {/* <input
               type="password"
@@ -1472,13 +1535,12 @@ export default function ProfilePage() {
                   border: "none",
                   cursor: "pointer",
                   color: "#facc15",
-                  fontSize: "1.1rem"
+                  fontSize: "1.1rem",
                 }}
               >
                 {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-
 
             {/* <input
               type="password"
@@ -1510,7 +1572,7 @@ export default function ProfilePage() {
                   border: "none",
                   cursor: "pointer",
                   color: "#facc15",
-                  fontSize: "1.1rem"
+                  fontSize: "1.1rem",
                 }}
               >
                 {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -1539,14 +1601,12 @@ export default function ProfilePage() {
                   border: "none",
                   cursor: "pointer",
                   color: "#facc15",
-                  fontSize: "1.1rem"
+                  fontSize: "1.1rem",
                 }}
               >
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-
-
 
             <div style={{ display: "flex", gap: "1rem" }}>
               <button
@@ -1554,7 +1614,9 @@ export default function ProfilePage() {
                 className="update-password-btn"
                 onClick={async () => {
                   if (newPassword !== confirmPassword) {
-                    toast.error("New password and confirm password do not match");
+                    toast.error(
+                      "New password and confirm password do not match",
+                    );
                     return;
                   }
 
@@ -1573,13 +1635,15 @@ export default function ProfilePage() {
                     setShowNewPassword(false);
                     setShowConfirmPassword(false);
                   } catch (err) {
-                    toast.error(err.response?.data?.message || "Failed to update password");
+                    toast.error(
+                      err.response?.data?.message ||
+                        "Failed to update password",
+                    );
                   }
                 }}
               >
                 Save
               </button>
-
 
               <button
                 type="button"
@@ -1596,40 +1660,54 @@ export default function ProfilePage() {
               >
                 Cancel
               </button>
-
-
             </div>
           </div>
         </div>
       )}
 
       {showDeleteModal && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.7)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: "#3e3e44",
-            padding: "2rem",
-            borderRadius: "10px",
-            width: "380px",
-            border: "2px solid #dc2626"
-          }}>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "#3e3e44",
+              padding: "2rem",
+              borderRadius: "10px",
+              width: "380px",
+              border: "2px solid #dc2626",
+            }}
+          >
             <h3 style={{ color: "#dc2626", marginBottom: "0.75rem" }}>
               Delete Account
             </h3>
 
-            <p style={{ color: "#d1d5db", marginBottom: "1.5rem", fontSize: "0.95rem" }}>
-              Are you sure you want to permanently delete your account?
-              This action <b>cannot be undone</b>.
+            <p
+              style={{
+                color: "#d1d5db",
+                marginBottom: "1.5rem",
+                fontSize: "0.95rem",
+              }}
+            >
+              Are you sure you want to permanently delete your account? This
+              action <b>cannot be undone</b>.
             </p>
 
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                justifyContent: "flex-end",
+              }}
+            >
               <button
                 className="update-password-btn"
                 onClick={() => setShowDeleteModal(false)}

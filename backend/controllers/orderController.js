@@ -1,182 +1,3 @@
-// import Order from "../models/Order.js";
-// import Cart from "../models/Cart.js";
-// import Coupon from "../models/Coupon.js";
-// import sendEmail from "../utils/sendEmail.js";
-
-// // ✅ PLACE ORDER (Checkout)
-
-
-// export const placeOrder = async (req, res) => {
-//   try {
-//     const { shippingAddress, paymentMethod, orderItems: directOrderItems } = req.body;
-
-//     let orderItems = [];
-//     let finalAmount = 0;
-//     let cart = null;
-//     const orderType = directOrderItems?.length ? "direct" : "cart";
-
-//     // ⚡ DIRECT BUY FLOW
-//     if (orderType === "direct") {
-//       orderItems = directOrderItems.map(item => ({
-//         product: item.product,
-//         name: item.name,
-//         quantity: item.qty,
-//         price: item.price,
-//         image: item.image || ""
-//       }));
-
-//       finalAmount = orderItems.reduce(
-//         (acc, item) => acc + item.price * item.quantity,
-//         0
-//       );
-//     }
-//     // 🛒 CART CHECKOUT FLOW
-//     else {
-//       cart = await Cart.findOne({ user: req.user._id }).populate("items.product");
-
-//       if (!cart || cart.items.length === 0) {
-//         return res.status(400).json({ message: "Cart is empty" });
-//       }
-
-//       orderItems = cart.items.map(item => ({
-//         product: item.product._id,
-//         name: item.product.name,
-//         quantity: item.quantity,
-//         price: item.price,
-//         image: item.product.images?.[0]?.url || ""
-//       }));
-
-//       finalAmount = cart.totalPrice;
-
-//       if (cart.appliedCoupon) {
-//         finalAmount = Math.max(cart.totalPrice - cart.appliedCoupon.discount, 0);
-//       }
-//     }
-
-//     // 📊 TAX
-//     const TAX_RATE = 0.05;
-//     const taxAmount = finalAmount * TAX_RATE;
-//     const grandTotal = finalAmount + taxAmount;
-
-//     // 🔒 PREVENT DUPLICATE PENDING ORDERS
-//     let existingPending = null;
-
-//     if (orderType === "cart") {
-//       existingPending = await Order.findOne({
-//         user: req.user._id,
-//         paymentStatus: "pending",
-//         orderType: "cart"
-//       });
-//     } else {
-//       existingPending = await Order.findOne({
-//         user: req.user._id,
-//         paymentStatus: "pending",
-//         orderType: "direct"
-//       });
-//     }
-
-//     if (existingPending) {
-//       return res.status(200).json(existingPending);
-//     }
-
-//     // 📝 CREATE ORDER
-//     const order = await Order.create({
-//       user: req.user._id,
-//       orderItems,
-//       shippingAddress,
-//       paymentMethod: paymentMethod || "Razorpay",
-//       taxAmount,
-//       totalAmount: grandTotal,
-//       orderStatus: "placed",
-//       paymentStatus: "pending",
-//       orderType
-//     });
-
-//     res.status(201).json(order);
-
-//   } catch (error) {
-//     console.error("Place Order Error:", error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-
-
-
-// // ✅ Get logged-in user's orders
-
-// export const getMyOrders = async (req, res) => {
-//   try {
-//     console.log("USER ID:", req.user?._id);
-
-//     const orders = await Order.find({ user: req.user._id })
-//       .sort({ createdAt: -1 });
-
-//     res.json(orders);
-//   } catch (error) {
-//     console.error("🔥 Get My Orders Error:", error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-
-// // ✅ Get single order
-// export const getOrderById = async (req, res) => {
-//   try {
-//     const order = await Order.findById(req.params.id).populate(
-//       "user",
-//       "name email"
-//     );
-
-//     if (!order) {
-//       return res.status(404).json({ message: "Order not found" });
-//     }
-
-//     res.json(order);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-
-// export const cancelOrder = async (req, res) => {
-//   try {
-//     const { cancelledBy } = req.body;
-
-//     const order = await Order.findById(req.params.id);
-//     if (!order) {
-//       return res.status(404).json({ message: "Order not found" });
-//     }
-
-//     if (order.orderStatus === "delivered") {
-//       return res.status(400).json({ message: "Delivered orders cannot be cancelled" });
-//     }
-
-//     if (order.paymentStatus === "expired") {
-//   return res.status(400).json({ message: "Order already expired" });
-// }
-//     order.orderStatus = "cancelled";
-//     order.paymentStatus = order.paymentStatus === "paid" ? "refunded" : "cancelled";
-//     order.cancelledBy = cancelledBy || "user";
-
-//     await order.save();
-
-//     res.json({ message: "Order cancelled successfully", order });
-//   } catch (error) {
-//     console.error("Cancel Order Error:", error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-
-
-
-
-
-
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
@@ -300,22 +121,23 @@ if (orderType === "cart" && cart) {
       discount,
       taxAmount,
       totalAmount,
-      orderStatus: "placed",
+      // orderStatus: "placed",
+      orderStatus: "initiated",
       paymentStatus: "pending",
       orderType
     });
 
     /* ================= EMAIL ================= */
-    await sendEmail({
-      to: req.user.email,
-      subject: "Order Placed Successfully",
-      text: `Your order (${order._id}) has been placed successfully.
+//     await sendEmail({
+//       to: req.user.email,
+//       subject: "Order Placed Successfully",
+//       text: `Your order (${order._id}) has been placed successfully.
 
-Subtotal: ₹${subtotal}
-Discount: -₹${discount}
-Tax: ₹${taxAmount.toFixed(2)}
-Total: ₹${totalAmount.toFixed(2)}`
-    });
+// Subtotal: ₹${subtotal}
+// Discount: -₹${discount}
+// Tax: ₹${taxAmount.toFixed(2)}
+// Total: ₹${totalAmount.toFixed(2)}`
+//     });
 
     /* ================= CLEAR CART ================= */
     // if (cart) {

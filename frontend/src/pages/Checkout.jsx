@@ -130,9 +130,6 @@ const Checkout = () => {
       // });
 
       const res = await api.post("/api/orders", orderPayload);
-
-
-      // navigate("/pay", { state: { order: res.data } });
       navigate("/pay", { state: { orderId: res.data._id } });
 
 

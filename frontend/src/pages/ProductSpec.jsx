@@ -1160,7 +1160,7 @@ const ProductPage = () => {
   };
 
 const handleBuyNow = () => {
-  console.log("BUY NOW CLICKED", { user, loading });
+   console.log("BUY NOW CLICKED AUTH USER:", user);
 
     // ⛔ Wait until auth is resolved
   if (loading) return;
