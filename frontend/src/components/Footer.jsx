@@ -221,10 +221,10 @@ export default function Footer() {
             {/* LINKS */}
             <div className="footer-links">
               <a href="/">Home</a>
-              <a href="terms-and-conditions">Terms & Conditions</a>
+              <a href="#">Terms & Conditions</a>
 
               <a href="/products">Products</a>
-               <Link to="/privacy-policy"> Privacy Policy </Link>
+              <a href="#">Privacy Policy</a>
 
               <a href="about">About us</a>
               <a href="#">Return Policy</a>

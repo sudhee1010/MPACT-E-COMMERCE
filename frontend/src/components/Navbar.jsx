@@ -244,7 +244,7 @@ export default function Navbar() {
         {/* DESKTOP LINKS */}
         <div className="nav-links">
           <Link to="/">HOME</Link>
-          <Link to="/products">PRODUCTS</Link>
+          <Link to="/product">PRODUCTS</Link>
           <Link to="/about">ABOUT US</Link>
           <Link to="/blog">BLOG</Link>
           {/* <Link to="/wishlist" onClick={() => {
@@ -273,6 +273,8 @@ export default function Navbar() {
           >
             PROFILE
           </Link>
+          <Link to="/distributor">DISTRIBUTOR</Link>
+
 
         </div>
 
@@ -359,9 +361,12 @@ export default function Navbar() {
       {/* ================= MOBILE MENU ================= */}
       <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
         <Link to="/" onClick={() => setMenuOpen(false)}>HOME</Link>
-        <Link to="/products" onClick={() => setMenuOpen(false)}>PRODUCTS</Link>
+        <Link to="/product" onClick={() => setMenuOpen(false)}>PRODUCTS</Link>
         <Link to="/about" onClick={() => setMenuOpen(false)}>ABOUT US</Link>
         <Link to="/blog" onClick={() => setMenuOpen(false)}>BLOG</Link>
+        <Link to="/profile" onClick={() => setMenuOpen(false)}>PROFILE</Link>
+        <Link to="/distributor" onClick={() => setMenuOpen(false)}>DISTRIBUTOR</Link>
+
       </div>
 
       {/* ================= SIDE CART ================= */}
