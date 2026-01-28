@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
-    const location = useLocation();
+  const location = useLocation();
   const { orderId } = location.state || {};
 
   return (
@@ -207,7 +207,7 @@ export default function OrderSuccess() {
 
           <div className="success-text">Order placed successfully</div>
 
-             {/* 🔥 SHOW ORDER ID */}
+          {/* 🔥 SHOW ORDER ID */}
           {orderId && (
             <p style={{ marginBottom: "20px", opacity: 0.8 }}>
               Order ID: <strong>{orderId}</strong>
@@ -216,12 +216,17 @@ export default function OrderSuccess() {
 
           <div className="success-actions">
             <button onClick={() => navigate("/")}>Home</button>
-            <button onClick={() => navigate("/orders")}>My Orders</button>
+            <button
+              onClick={() => orderId && navigate(`/orders/${orderId}`)}
+              disabled={!orderId}
+            >
+              View Order
+            </button>
           </div>
         </div>
 
         {/* EXPLORE MORE */}
-        <div>
+        {/* <div>
           <div className="explore-title">EXPLORE MORE</div>
 
           <div className="product-grid">
@@ -236,7 +241,7 @@ export default function OrderSuccess() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
       <Footer />
     </>

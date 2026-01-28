@@ -232,22 +232,70 @@ export default function OrderDetails() {
           gap: 1rem;
         }
 
-        .badge {
-          padding: 6px 14px;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: bold;
-        }
+        // .badge {
+        //   padding: 20px 14px;
+        //   border-radius: 20px;
+        //   font-size: 0.85rem;
+        //   font-weight: bold;
+        // }
 
-        .paid {
-          background: #22c55e;
-          color: black;
-        }
+        // .paid {
+        //   background: #22c55e;
+        //   color: black;
+        // }
 
-        .pending {
-          background: #facc15;
-          color: black;
-        }
+        // .pending {
+        //   background: #facc15;
+        //   color: black;
+        // }
+
+        //         .refunded {
+//   background: #f97316;
+//   color: black;
+// }
+
+// .returned {
+//   background: #f97316;
+//   color: black;
+// }
+
+// .cancelled { background: #dc2626; }
+// .delivered { background: #22c55e; }
+// .processing { background: #3b82f6; }
+
+
+
+.status-text {
+  font-weight: bold;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+}
+
+.status-paid {
+  color: #22c55e; /* green */
+}
+
+.status-pending {
+  color: #facc15; /* yellow */
+}
+
+.status-refunded,
+.status-returned {
+  color: #f97316; /* orange */
+}
+
+.status-cancelled {
+  color: #dc2626; /* red */
+}
+
+.status-processing {
+  color: #3b82f6; /* blue */
+}
+
+.status-delivered {
+  color: #22c55e;
+}
+
 
         .section {
           border: 2px solid #facc15;
@@ -291,23 +339,6 @@ export default function OrderDetails() {
           color: #facc15;
         }
 
-        .refunded {
-  background: #f97316;
-  color: black;
-}
-
-.returned {
-  background: #f97316;
-  color: black;
-}
-
-.cancelled { background: #dc2626; }
-.delivered { background: #22c55e; }
-.processing { background: #3b82f6; }
-
-
-
-
         @media (max-width: 600px) {
           .item-card {
             flex-direction: column;
@@ -332,7 +363,7 @@ export default function OrderDetails() {
                     </div>
 
                     <div>
-                        <span
+                        {/* <span
                             className={`badge ${order.paymentStatus === "paid"
                                 ? "paid"
                                 : order.paymentStatus === "refunded"
@@ -341,7 +372,20 @@ export default function OrderDetails() {
                                 }`}
                         >
                             {order.paymentStatus.toUpperCase()}
+                        </span> */}
+
+                        <span
+                            className={`status-text ${order.paymentStatus === "paid"
+                                    ? "status-paid"
+                                    : order.paymentStatus === "refunded"
+                                        ? "status-refunded"
+                                        : "status-pending"
+                                }`}
+                        >
+                            Payment: {order.paymentStatus}
                         </span>
+
+
                     </div>
 
                     {order.paymentStatus === "pending" && order.orderStatus !== "cancelled" && (
@@ -427,7 +471,7 @@ export default function OrderDetails() {
 
 
 
-                    <span
+                    {/* <span
                         className="badge"
                         style={{
                             background:
@@ -444,7 +488,15 @@ export default function OrderDetails() {
                     >
                         {order.orderStatus.toUpperCase()}
 
+                    </span> */}
+
+                    <span
+                        className={`status-text status-${order.orderStatus}`}
+                        style={{ marginLeft: "10px" }}
+                    >
+                        Order: {order.orderStatus}
                     </span>
+
 
                 </div>
 

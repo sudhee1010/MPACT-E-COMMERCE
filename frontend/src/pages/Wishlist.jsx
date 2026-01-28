@@ -9,7 +9,7 @@ import { useCart } from "../context/CartContext";
 
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState([]);
-    const { refreshCart, setOpenSideCart } = useCart();
+  const { refreshCart, setOpenSideCart } = useCart();
 
   /* ================= FETCH WISHLIST ================= */
   useEffect(() => {
@@ -49,9 +49,9 @@ export default function WishlistPage() {
 
       // 3. Remove from wishlist in frontend state
       setWishlist((prev) => prev.filter((item) => item._id !== productId));
-      
-       await refreshCart();
-    setOpenSideCart(true);
+
+      await refreshCart();
+      setOpenSideCart(true);
       toast.success("Product moved to cart 🛒");
     } catch (error) {
       toast.error(
@@ -681,6 +681,26 @@ export default function WishlistPage() {
   background: #ffeb00;
   color: #000;
 }
+  /* ================= OUT OF STOCK BUTTON ================= */
+.add-to-cart-btn-disabled {
+  width: 100%;
+  height: 48px;
+  background: #2a2a2a;
+  color: #9ca3af;
+  border: 2px solid #555;
+  border-radius: 8px;
+  font-family: "Jersey 25", cursive;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.add-to-cart-btn-disabled:hover {
+  background: #2a2a2a;
+  color: #9ca3af;
+}
+
 
 /* ================= MOBILE ================= */
 @media (max-width: 480px) {
@@ -781,14 +801,34 @@ export default function WishlistPage() {
                     <div className="price">₹{product.price}</div>
 
                     {/* ACTION */}
-                    <div className="action-buttons">
+                    {/* <div className="action-buttons">
                       <button
                         className="add-to-cart-btn"
                         onClick={() => handleAddToCart(product._id)}
                       >
                         🛒 MOVE TO CART
                       </button>
+                    </div> */}
+
+
+                    <div className="action-buttons">
+                      {product.countInStock > 0 ? (
+                        <button
+                          className="add-to-cart-btn"
+                          onClick={() => handleAddToCart(product._id)}
+                        >
+                          🛒 MOVE TO CART
+                        </button>
+                      ) : (
+                        <button
+                          className="add-to-cart-btn-disabled"
+                          disabled
+                        >
+                          OUT OF STOCK
+                        </button>
+                      )}
                     </div>
+
                   </div>
                 ))}
               </div>
