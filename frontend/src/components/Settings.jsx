@@ -31,25 +31,25 @@ export function Settings() {
     <div className="max-w-4xl space-y-6 text-white">
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="general" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">
+          <TabsTrigger value="general" className="data-[state=active]:bg-[#2a2a2a] data-[state=active]:text-white">
             General
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">
+          <TabsTrigger value="notifications" className="data-[state=active]:bg-[#2a2a2a] data-[state=active]:text-white">
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">
+          <TabsTrigger value="security" className="data-[state=active]:bg-[#2a2a2a] data-[state=active]:text-white">
             Security
           </TabsTrigger>
-          <TabsTrigger value="payment" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">
+          <TabsTrigger value="payment" className="data-[state=active]:bg-[#2a2a2a] data-[state=active]:text-white">
             Payment
           </TabsTrigger>
         </TabsList>
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-6">
-          <div className="bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="bg-[#2a2a2a] rounded-lg shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
-              <Globe className="text-blue-400" size={24} />
+              <Globe className="text-yellow-400" size={24} />
               <h3 className="text-lg font-semibold text-white">Store Information</h3>
             </div>
 
@@ -61,7 +61,7 @@ export function Settings() {
                   value={settings.storeName}
                   onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
                   placeholder="Enter store name"
-                  className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                  className="bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-400"
                 />
               </div>
 
@@ -74,7 +74,7 @@ export function Settings() {
                     value={settings.storeEmail}
                     onChange={(e) => setSettings({ ...settings, storeEmail: e.target.value })}
                     placeholder="store@example.com"
-                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                    className="bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-400"
                   />
                 </div>
                 <div>
@@ -85,7 +85,7 @@ export function Settings() {
                     value={settings.storePhone}
                     onChange={(e) => setSettings({ ...settings, storePhone: e.target.value })}
                     placeholder="+1 (555) 123-4567"
-                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                    className="bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-400"
                   />
                 </div>
               </div>
@@ -98,7 +98,7 @@ export function Settings() {
                   onChange={(e) => setSettings({ ...settings, storeAddress: e.target.value })}
                   placeholder="Enter your store address"
                   rows={3}
-                  className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                  className="bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-400"
                 />
               </div>
 
@@ -106,28 +106,28 @@ export function Settings() {
                 <div>
                   <Label htmlFor="currency" className="text-white">Currency</Label>
                   <Select value={settings.currency} onValueChange={(value) => setSettings({ ...settings, currency: value })}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectTrigger className="bg-[#2a2a2a] border-gray-600 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                      <SelectItem value="USD" className="text-white hover:bg-gray-700">USD - US Dollar</SelectItem>
-                      <SelectItem value="EUR" className="text-white hover:bg-gray-700">EUR - Euro</SelectItem>
-                      <SelectItem value="GBP" className="text-white hover:bg-gray-700">GBP - British Pound</SelectItem>
-                      <SelectItem value="JPY" className="text-white hover:bg-gray-700">JPY - Japanese Yen</SelectItem>
+                    <SelectContent className="bg-[#2a2a2a] border-gray-700 text-white">
+                      <SelectItem value="USD" className="text-white hover:bg-[#2a2a2a]">USD - US Dollar</SelectItem>
+                      <SelectItem value="EUR" className="text-white hover:bg-[#2a2a2a]">EUR - Euro</SelectItem>
+                      <SelectItem value="GBP" className="text-white hover:bg-[#2a2a2a]">GBP - British Pound</SelectItem>
+                      <SelectItem value="JPY" className="text-white hover:bg-[#2a2a2a]">JPY - Japanese Yen</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label htmlFor="timezone" className="text-white">Timezone</Label>
                   <Select value={settings.timezone} onValueChange={(value) => setSettings({ ...settings, timezone: value })}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectTrigger className="bg-[#2a2a2a] border-gray-600 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                      <SelectItem value="America/New_York" className="text-white hover:bg-gray-700">Eastern Time</SelectItem>
-                      <SelectItem value="America/Chicago" className="text-white hover:bg-gray-700">Central Time</SelectItem>
-                      <SelectItem value="America/Denver" className="text-white hover:bg-gray-700">Mountain Time</SelectItem>
-                      <SelectItem value="America/Los_Angeles" className="text-white hover:bg-gray-700">Pacific Time</SelectItem>
+                    <SelectContent className="bg-[#2a2a2a] border-gray-700 text-white">
+                      <SelectItem value="America/New_York" className="text-white hover:bg-[#2a2a2a]">Eastern Time</SelectItem>
+                      <SelectItem value="America/Chicago" className="text-white hover:bg-[#2a2a2a]">Central Time</SelectItem>
+                      <SelectItem value="America/Denver" className="text-white hover:bg-[#2a2a2a]">Mountain Time</SelectItem>
+                      <SelectItem value="America/Los_Angeles" className="text-white hover:bg-[#2a2a2a]">Pacific Time</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -136,19 +136,19 @@ export function Settings() {
               <div>
                 <Label htmlFor="language" className="text-white">Language</Label>
                 <Select value={settings.language} onValueChange={(value) => setSettings({ ...settings, language: value })}>
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectTrigger className="bg-[#2a2a2a] border-gray-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                    <SelectItem value="en" className="text-white hover:bg-gray-700">English</SelectItem>
-                    <SelectItem value="es" className="text-white hover:bg-gray-700">Spanish</SelectItem>
-                    <SelectItem value="fr" className="text-white hover:bg-gray-700">French</SelectItem>
-                    <SelectItem value="de" className="text-white hover:bg-gray-700">German</SelectItem>
+                  <SelectContent className="bg-[#2a2a2a] border-gray-700 text-white">
+                    <SelectItem value="en" className="text-white hover:bg-[#2a2a2a]">English</SelectItem>
+                    <SelectItem value="es" className="text-white hover:bg-[#2a2a2a]">Spanish</SelectItem>
+                    <SelectItem value="fr" className="text-white hover:bg-[#2a2a2a]">French</SelectItem>
+                    <SelectItem value="de" className="text-white hover:bg-[#2a2a2a]">German</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button onClick={handleSave} className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
                 <Save size={18} className="mr-2" />
                 Save Changes
               </Button>
@@ -158,9 +158,9 @@ export function Settings() {
 
         {/* Notifications Settings */}
         <TabsContent value="notifications" className="space-y-6">
-          <div className="bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="bg-[#2a2a2a] rounded-lg shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
-              <Bell className="text-blue-400" size={24} />
+              <Bell className="text-yellow-400" size={24} />
               <h3 className="text-lg font-semibold text-white">Notification Preferences</h3>
             </div>
 
@@ -204,7 +204,7 @@ export function Settings() {
                 />
               </div>
 
-              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button onClick={handleSave} className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
                 <Save size={18} className="mr-2" />
                 Save Preferences
               </Button>
@@ -214,9 +214,9 @@ export function Settings() {
 
         {/* Security Settings */}
         <TabsContent value="security" className="space-y-6">
-          <div className="bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="bg-[#2a2a2a] rounded-lg shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
-              <Lock className="text-blue-400" size={24} />
+              <Lock className="text-yellow-400" size={24} />
               <h3 className="text-lg font-semibold text-white">Security Settings</h3>
             </div>
 
@@ -243,7 +243,7 @@ export function Settings() {
                       id="currentPassword" 
                       type="password" 
                       placeholder="Enter current password" 
-                      className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                      className="bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-400"
                     />
                   </div>
                   <div>
@@ -252,7 +252,7 @@ export function Settings() {
                       id="newPassword" 
                       type="password" 
                       placeholder="Enter new password" 
-                      className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                      className="bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-400"
                     />
                   </div>
                   <div>
@@ -261,10 +261,10 @@ export function Settings() {
                       id="confirmPassword" 
                       type="password" 
                       placeholder="Confirm new password" 
-                      className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                      className="bg-[#2a2a2a] border-gray-600 text-white placeholder:text-gray-400"
                     />
                   </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
                     Update Password
                   </Button>
                 </div>
@@ -275,9 +275,9 @@ export function Settings() {
 
         {/* Payment Settings */}
         <TabsContent value="payment" className="space-y-6">
-          <div className="bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="bg-[#2a2a2a] rounded-lg shadow-sm p-6">
             <div className="flex items-center gap-3 mb-6">
-              <CreditCard className="text-blue-400" size={24} />
+              <CreditCard className="text-yellow-400" size={24} />
               <h3 className="text-lg font-semibold text-white">Payment Methods</h3>
             </div>
 
@@ -285,7 +285,7 @@ export function Settings() {
               <div className="p-4 border border-gray-700 rounded-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-12 h-8 bg-[#2a2a2a] rounded flex items-center justify-center text-yellow-400 text-xs font-bold">
                       VISA
                     </div>
                     <div>
@@ -302,7 +302,7 @@ export function Settings() {
               <div className="p-4 border border-gray-700 rounded-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-8 bg-orange-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-12 h-8 bg-[#2a2a2a] rounded flex items-center justify-center text-yellow-400 text-xs font-bold">
                       MC
                     </div>
                     <div>
@@ -313,7 +313,7 @@ export function Settings() {
                 </div>
               </div>
 
-              <Button variant="outline" className="w-full border-gray-600 text-white hover:bg-gray-700">
+              <Button className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
                 + Add New Payment Method
               </Button>
             </div>

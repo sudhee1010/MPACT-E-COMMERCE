@@ -302,15 +302,19 @@ export function Products() {
             }}
           >
 
-            <div style={{
-              backgroundColor: '#2a2a2a',
-              border: '1px solid #374151',
-              borderRadius: '0.5rem',
-              width: '100%',
-              maxWidth: '28rem',
-              maxHeight: '90vh',
-              overflowY: 'auto'
-            }}>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: '#2a2a2a',
+                border: '1px solid #374151',
+                borderRadius: '0.5rem',
+                width: '100%',
+                maxWidth: '28rem',
+                maxHeight: '90vh',
+                overflowY: 'auto'
+              }}
+            >
+
               <div style={{
                 padding: '1.5rem 1.5rem 0.5rem 1.5rem',
                 borderBottom: '1px solid #374151'
@@ -1224,7 +1228,7 @@ export function Products() {
                 right: '1rem'
               }}>
                 <button
-                  onClick={() => setEditingProduct(null)}
+                  onClick={(e) => e.stopPropagation()}
                   style={{
                     padding: '0.5rem',
                     backgroundColor: 'transparent',
@@ -1297,10 +1301,10 @@ export function Products() {
                       ? '#facc15'
                       : '#f87171',
                   border: `1px solid ${product.stockStatus === 'In Stock'
-                      ? '#16a34a'
-                      : product.stockStatus === 'Low Stock'
-                        ? '#eab308'
-                        : '#dc2626'
+                    ? '#16a34a'
+                    : product.stockStatus === 'Low Stock'
+                      ? '#eab308'
+                      : '#dc2626'
                     }`
                 }}>
                   {product.stockStatus}
