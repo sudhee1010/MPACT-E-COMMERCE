@@ -4,10 +4,13 @@ import generateToken from "../utils/generateToken.js";
 import { generateOTP } from "../utils/sendOTP.js";
 import sendEmail from "../utils/sendEmail.js";
 import { verifyGoogleToken } from "../utils/googleVerify.js";
+import cloudinary from "../config/cloudinary.js";
+
 
 /* ===========================
    EMAIL REGISTER LOGIN
 =========================== */
+
 // export const registerUser = async (req, res) => {
 //   try {
 //     const { name, email, password, phone } = req.body;
@@ -25,18 +28,27 @@ import { verifyGoogleToken } from "../utils/googleVerify.js";
 //       password: hashedPassword,
 //       phone,
 //       isEmailVerified: false,
-//       role:"customer"
+//       role: "customer",
+//     });
+
+//     const token = generateToken(user._id);
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "strict",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
 //     });
 
 //     res.status(201).json({
-//       token: generateToken(user._id),user
+//       message: "Registered successfully. Please verify email.",
+//       user,
 //     });
-
-
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
 // };
+
 
 export const registerUser = async (req, res) => {
   try {
@@ -58,23 +70,14 @@ export const registerUser = async (req, res) => {
       role: "customer",
     });
 
-    const token = generateToken(user._id);
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
     res.status(201).json({
-      message: "Registered successfully. Please verify email.",
-      user,
+      message: "Registered successfully. Please verify your email via OTP.",
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 
@@ -212,6 +215,50 @@ export const sendOTP = async (req, res) => {
 /* ===========================
    VERIFY EMAIL OTP
 =========================== */
+// export const verifyOTP = async (req, res) => {
+//   try {
+//     const { email, otp } = req.body;
+
+//     const user = await User.findOne({ email });
+
+//     if (
+//       !user ||
+//       user.otp !== otp.toString() ||
+//       user.otpExpiry < Date.now()
+//     ) {
+//       return res.status(400).json({ message: "Invalid or expired OTP" });
+//     }
+
+//     user.isEmailVerified = true;
+//     user.otp = null;
+//     user.otpExpiry = null;
+//     await user.save();
+
+//     // res.json({
+//     //   message: "Email verified",
+//     //   token: generateToken(user._id)
+//     // });
+//     const token = generateToken(user._id);
+
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "strict",
+//       maxAge: 7 * 24 * 60 * 60 * 1000,
+//     });
+
+//     res.json({
+//       message: "Email verified",
+//       user,
+//     });
+
+
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -231,10 +278,6 @@ export const verifyOTP = async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
-    // res.json({
-    //   message: "Email verified",
-    //   token: generateToken(user._id)
-    // });
     const token = generateToken(user._id);
 
     res.cookie("token", token, {
@@ -245,15 +288,15 @@ export const verifyOTP = async (req, res) => {
     });
 
     res.json({
-      message: "Email verified",
+      message: "Email verified & logged in",
       user,
     });
-
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 /* ===========================
    FORGOT PASSWORD
@@ -437,6 +480,7 @@ export const getCustomerProfile = async (req, res) => {
       email: user.email,
       phone: user.phone,
       address: user.address,
+      profileImage: user.profileImage || { url: "", public_id: "" },
       role: user.role,
       isEmailVerified: user.isEmailVerified,
       isPhoneVerified: user.isPhoneVerified,
@@ -452,7 +496,7 @@ export const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     sameSite: "strict",
-    secure: true,
+    // secure: true,
     secure: process.env.NODE_ENV === "production"
   });
 
@@ -518,7 +562,7 @@ export const updateCustomerProfile = async (req, res) => {
     // Update fields
     user.name = req.body.name || user.name;
     user.phone = req.body.phone || user.phone;
-    user.address = req.body.address || user.address; 
+    user.address = req.body.address || user.address;
 
     const updatedUser = await user.save();
 
@@ -540,8 +584,45 @@ export const updateCustomerProfile = async (req, res) => {
 };
 
 
+export const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
 
+    const user = await User.findById(req.user._id);
 
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    // 🔥 Delete old image from Cloudinary
+    if (user.profileImage?.public_id) {
+      await cloudinary.uploader.destroy(user.profileImage.public_id);
+    }
 
+    // Save new image
+    user.profileImage = {
+      url: req.file.path,
+      public_id: req.file.filename
+    };
 
+    await user.save();
+
+    res.json({
+      message: "Profile image updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        profileImage: user.profileImage,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Image upload failed" });
+  }
+};

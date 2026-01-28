@@ -5,7 +5,6 @@
 // const ProductPage = () => {
 //   const [qty, setQty] = useState(1);
 //   const [showReviewPopup, setShowReviewPopup] = useState(false);
-  
 
 //   const images = [
 //     "/images/stawberry.png",
@@ -128,14 +127,14 @@
 //       gridTemplateColumns: "repeat(3, max-content)",
 //       gap: 14,
 //       marginBottom: 34,
-    
+
 //     },
 //     tag: {
 //       border: "1.5px solid #ffe600",
 //       padding: "10px 16px",
 //       fontSize: 17.6,
 //       fontWeight: 500,
-//       whiteSpace: "nowrap",  
+//       whiteSpace: "nowrap",
 //       fontFamily: "'Jersey 25', sans-serif",
 //       borderRadius: 4,
 //       height: 46,
@@ -190,7 +189,7 @@
 
 // addToCartButton: {
 //   flex: 1,
-//   height: 67,                 
+//   height: 67,
 //   display: "flex",
 //   alignItems: "center",
 //   justifyContent: "center",
@@ -199,7 +198,7 @@
 //   background: "#2f2f2f",
 //   color: "#fff",
 
-//   padding: "0 20px",         
+//   padding: "0 20px",
 //   fontSize: 23,
 //   fontWeight: 900,
 
@@ -214,7 +213,7 @@
 //   fontFamily: "'Jersey 25', sans-serif",
 //   textDecoration: "none",
 //   boxSizing: "border-box",
-  
+
 // },
 // cartIcon: {
 //   width: 22,
@@ -222,8 +221,6 @@
 //   filter: "brightness(0) invert(1)", // ✅ WHITE by default
 //   transition: "filter 0.25s ease"
 // },
-
-
 
 // buyNowButton:{
 //   flex: 1,
@@ -252,7 +249,6 @@
 
 //   transition: "transform 0.25s ease, box-shadow 0.25s ease"
 // },
-
 
 //   recommendedSection: {
 //     padding: "20px 0" // ⬅️ reduced gap (was 40px)
@@ -463,7 +459,7 @@
 //       fontWeight: 700,
 //       borderRadius: 8,
 //       cursor: "pointer",
-//       minWidth: 120 
+//       minWidth: 120
 //     },
 //   reviewsGrid: {
 //     display: "grid",
@@ -515,7 +511,6 @@
 //   marginRight: "-20px",  // 🔑 EXTENDS to the RIGHT
 //   overflow: "visible",   // 🔑 allow extension
 // },
-
 
 //   /* RIGHT REVIEW CARD — MORE HEIGHT */
 //   reviewCardText: {
@@ -787,7 +782,6 @@
 //   ADD TO CART
 // </Link>
 
-
 //   {/* BUY NOW — FIXED */}
 // <Link
 //   to="/checkout"
@@ -1040,21 +1034,19 @@
 
 // export default ProductPage;
 
-
-
-
-
-
-
-
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useParams } from "react-router-dom";
 import api from "../services/api.js";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast from "react-hot-toast";
+// import {  toast } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+import { addToCartApi } from "../api/cartApi";
+import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 
 const ProductPage = () => {
@@ -1066,17 +1058,20 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reviews, setReviews] = useState([]);
-const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
-const [rating, setRating] = useState(0);
-const [comment, setComment] = useState("");
-const [reviewImages, setReviewImages] = useState([]);
-const [submittingReview, setSubmittingReview] = useState(false);
-const [showTopRated, setShowTopRated] = useState(false);
-const user = JSON.parse(localStorage.getItem("user"));
-const [relatedProducts, setRelatedProducts] = useState([]);
-
-
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [reviewImages, setReviewImages] = useState([]);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [showTopRated, setShowTopRated] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const { refreshCart, setOpenSideCart } = useCart();
+   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  // const user = JSON.parse(localStorage.getItem("user"));
+  // const { user } = useCart();
 
 
   // const images = [
@@ -1086,127 +1081,148 @@ const [relatedProducts, setRelatedProducts] = useState([]);
   //   "/images/mango.png",
   // ];
 
-
-
   // const [activeImage, setActiveImage] = useState(images[0]);
   const [activeImage, setActiveImage] = useState("");
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
- useEffect(() => {
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+        const { data } = await api.get(`/products/${id}`);
 
-      const { data } = await api.get(`/products/${id}`);
-
-      setProduct(data);
-      setActiveImage(data.images?.[0]?.url);
-    } catch (err) {
-      console.error("Product fetch failed:", err);
-      setError("Failed to load product");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchProduct();
-}, [id]);
-
-
-useEffect(() => {
-  if (!product || !product.category) return;
-
-  const fetchRelatedProducts = async () => {
-    try {
-      const res = await api.get(
-        `/products?category=${product.category._id || product.category}&limit=4`
-      );
-
-      const filtered = res.data.products.filter(
-        (p) => p._id !== product._id
-      );
-
-      setRelatedProducts(filtered);
-    } catch (err) {
-      console.error("Failed to load related products", err);
-    }
-  };
-
-  fetchRelatedProducts();
-}, [product]);
-
-
-
-
-useEffect(() => {
-  const fetchReviews = async () => {
-    try {
-      setReviewsLoading(true);
-
-      const { data } = await api.get(
-        `/reviews/${product._id}`
-      );
-
-      setReviews(data); // approved reviews only
-    } catch (err) {
-      console.error("Failed to load reviews", err);
-    } finally {
-      setReviewsLoading(false);
-    }
-  };
-
-  if (product?._id) fetchReviews();
-}, [product]);
-
-
-
-const submitReviewHandler = async () => {
-  try {
-    setSubmittingReview(true);
-
-    const formData = new FormData();
-    formData.append("rating", rating);
-    formData.append("comment", comment);
-
-    reviewImages.forEach((img) => {
-      formData.append("images", img);
-    });
-
-    await api.post(
-      `/reviews/${product._id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        setProduct(data);
+        setActiveImage(data.images?.[0]?.url);
+      } catch (err) {
+        console.error("Product fetch failed:", err);
+        setError("Failed to load product");
+      } finally {
+        setLoading(false);
       }
-    );
+    };
 
-    // ✅ SHOW SUCCESS MESSAGE
-toast.success(
-  "Review submitted successfully! It will be visible after admin approval."
-);
+    fetchProduct();
+  }, [id]);
 
+  useEffect(() => {
+    if (!product || !product.category) return;
 
-    setShowReviewPopup(false);
-    setRating(0);
-    setComment("");
-    setReviewImages([]);
+    const fetchRelatedProducts = async () => {
+      try {
+        const res = await api.get(
+          `/products?category=${product.category._id || product.category}&limit=4`,
+        );
 
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setSubmittingReview(false);
+        const filtered = res.data.products.filter((p) => p._id !== product._id);
+
+        setRelatedProducts(filtered);
+      } catch (err) {
+        console.error("Failed to load related products", err);
+      }
+    };
+
+    fetchRelatedProducts();
+  }, [product]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setReviewsLoading(true);
+
+        const { data } = await api.get(`/reviews/${product._id}`);
+
+        setReviews(data); // approved reviews only
+      } catch (err) {
+        console.error("Failed to load reviews", err);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    if (product?._id) fetchReviews();
+  }, [product]);
+
+  const handleAddToCart = async () => {
+    try {
+      await addToCartApi(product._id, qty);
+      await refreshCart();
+      setOpenSideCart(true);
+      toast.success("Product added to cart 🛒");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Please login to add to cart",
+      );
+      {
+        setShowLoginModal(true);
+      }
+    }
+  };
+
+const handleBuyNow = () => {
+  console.log("BUY NOW CLICKED", { user, loading });
+
+    // ⛔ Wait until auth is resolved
+  if (loading) return;
+
+  if (!user || !user._id) {
+    setShowLoginModal(true);
+    return;
   }
+
+  navigate("/checkout", {
+    state: {
+      directBuy: true,
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.url,
+        qty: qty,
+      },
+    },
+  });
 };
 
 
+  const submitReviewHandler = async () => {
+    try {
+      setSubmittingReview(true);
+
+      const formData = new FormData();
+      formData.append("rating", rating);
+      formData.append("comment", comment);
+
+      reviewImages.forEach((img) => {
+        formData.append("images", img);
+      });
+
+      await api.post(`/reviews/${product._id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // ✅ SHOW SUCCESS MESSAGE
+      toast.success(
+        "Review submitted successfully! It will be visible after admin approval.",
+      );
+
+      setShowReviewPopup(false);
+      setRating(0);
+      setComment("");
+      setReviewImages([]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const styles = {
     container: {
       background: "#2f2f2f",
-      color: "#fff"
+      color: "#fff",
     },
     productSection: {
       maxWidth: 1400,
@@ -1215,21 +1231,21 @@ toast.success(
       padding: "60px 40px",
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
-      gap: 60
+      gap: 60,
     },
     mainImageContainer: {
       border: "2px solid #ffe600",
       borderRadius: 13,
       overflow: "hidden",
       background: "#fff",
-      width: "95%",
+      width: "100%",
       height: 560,
-      marginLeft: "45px"
+      marginLeft: "45px",
     },
     mainImage: {
-      width: "90%",
+      width: "100%",
       height: 570,
-      objectFit: "cover"
+      objectFit: "cover",
     },
     thumbnailsContainer: {
       marginTop: 16,
@@ -1237,7 +1253,7 @@ toast.success(
       gridTemplateColumns: "repeat(4, 1fr)",
       gap: 12,
       marginLeft: "47px",
-      width: "95%"
+      width: "95%",
     },
     thumbnailBox: {
       border: "2px solid transparent",
@@ -1245,19 +1261,20 @@ toast.success(
       overflow: "hidden",
       background: "#2b2b2b",
       cursor: "pointer",
-      transition: "transform 0.25s ease, border 0.25s ease, box-shadow 0.25s ease"
+      transition:
+        "transform 0.25s ease, border 0.25s ease, box-shadow 0.25s ease",
     },
     thumbnailBoxActive: {
-      borderColor: "#ffe600"
+      borderColor: "#ffe600",
     },
     thumbnailImage: {
       width: "100%",
       height: 130,
       objectFit: "cover",
-      display: "block"
+      display: "block",
     },
     detailsContainer: {
-      maxWidth: 520
+      maxWidth: 520,
     },
     title: {
       fontFamily: "'Jersey 25', sans-serif",
@@ -1265,44 +1282,44 @@ toast.success(
       letterSpacing: 2,
       lineHeight: "1.1",
       marginBottom: 16,
-      textTransform: "uppercase"
+      textTransform: "uppercase",
     },
     ratingContainer: {
       display: "flex",
       gap: 10,
-      marginBottom: 26
+      marginBottom: 26,
     },
     stars: {
       color: "#ffc107",
-      fontSize: 18
+      fontSize: 18,
     },
     reviewCount: {
       color: "#ccc",
-      fontSize: 14
+      fontSize: 14,
     },
     priceContainer: {
       display: "flex",
       gap: 14,
       alignItems: "baseline",
-      marginBottom: 30
+      marginBottom: 30,
     },
     price: {
       fontSize: 36,
-      fontWeight: 800
+      fontWeight: 800,
     },
     oldPrice: {
       color: "#777",
-      textDecoration: "line-through"
+      textDecoration: "line-through",
     },
     discount: {
       color: "#00ff66",
-      fontWeight: 700
+      fontWeight: 700,
     },
     tagsContainer: {
       display: "grid",
       gridTemplateColumns: "repeat(3, max-content)",
       gap: 14,
-      marginBottom: 34
+      marginBottom: 34,
     },
     tag: {
       border: "1.5px solid #ffe600",
@@ -1310,15 +1327,15 @@ toast.success(
       borderRadius: 6,
       fontSize: 12,
       fontWeight: 600,
-      whiteSpace: "nowrap"
+      whiteSpace: "nowrap",
     },
     quantityContainer: {
-      marginBottom: 34
+      marginBottom: 34,
     },
     quantityLabel: {
       fontSize: 14,
       marginBottom: 10,
-      color: "#fff"
+      color: "#fff",
     },
     quantityBox: {
       display: "flex",
@@ -1328,7 +1345,7 @@ toast.success(
       overflow: "hidden",
       height: 52,
       background: "#2f2f2f",
-      width: "fit-content"
+      width: "fit-content",
     },
     quantityButton: {
       width: 56,
@@ -1338,10 +1355,10 @@ toast.success(
       color: "#fff",
       fontSize: 22,
       cursor: "pointer",
-      transition: "all 0.25s ease"
+      transition: "all 0.25s ease",
     },
     quantityButtonLeft: {
-      borderRight: "1px solid #ffe600"
+      borderRight: "1px solid #ffe600",
     },
     quantityValue: {
       width: 56,
@@ -1352,11 +1369,11 @@ toast.success(
       fontSize: 18,
       fontWeight: 700,
       color: "#fff",
-      borderRight: "1px solid #ffe600"
+      borderRight: "1px solid #ffe600",
     },
     actionButtons: {
       display: "flex",
-      gap: 16
+      gap: 16,
     },
 
     addToCartButton: {
@@ -1384,12 +1401,12 @@ toast.success(
 
       fontFamily: "'Jersey 25', sans-serif",
       textDecoration: "none",
-      boxSizing: "border-box"
+      boxSizing: "border-box",
     },
 
     buyNowButton: {
       flex: 1,
-      height: 67,                 // 🔑 SAME height
+      height: 67, // 🔑 SAME height
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -1397,7 +1414,7 @@ toast.success(
       background: "#ffeb00",
       color: "#000",
 
-      padding: "0 20px",          // 🔑 SAME padding
+      padding: "0 20px", // 🔑 SAME padding
       fontSize: 23,
       fontWeight: 900,
 
@@ -1411,24 +1428,22 @@ toast.success(
 
       fontFamily: "'Jersey 25', sans-serif",
       textDecoration: "none",
-      boxSizing: "border-box"
+      boxSizing: "border-box",
     },
 
     cartIcon: {
       width: 26,
-      height: 26
-    }
-    ,
-
+      height: 26,
+    },
     recommendedSection: {
-      padding: "20px 0" // ⬅️ reduced gap (was 40px)
+      padding: "20px 0", // ⬅️ reduced gap (was 40px)
     },
 
     recommendedTitle: {
       marginBottom: 12, // ⬅️ reduced (was 24)
       fontWeight: 700,
       textAlign: "left",
-      marginLeft: 185
+      marginLeft: 185,
     },
 
     recommendedGrid: {
@@ -1436,7 +1451,7 @@ toast.success(
       gap: 24,
       padding: "0 40px",
       justifyContent: "center",
-      alignItems: "center"
+      alignItems: "center",
     },
 
     recommendedItem: {
@@ -1447,15 +1462,77 @@ toast.success(
       overflow: "hidden",
       background: "#2b2b2b",
       flexShrink: 0,
-      transition: "transform 0.35s ease"
+      transition: "transform 0.35s ease",
     },
 
     recommendedImage: {
       width: "100%",
       height: "100%",
       objectFit: "cover",
-      transition: "transform 0.35s ease"
+      transition: "transform 0.35s ease",
     },
+
+    /* ================= MODAL ================= */
+modalOverlay: {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0, 0, 0, 0.85)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 9999,
+},
+
+loginModal: {
+  background: "#151515",
+  border: "2px solid #ffeb00",
+  borderRadius: 20,
+  padding: 32,
+  width: "90%",
+  maxWidth: 420,
+  textAlign: "center",
+  animation: "popIn 0.3s ease",
+},
+
+loginTitle: {
+  color: "#ffeb00",
+  fontFamily: "'Jersey 25', cursive",
+  fontSize: 32,
+  marginBottom: 12,
+},
+
+loginText: {
+  color: "#ffffff",
+  fontSize: 14,
+  marginBottom: 24,
+},
+
+modalActions: {
+  display: "flex",
+  gap: 12,
+},
+
+modalButton: {
+  flex: 1,
+  height: 48,
+  fontSize: 16,
+  fontWeight: 700,
+  borderRadius: 10,
+  cursor: "pointer",
+  border: "2px solid #ffeb00",
+  fontFamily: "'Jersey 25', sans-serif",
+},
+
+loginButton: {
+  background: "#ffeb00",
+  color: "#000",
+},
+
+cancelButton: {
+  background: "transparent",
+  color: "#fff",
+},
+
 
     /* ================= REVIEWS SECTION ================= */
 
@@ -1463,14 +1540,14 @@ toast.success(
       maxWidth: 1200,
       margin: "0 auto",
       padding: "20px 40px", // ⬅️ reduced top/bottom (was 40)
-      color: "#fff"
+      color: "#fff",
     },
 
     reviewsHeader: {
       marginBottom: 12, // ⬅️ reduced (was 24)
       fontWeight: 700,
       textAlign: "left",
-      marginLeft: -55
+      marginLeft: -55,
     },
 
     reviewsButtons: {
@@ -1478,7 +1555,7 @@ toast.success(
       gap: 16,
       marginTop: 10,
       marginLeft: "auto", // ⬅️ keeps buttons on right
-      alignItems: "center"
+      alignItems: "center",
     },
 
     writeReviewButton: {
@@ -1494,7 +1571,7 @@ toast.success(
       fontSize: 18,
       display: "flex",
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
     },
 
     topRatedButton: {
@@ -1510,7 +1587,7 @@ toast.success(
       fontSize: 18,
       display: "flex",
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
     },
     popupOverlay: {
       position: "fixed",
@@ -1520,7 +1597,7 @@ toast.success(
       alignItems: "center",
       justifyContent: "center",
       zIndex: 9999,
-      padding: "16px"
+      padding: "16px",
     },
     popupContent: {
       width: "100%",
@@ -1529,20 +1606,20 @@ toast.success(
       borderRadius: 26,
       border: "2px solid #ffe600",
       padding: "clamp(20px, 4vw, 50px)",
-      boxSizing: "border-box"
+      boxSizing: "border-box",
     },
     popupTitle: {
       fontFamily: "'Jersey 25', sans-serif",
       textAlign: "center",
       letterSpacing: 2,
       marginBottom: "clamp(20px, 4vw, 40px)",
-      fontSize: "clamp(20px, 3vw, 28px)"
+      fontSize: "clamp(20px, 3vw, 28px)",
     },
     popupUser: {
       display: "flex",
       gap: 16,
       alignItems: "center",
-      marginBottom: "clamp(20px, 4vw, 40px)"
+      marginBottom: "clamp(20px, 4vw, 40px)",
     },
     popupAvatar: {
       width: 46,
@@ -1554,31 +1631,31 @@ toast.success(
       justifyContent: "center",
       fontSize: 22,
       fontWeight: "bold",
-      flexShrink: 0
+      flexShrink: 0,
     },
     popupUserName: {
-      fontSize: 18
+      fontSize: 18,
     },
     popupUserSubtext: {
       fontSize: 14,
-      opacity: 0.8
+      opacity: 0.8,
     },
     popupStars: {
       display: "flex",
       justifyContent: "center",
       gap: "clamp(12px, 3vw, 30px)",
       marginBottom: "clamp(20px, 4vw, 40px)",
-      flexWrap: "wrap"
+      flexWrap: "wrap",
     },
     popupStar: {
       fontSize: "clamp(30px, 6vw, 46px)",
-      color: "#ffc107"
+      color: "#ffc107",
     },
     popupTextareaContainer: {
       border: "2px solid #ffe600",
       borderRadius: 20,
       padding: "clamp(16px, 3vw, 24px)",
-      marginBottom: "clamp(20px, 4vw, 30px)"
+      marginBottom: "clamp(20px, 4vw, 30px)",
     },
     popupTextarea: {
       width: "100%",
@@ -1590,11 +1667,11 @@ toast.success(
       resize: "vertical",
       color: "#ddd",
       fontSize: "clamp(14px, 2.5vw, 15px)",
-      lineHeight: 1.7
+      lineHeight: 1.7,
     },
     popupAddPhoto: {
       textAlign: "center",
-      marginBottom: 30
+      marginBottom: 30,
     },
     popupAddPhotoButton: {
       background: "#4a4a2f",
@@ -1603,13 +1680,13 @@ toast.success(
       padding: "12px 26px",
       borderRadius: 30,
       cursor: "pointer",
-      fontSize: "clamp(14px, 2.5vw, 15px)"
+      fontSize: "clamp(14px, 2.5vw, 15px)",
     },
     popupActions: {
       display: "flex",
       justifyContent: "flex-end",
       gap: 16,
-      flexWrap: "wrap"
+      flexWrap: "wrap",
     },
     popupButton: {
       background: "#ffe600",
@@ -1619,7 +1696,7 @@ toast.success(
       fontWeight: 700,
       borderRadius: 8,
       cursor: "pointer",
-      minWidth: 120
+      minWidth: 120,
     },
     popupPostButton: {
       background: "#ffe600",
@@ -1629,12 +1706,12 @@ toast.success(
       fontWeight: 700,
       borderRadius: 8,
       cursor: "pointer",
-      minWidth: 120
+      minWidth: 120,
     },
     reviewsGrid: {
       display: "grid",
       gridTemplateColumns: "1.3fr 1fr",
-      gap: 10
+      gap: 10,
     },
     reviewsLeftColumn: {
       display: "flex",
@@ -1646,64 +1723,64 @@ toast.success(
       border: "1px solid #ffe600",
       borderRadius: 16,
       padding: 16,
-       background: "#2f2f2f",
-        width: "100%",
-  boxSizing: "border-box",
-  display: "flex",
-  flexDirection: "column",
-  gap: 10,
+      background: "#2f2f2f",
+      width: "100%",
+      boxSizing: "border-box",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
     },
-    
-reviewHeader: {
-  display: "flex",
-  alignItems: "center",
-  gap: "12px",
-  marginBottom: "8px",
-},
 
-reviewAvatar: {
-   width: "40px",
-  height: "40px",
-  borderRadius: "50%",
-  backgroundColor: "#22c55e",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: "bold",
-  color: "#000",
-  flexShrink: 0,
-},
+    reviewHeader: {
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      marginBottom: "8px",
+    },
 
-reviewUserName: {
-  fontSize: "14px",
-  fontWeight: 600,
-  color: "#fff",
-},
+    reviewAvatar: {
+      width: "40px",
+      height: "40px",
+      borderRadius: "50%",
+      backgroundColor: "#22c55e",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontWeight: "bold",
+      color: "#000",
+      flexShrink: 0,
+    },
+
+    reviewUserName: {
+      fontSize: "14px",
+      fontWeight: 600,
+      color: "#fff",
+    },
     reviewImage: {
-     width: "100%",
+      width: "100%",
       borderRadius: 10,
       marginBottom: 12,
-  maxHeight: 200,
-  objectFit: "cover",
+      maxHeight: 200,
+      objectFit: "cover",
     },
 
     reviewStars: {
       color: "#ffe600",
       // margin: "6px 0"
-         fontSize: 18,
-        marginBottom: 8,
+      fontSize: 18,
+      marginBottom: 8,
     },
     reviewText: {
       // fontSize: 13,
       // lineHeight: 1.6
-       color: "#ddd",
-       fontSize: 15,
-       lineHeight: "1.5",
+      color: "#ddd",
+      fontSize: 15,
+      lineHeight: "1.5",
     },
     reviewsRightColumn: {
       display: "flex",
       flexDirection: "column",
-      gap: 10
+      gap: 10,
     },
     reviewCardText: {
       border: "1px solid #ffe600",
@@ -1711,11 +1788,11 @@ reviewUserName: {
       padding: 20,
       background: "#2f2f2f",
       width: "100%",
-      boxSizing: "border-box"
+      boxSizing: "border-box",
     },
     rangeSection: {
       padding: "64px 0",
-      background: "#2f2f2f"
+      background: "#2f2f2f",
     },
     rangeTitle: {
       fontFamily: "'Jersey 25', sans-serif",
@@ -1727,7 +1804,7 @@ reviewUserName: {
       margin: "0 auto 56px",
       textAlign: "center",
       letterSpacing: "1px",
-      lineHeight: "1.00"
+      lineHeight: "1.00",
     },
     rangeGrid: {
       maxWidth: 1230,
@@ -1735,7 +1812,7 @@ reviewUserName: {
       display: "grid",
       gridTemplateColumns: "repeat(4, 1fr)",
       gap: 28,
-      padding: "0 32px"
+      padding: "0 32px",
     },
     rangeCard: {
       background: "#3a3a3a",
@@ -1746,19 +1823,19 @@ reviewUserName: {
       flexDirection: "column",
       height: 500,
       transition: "transform 0.35s ease, box-shadow 0.35s ease",
-      willChange: "transform"
+      willChange: "transform",
     },
     rangeCardImage: {
       height: 330,
-      overflow: "hidden"
+      overflow: "hidden",
     },
     rangeCardImg: {
       width: "100%",
       height: "100%",
-      objectFit: "cover"
+      objectFit: "cover",
     },
     rangeCardContent: {
-      padding: "18px 18px 16px"
+      padding: "18px 18px 16px",
     },
     rangeCardTitle: {
       fontWeight: 900,
@@ -1767,29 +1844,29 @@ reviewUserName: {
       marginBottom: 6,
       textTransform: "uppercase",
       color: "#fff",
-      lineHeight: "16px"
+      lineHeight: "16px",
     },
     rangeCardSubtitle: {
       fontSize: 12,
       marginBottom: 10,
       opacity: 0.85,
-      color: "#fff"
+      color: "#fff",
     },
     rangeCardPrice: {
       display: "flex",
       alignItems: "center",
       gap: 10,
       marginBottom: 14,
-      color: "#fff"
+      color: "#fff",
     },
     rangeCardPriceMain: {
       fontWeight: 800,
-      fontSize: 14
+      fontSize: 14,
     },
     rangeCardPriceOld: {
       textDecoration: "line-through",
       color: "#9a9a9a",
-      fontSize: 13
+      fontSize: 13,
     },
     rangeCardButton: {
       width: "100%",
@@ -1801,66 +1878,62 @@ reviewUserName: {
       cursor: "pointer",
       borderRadius: 8,
       fontSize: 14,
-      letterSpacing: "0.5px"
+      letterSpacing: "0.5px",
     },
 
     highlightsTitle: {
-  fontSize: 16,
-  fontWeight: 700,
-  marginBottom: 14,
-  letterSpacing: "0.5px",
-  textTransform: "uppercase",
-  color: "#fff"
-},
+      fontSize: 16,
+      fontWeight: 700,
+      marginBottom: 14,
+      letterSpacing: "0.5px",
+      textTransform: "uppercase",
+      color: "#fff",
+    },
 
-highlightsContainer: {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 14,
-  marginBottom: 34
-},
+    highlightsContainer: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 14,
+      marginBottom: 34,
+    },
 
-highlightTag: {
-  border: "2px solid #ffe600",
-  padding: "10px 18px",
-  borderRadius: 10,
-  fontSize: 12,
-  fontWeight: 700,
-  whiteSpace: "nowrap",
-  color: "#fff",
-  textTransform: "uppercase"
-},
- 
-priceBlock: {
-  display: "flex",
-  alignItems: "center",
-  gap: 14,
-  marginBottom: 20
-},
+    highlightTag: {
+      border: "2px solid #ffe600",
+      padding: "10px 18px",
+      borderRadius: 10,
+      fontSize: 12,
+      fontWeight: 700,
+      whiteSpace: "nowrap",
+      color: "#fff",
+      textTransform: "uppercase",
+    },
 
-currentPrice: {
-  fontSize: 28,
-  fontWeight: 800,
-  color: "#fff"
-},
+    priceBlock: {
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      marginBottom: 20,
+    },
 
-originalPrice: {
-  fontSize: 16,
-  color: "#aaa",
-  textDecoration: "line-through"
-},
+    currentPrice: {
+      fontSize: 28,
+      fontWeight: 800,
+      color: "#fff",
+    },
 
-discountText: {
-  fontSize: 14,
-  fontWeight: 700,
-  color: "#00ff88"
-}
+    originalPrice: {
+      fontSize: 16,
+      color: "#aaa",
+      textDecoration: "line-through",
+    },
 
-
+    discountText: {
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#00ff88",
+    },
     
-
   };
-
 
   if (loading) {
     return (
@@ -1881,23 +1954,22 @@ discountText: {
   // const images = product.images?.map(img => img.url) || [];
 
   const images = Array.isArray(product.images)
-    ? product.images.map(img => img.url)
+    ? product.images.map((img) => img.url)
     : [];
-    
-    const filteredReviews = showTopRated
-  ? reviews.filter(r => r.rating >= 4)
-  : reviews;
 
+  const filteredReviews = showTopRated
+    ? reviews.filter((r) => r.rating >= 4)
+    : reviews;
 
-    // 🔹 Split reviews for layout
-const imageReviews = filteredReviews.filter(r => r.images?.length > 0);
-const textReviews = filteredReviews.filter( r => !r.images || r.images.length === 0
-);
-
+  // 🔹 Split reviews for layout
+  const imageReviews = filteredReviews.filter((r) => r.images?.length > 0);
+  const textReviews = filteredReviews.filter(
+    (r) => !r.images || r.images.length === 0,
+  );
 
   return (
     <>
-      <ToastContainer position="top-center" autoClose={3000} />
+      {/* <ToastContainer position="top-center" autoClose={3000} /> */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
       `}</style>
@@ -1916,7 +1988,6 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                 alt={product.name}
                 style={styles.mainImage}
               />
-
             </div>
 
             <div style={styles.thumbnailsContainer}>
@@ -1926,7 +1997,8 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                   style={{
                     ...styles.thumbnailBox,
                     ...(activeImage === src ? styles.thumbnailBoxActive : {}),
-                    borderColor: activeImage === src ? "#ffe600" : "transparent"
+                    borderColor:
+                      activeImage === src ? "#ffe600" : "transparent",
                   }}
                   onClick={() => setActiveImage(src)}
                   onMouseEnter={(e) => {
@@ -1951,9 +2023,7 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
           </div>
 
           <div style={styles.detailsContainer}>
-            <h1 style={styles.title}>
-              {product.name}
-            </h1>
+            <h1 style={styles.title}>{product.name}</h1>
 
             <div style={styles.ratingContainer}>
               <div style={styles.stars}></div>
@@ -1967,7 +2037,7 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
             </div>
 
             {/* <div style={styles.priceContainer}> */}
-              {/* <span style={styles.price}>
+            {/* <span style={styles.price}>
                 RS : 2000
               </span>
               <span style={styles.oldPrice}>
@@ -1976,7 +2046,7 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
               <span style={styles.discount}>
                 25% OFF
               </span> */}
-              {/* RS : {product.price}
+            {/* RS : {product.price}
               {product.originalPrice && (
                 <span style={styles.originalPrice}>RS : {product.originalPrice}</span>
               )}
@@ -1986,32 +2056,27 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
 
             </div> */}
 
-          <div style={styles.priceBlock}>
-  {/* Current Price */}
-  <span style={styles.currentPrice}>
-    ₹{product.price}
-  </span>
+            <div style={styles.priceBlock}>
+              {/* Current Price */}
+              <span style={styles.currentPrice}>₹{product.price}</span>
 
-  {/* Original Price (cut) */}
-  {product.originalPrice > product.price && (
-    <span style={styles.originalPrice}>
-      ₹{product.originalPrice}
-    </span>
-  )}
+              {/* Original Price (cut) */}
+              {product.originalPrice > product.price && (
+                <span style={styles.originalPrice}>
+                  ₹{product.originalPrice}
+                </span>
+              )}
 
-  {/* Discount */}
-  {product.discountPercent > 0 && (
-    <span style={styles.discountText}>
-      {product.discountPercent}% OFF
-    </span>
-  )}
-</div>
-
-
-
+              {/* Discount */}
+              {product.discountPercent > 0 && (
+                <span style={styles.discountText}>
+                  {product.discountPercent}% OFF
+                </span>
+              )}
+            </div>
 
             {/* <div style={styles.tagsContainer}> */}
-              {/* {[
+            {/* {[
                 "NO PRESERVATIVES",
                 "JAGGERY BASED",
                 "NO ADDED COLOURS",
@@ -2023,7 +2088,7 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                   {tag}
                 </span>
               ))} */}
-              {/* {product.specs?.map((tag, i) => (
+            {/* {product.specs?.map((tag, i) => (
                 <span key={i} style={styles.tag}>
                   {tag}
                 </span>
@@ -2031,27 +2096,22 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
 
             </div> */}
 
-
-          <div>
-  {/* <div style={styles.highlightsTitle}>
+            <div>
+              {/* <div style={styles.highlightsTitle}>
     Highlights
   </div> */}
 
-  <div style={styles.highlightsContainer}>
-    {product.highlights?.map((item, i) => (
-      <span key={i} style={styles.highlightTag}>
-        {item}
-      </span>
-    ))}
-  </div>
-</div>
-
-
+              <div style={styles.highlightsContainer}>
+                {product.highlights?.map((item, i) => (
+                  <span key={i} style={styles.highlightTag}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
 
             <div style={styles.quantityContainer}>
-              <div style={styles.quantityLabel}>
-                Quantity
-              </div>
+              <div style={styles.quantityLabel}>Quantity</div>
 
               <div style={styles.quantityBox}>
                 <button
@@ -2066,15 +2126,13 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                   }}
                   style={{
                     ...styles.quantityButton,
-                    ...styles.quantityButtonLeft
+                    ...styles.quantityButtonLeft,
                   }}
                 >
                   −
                 </button>
 
-                <div style={styles.quantityValue}>
-                  {qty}
-                </div>
+                <div style={styles.quantityValue}>{qty}</div>
 
                 <button
                   onClick={() => setQty(qty + 1)}
@@ -2093,30 +2151,14 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
               </div>
             </div>
             <div style={styles.actionButtons}>
-              {/* ADD TO CART */}
-              {/* <Link
-    to="/cart"
-    onMouseEnter={(e) => {
-      e.currentTarget.style.background = "#ffeb00";
-      e.currentTarget.style.color = "#000";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.background = "#2f2f2f";
-      e.currentTarget.style.color = "#fff";
-    }}
-    style={styles.addToCartButton}
-  >
-    <img src="/icons/bag.png" alt="cart" style={styles.cartIcon} />
-    ADD TO CART
-  </Link> */}
-
-              <button
+              {/* <button
                 style={styles.addToCartButton}
                 onClick={async () => {
                   try {
-                    await api.post( "/cart",
+                    await api.post(
+                      "/cart",
                       { productId: product._id, quantity: qty },
-                      { withCredentials: true }
+                      { withCredentials: true },
                     );
                     alert("Added to cart");
                   } catch (err) {
@@ -2126,21 +2168,51 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
               >
                 <img src="/icons/bag.png" alt="cart" style={styles.cartIcon} />
                 ADD TO CART
-              </button>
+              </button> */}
+
+              {/* <button
+                className="add-to-cart-btn"
+                onClick={() => handleAddToCart(product._id)}
+              >
+                🛒 Add to Cart
+              </button> */}
+
+              <button
+  style={styles.addToCartButton}
+  onClick={() => handleAddToCart(product._id)}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.background = "#ffe600";
+    e.currentTarget.style.color = "#000";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.background = "#2f2f2f";
+    e.currentTarget.style.color = "#fff";
+  }}
+>
+  🛒 ADD TO CART
+</button>
 
 
               {/* BUY NOW — FIXED */}
-              <Link
-                to="/checkout"
-                style={styles.buyNowButton}
-              >
-                BUY NOW
-              </Link>
-            </div>
+             
+    
+  <button
+  style={{
+    ...styles.buyNowButton,
+    opacity: loading ? 0.6 : 1,
+    cursor: loading ? "not-allowed" : "pointer",
+  }}
+  disabled={loading}
+  onClick={handleBuyNow}
+>
+  BUY NOW
+</button>
 
+
+            </div>
           </div>
         </section>
-{/* 
+        {/* 
         <section style={styles.recommendedSection}>
           <h2 style={styles.recommendedTitle}>
             Recommended products
@@ -2190,7 +2262,7 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                 </button>
 
                 <button
-                onClick={() => setShowTopRated(prev => !prev)}
+                  onClick={() => setShowTopRated((prev) => !prev)}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "scale(1.06)";
                   }}
@@ -2198,10 +2270,10 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                     e.currentTarget.style.transform = "scale(1)";
                   }}
                   style={{
-    ...styles.topRatedButton,
-    background: showTopRated ? "#ffe600" : "#4a4a2f",
-    color: showTopRated ? "#000" : "#fff",
-  }}
+                    ...styles.topRatedButton,
+                    background: showTopRated ? "#ffe600" : "#4a4a2f",
+                    color: showTopRated ? "#000" : "#fff",
+                  }}
                 >
                   TOP RATED
                 </button>
@@ -2224,35 +2296,32 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
 
                 <div style={styles.popupUser}>
                   <div style={styles.popupUser}>
-  <div style={styles.popupAvatar}>
-    {user?.name?.charAt(0).toUpperCase()}
-  </div>
-  <div>
-    <div style={styles.popupUserName}>
-      {user?.name}
-    </div>
-    <div style={styles.popupUserSubtext}>
-      Posting publicly on this site
-    </div>
-  </div>
-</div>
-
+                    <div style={styles.popupAvatar}>
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={styles.popupUserName}>{user?.name}</div>
+                      <div style={styles.popupUserSubtext}>
+                        Posting publicly on this site
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div style={styles.popupStars}>
-
                   {[1, 2, 3, 4, 5].map((i) => (
-                   <span key={i}  style={{
-...styles.popupStar,
-      cursor: "pointer",
-      color: i <= rating ? "#ffc107" : "#555",
-    }}
-    onClick={() => setRating(i)}
-  >
-    ★
-  </span>
-))}
-                  
+                    <span
+                      key={i}
+                      style={{
+                        ...styles.popupStar,
+                        cursor: "pointer",
+                        color: i <= rating ? "#ffc107" : "#555",
+                      }}
+                      onClick={() => setRating(i)}
+                    >
+                      ★
+                    </span>
+                  ))}
                 </div>
 
                 <div style={styles.popupTextareaContainer}>
@@ -2265,24 +2334,23 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                 </div>
 
                 <div style={styles.popupAddPhoto}>
-  <label style={styles.popupAddPhotoButton}>
-    📷 Add Photos & images
-    <input
-      type="file"
-      multiple
-      accept="image/*"
-      style={{ display: "none" }}
-      onChange={(e) => setReviewImages([...e.target.files])}
-    />
-  </label>
+                  <label style={styles.popupAddPhotoButton}>
+                    📷 Add Photos & images
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => setReviewImages([...e.target.files])}
+                    />
+                  </label>
 
-  {reviewImages.length > 0 && (
-    <p style={{ color: "#aaa", marginTop: 8 }}>
-      {reviewImages.length} image(s) selected
-    </p>
-  )}
-</div>
-
+                  {reviewImages.length > 0 && (
+                    <p style={{ color: "#aaa", marginTop: 8 }}>
+                      {reviewImages.length} image(s) selected
+                    </p>
+                  )}
+                </div>
 
                 <div style={styles.popupActions}>
                   <button
@@ -2293,160 +2361,174 @@ const textReviews = filteredReviews.filter( r => !r.images || r.images.length ==
                   </button>
 
                   <button
-  onClick={submitReviewHandler}
-  disabled={submittingReview}
-  style={styles.popupPostButton}
->
-  {submittingReview ? "Posting..." : "Post"}
-</button>
-
-
+                    onClick={submitReviewHandler}
+                    disabled={submittingReview}
+                    style={styles.popupPostButton}
+                  >
+                    {submittingReview ? "Posting..." : "Post"}
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
           <div style={styles.reviewsGrid}>
-  <div style={styles.reviewsLeftColumn}>
+            <div style={styles.reviewsLeftColumn}>
+              {reviewsLoading && <p>Loading reviews...</p>}
 
-    {reviewsLoading && <p>Loading reviews...</p>}
+              {!reviewsLoading && reviews.length === 0 && (
+                <p>No reviews yet.</p>
+              )}
 
-    {!reviewsLoading && reviews.length === 0 && (
-      <p>No reviews yet.</p>
-    )}
+              {imageReviews.map((review) => (
+                <div key={review._id} style={styles.reviewCardWithImage}>
+                  {/* Header */}
+                  <div style={styles.reviewHeader}>
+                    <div style={styles.reviewAvatar}>
+                      {review.user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div style={styles.reviewUserName}>{review.user?.name}</div>
+                  </div>
 
-  {imageReviews.map((review) => (
-    <div key={review._id} style={styles.reviewCardWithImage}>
+                  {/* Image */}
+                  <img
+                    src={review.images[0].url}
+                    alt="Review"
+                    style={styles.reviewImage}
+                  />
 
-      {/* Header */}
-      <div style={styles.reviewHeader}>
-        <div style={styles.reviewAvatar}>
-          {review.user?.name?.charAt(0).toUpperCase()}
-        </div>
-        <div style={styles.reviewUserName}>
-          {review.user?.name}
-        </div>
-      </div>
+                  {/* Stars */}
+                  <div style={styles.reviewStars}>
+                    {"★".repeat(review.rating)}
+                    {"☆".repeat(5 - review.rating)}
+                  </div>
 
-      {/* Image */}
-      <img
-        src={review.images[0].url}
-        alt="Review"
-        style={styles.reviewImage}
-      />
+                  {/* Comment */}
+                  <p style={styles.reviewText}>{review.comment}</p>
+                </div>
+              ))}
+            </div>
+            <div style={styles.reviewsRightColumn}>
+              {textReviews.map((review) => (
+                <div key={review._id} style={styles.reviewCardText}>
+                  <div style={styles.reviewHeader}>
+                    <div style={styles.reviewAvatar}>
+                      {review.user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div style={styles.reviewUserName}>{review.user?.name}</div>
+                  </div>
 
-      {/* Stars */}
-      <div style={styles.reviewStars}>
-        {"★".repeat(review.rating)}
-        {"☆".repeat(5 - review.rating)}
-      </div>
+                  <div style={styles.reviewStars}>
+                    {"★".repeat(review.rating)}
+                    {"☆".repeat(5 - review.rating)}
+                  </div>
 
-      {/* Comment */}
-      <p style={styles.reviewText}>
-        {review.comment}
-      </p>
-
-    </div>
-  ))}
-
-</div>
-<div style={styles.reviewsRightColumn}>
-
-  {textReviews.map((review) => (
-    <div key={review._id} style={styles.reviewCardText}>
-
-      <div style={styles.reviewHeader}>
-        <div style={styles.reviewAvatar}>
-          {review.user?.name?.charAt(0).toUpperCase()}
-        </div>
-        <div style={styles.reviewUserName}>
-          {review.user?.name}
-        </div>
-      </div>
-
-      <div style={styles.reviewStars}>
-        {"★".repeat(review.rating)}
-        {"☆".repeat(5 - review.rating)}
-      </div>
-
-      <p style={styles.reviewText}>
-        {review.comment}
-      </p>
-
-    </div>
-  ))}
-
-</div>
-
-</div>
-
-
+                  <p style={styles.reviewText}>{review.comment}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section style={styles.rangeSection}>
-          <h1 style={styles.rangeTitle}>
-            Explore Our Range
-          </h1>
-   
-         <div style={styles.rangeGrid}>
-  {relatedProducts.map((item) => (
-    <div
-      key={item._id}
-      style={styles.rangeCard}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.05)";
-        e.currentTarget.style.boxShadow = "0 18px 36px rgba(0,0,0,0.45)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
-      <div style={styles.rangeCardImage}>
-        <img
-          src={item.images?.[0]?.url || "/images/chocolate.webp"}
-          alt={item.name}
-          style={styles.rangeCardImg}
-        />
-      </div>
+          <h1 style={styles.rangeTitle}>Explore Our Range</h1>
 
-      <div style={styles.rangeCardContent}>
-        <div style={styles.rangeCardTitle}>
-          {item.name}
+          <div style={styles.rangeGrid}>
+            {relatedProducts.map((item) => (
+              <div
+                key={item._id}
+                style={styles.rangeCard}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.05)";
+                  e.currentTarget.style.boxShadow =
+                    "0 18px 36px rgba(0,0,0,0.45)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <div style={styles.rangeCardImage}>
+                  <img
+                    src={item.images?.[0]?.url || "/images/chocolate.webp"}
+                    alt={item.name}
+                    style={styles.rangeCardImg}
+                  />
+                </div>
+
+                <div style={styles.rangeCardContent}>
+                  <div style={styles.rangeCardTitle}>{item.name}</div>
+
+                  <div style={styles.rangeCardSubtitle}>
+                    {/* {item.weight || ""} */}
+                    {item.countInStock} available
+                  </div>
+
+                  <div style={styles.rangeCardPrice}>
+                    <span style={styles.rangeCardPriceMain}>
+                      RS : {item.price}
+                    </span>
+
+                    <span style={styles.rangeCardPriceOld}>
+                      RS : {item.originalPrice}
+                    </span>
+                  </div>
+
+                  <Link to={`/product/${item.id}`}>
+                    <button style={styles.rangeCardButton}>BUY NOW</button>
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+      {/* 🔐 LOGIN MODAL */}
+      {/* {showLoginModal && (
+        <div className="modal-overlay">
+          <div className="login-modal">
+            <h2>Login Required</h2>
+            <p>Please login to continue.</p>
+
+            <div className="modal-actions">
+              <Link to="/login" className="action-link">
+                <button className="buy-btn">LOGIN</button>
+              </Link>
+
+              <button
+                className="add-to-cart-btn"
+                onClick={() => setShowLoginModal(false)}
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
         </div>
+      )} */}
+      {showLoginModal && (
+  <div style={styles.modalOverlay}>
+    <div style={styles.loginModal}>
+      <h2 style={styles.loginTitle}>Login Required</h2>
+      <p style={styles.loginText}>Please login to continue.</p>
 
-        <div style={styles.rangeCardSubtitle}>
-          {/* {item.weight || ""} */}
-           {item.countInStock} available
-        </div>
+      <div style={styles.modalActions}>
+        <button
+          style={{ ...styles.modalButton, ...styles.loginButton }}
+          onClick={() => navigate("/login")}
+        >
+          LOGIN
+        </button>
 
-        <div style={styles.rangeCardPrice}>
-          <span style={styles.rangeCardPriceMain}>
-            RS : {item.price}
-          </span>
-
-          {/* {item.oldPrice && (
-            <span style={styles.rangeCardPriceOld}>
-              RS : {item.oldPrice}
-            </span>
-          )} */}
-          <span style={styles.rangeCardPriceOld}>
-        RS : {item.originalPrice}
-      </span>
-        </div>
-
-        <Link to={`/product/${item.id}`}>
-          <button style={styles.rangeCardButton}>
-            BUY NOW
-          </button>
-        </Link>
+        <button
+          style={{ ...styles.modalButton, ...styles.cancelButton }}
+          onClick={() => setShowLoginModal(false)}
+        >
+          CANCEL
+        </button>
       </div>
     </div>
-  ))}
-</div>
-
-
-        </section>
+  </div>
+)}
 
         <Footer />
       </div>

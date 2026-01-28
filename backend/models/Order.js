@@ -36,17 +36,52 @@ const orderSchema = new mongoose.Schema(
 
     paymentStatus: {
       type: String,
-      default: "pending" // pending | paid | failed | cancelled
+      // default: "pending" // pending | paid | failed | cancelled
+      enum: ["pending", "paid", "failed", "cancelled", "refunded"],
+      default: "pending"
     },
+
+    paymentResult: {
+      razorpayOrderId: String,
+      razorpayPaymentId: String,
+      razorpaySignature: String
+    },
+    // isVisible: {
+    //   type: Boolean,
+    //   default: true
+    // },
+
 
     orderStatus: {
       type: String,
-      default: "placed" // placed | packed | shipped | delivered | cancelled
+      enum: ["placed", "packed", "shipped", "delivered", "cancelled"],
+      default: "placed"
     },
+
+    orderType: {
+      type: String,
+      enum: ["cart", "direct"],
+      default: "cart"
+    },
+
+    cancelledBy: {
+      type: String,
+      enum: ["user", "system"],
+      default: null
+    },
+
     taxAmount: {
-  type: Number,
-  required: true
-},
+      type: Number,
+      required: true
+    },
+
+    deliveredAt: Date,
+    returnedAt: Date,
+    isReturned: {
+      type: Boolean,
+      default: false
+    },
+
 
     totalAmount: {
       type: Number,

@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Package, Heart, Settings, Edit, Search, UserCircle, ShoppingCart, Camera, Eye, EyeOff } from 'lucide-react';
 import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { addToCartApi } from "../../api/cartApi";
+// import CropImageModal from "../../components/CropImageModal";
+
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -22,6 +25,12 @@ export default function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const fileInputRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  // const [cropImage, setCropImage] = useState(null);
+  // const [cropModalOpen, setCropModalOpen] = useState(false);
+
 
 
 
@@ -77,6 +86,62 @@ export default function ProfilePage() {
       setWishlistLoading(false);
     }
   };
+  const handleAddToCart = async (productId) => {
+    try {
+      // 1️⃣ Add product to cart
+      await addToCartApi(productId, 1);
+
+      // 2️⃣ Remove product from wishlist
+      await api.delete(`/api/wishlist/${productId}`);
+
+      // 3️⃣ Refresh wishlist UI
+      fetchWishlist();
+
+      toast.success("Added to cart 🛒");
+
+      // 4️⃣ Redirect to cart
+      navigate("/cart");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Please login to add to cart"
+      );
+      navigate("/login");
+    }
+  };
+
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // setCropImage(URL.createObjectURL(file));
+    // setCropModalOpen(true);
+
+    // Show preview immediately
+    setPreviewImage(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    try {
+      setUploading(true);
+
+      const res = await api.put("/api/auth/upload-profile-image", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      setUser(res.data.user);
+      toast.success("Profile image updated!");
+      setPreviewImage(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Upload failed");
+      setPreviewImage(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+
 
 
 
@@ -853,12 +918,63 @@ export default function ProfilePage() {
             <div className="profile-header">
               <div className="profile-info">
                 <div className="avatar-container">
-                  <div className="avatar">
+                  {/* <div className="avatar">
                     <User className="avatar-icon" />
+                  </div> */}
+                  <div className="avatar">
+                    {previewImage ? (
+                      <img
+                        src={previewImage}
+                        alt="Preview"
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", opacity: uploading ? 0.6 : 1 }}
+                      />
+                    ) : user.profileImage?.url ? (
+                      <img
+                        src={user.profileImage.url}
+                        alt="Profile"
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <User className="avatar-icon" />
+                    )}
+
+                    {uploading && (
+                      <div style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#1f2937",
+                        fontWeight: "bold",
+                        background: "rgba(250,204,21,0.6)",
+                        borderRadius: "50%"
+                      }}>
+                        Uploading...
+                      </div>
+                    )}
                   </div>
-                  <button className="camera-btn">
+
+
+                  {/* <button className="camera-btn">
+                    <Camera className="camera-icon" />
+                  </button> */}
+
+                  <button
+                    className="camera-btn"
+                    onClick={() => fileInputRef.current.click()}
+                  >
                     <Camera className="camera-icon" />
                   </button>
+
+                  <input
+                    type="file"
+                    hidden
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+
                 </div>
 
                 <div className="profile-details">
@@ -1042,7 +1158,10 @@ export default function ProfilePage() {
               {ordersLoading ? (
                 <p className="empty-state">Loading orders...</p>
               ) : orders.length === 0 ? (
-                <p className="empty-state">You have no orders.</p>
+                // <p className="empty-state">You have no orders.</p>
+                <p className="empty-state">
+                  You haven't placed any orders yet.
+                </p>
               ) : (
                 <div className="order-list">
                   {orders.map((order) => (
@@ -1072,49 +1191,77 @@ export default function ProfilePage() {
                     //   </div>
                     // </div>
 
-                    
-<div className="order-card" key={order._id}>
-  <div className="order-content">
-    <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-      {order.orderItems.map((item, idx) => (
-        <div key={idx} style={{ textAlign: "center" }}>
-          <img
-            src={
-              item.image?.url ||
-              item.image ||
-              "/images/Product1.png"
-            }
-            alt={item.name}
-            className="order-image"
-            style={{ width: "60px", height: "60px", objectFit: "cover" }}
-          />
-          <p style={{ fontSize: "12px", marginTop: "6px", color: "#d1d5db" }}>
-            {item.name}
-          </p>
-        </div>
-      ))}
-    </div>
 
-    <div className="order-details">
-      <p className="order-date">
-        Ordered on {new Date(order.createdAt).toLocaleDateString()}
-      </p>
-      <p className="order-items">
-        {order.orderItems.length} item(s)
-      </p>
-    </div>
-  </div>
+                    <div className="order-card" key={order._id}>
+                      <div className="order-content">
+                        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                          {order.orderItems.map((item, idx) => (
+                            <div key={idx} style={{ textAlign: "center" }}>
+                              <img
+                                src={
+                                  item.image?.url ||
+                                  item.image ||
+                                  "/images/Product1.png"
+                                }
+                                alt={item.name}
+                                className="order-image"
+                                style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                              />
+                              <p style={{ fontSize: "12px", marginTop: "6px", color: "#d1d5db" }}>
+                                {item.name}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
 
-  <div className="order-actions">
-    <span className={`status-badge ${order.orderStatus === "delivered" ? "delivered" : "transit"}`}>
-      {order.orderStatus}
-    </span>
+                        <div className="order-details">
+                          <p className="order-date">
+                            Ordered on {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                          <p className="order-items">
+                            {order.orderItems.length} item(s)
+                          </p>
+                        </div>
+                      </div>
 
-    <button className="view-details-btn">View Details</button>
+                      <div className="order-actions">
+                        {/* <span className={`status-badge ${order.orderStatus === "delivered" ? "delivered" : "transit"}`}>
+                          {order.orderStatus}
+                        </span> */}
+                        <span className={`status-badge ${order.paymentStatus === "pending"
+                          ? "transit"
+                          : order.orderStatus === "delivered"
+                            ? "delivered"
+                            : "transit"
+                          }`}>
+                          {order.paymentStatus === "pending"
+                            ? "Payment Pending"
+                            : order.orderStatus}
+                        </span>
 
-    <p className="order-price">₹{order.totalAmount}</p>
-  </div>
-</div>
+
+                        {/* <button className="view-details-btn">View Details</button> */}
+                        <button
+                          className="view-details-btn"
+                          onClick={() => navigate(`/orders/${order._id}`)}
+                        >
+                          View Details
+                        </button>
+
+                        {order.paymentStatus === "pending" && order.isVisible && (
+                          <button
+                            className="view-details-btn"
+                            onClick={() => navigate(`/orders/${order._id}`)}
+                          >
+                            Retry Payment
+                          </button>
+                        )}
+
+
+
+                        <p className="order-price">₹{order.totalAmount}</p>
+                      </div>
+                    </div>
 
 
                   ))}
@@ -1151,7 +1298,8 @@ export default function ProfilePage() {
 
                         <div className="wishlist-actions">
                           {item.countInStock > 0 ? (
-                            <button className="add-to-cart-btn">
+                            <button className="add-to-cart-btn"
+                              onClick={() => handleAddToCart(item._id)}>
                               Add to Cart
                             </button>
                           ) : (
@@ -1507,6 +1655,28 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+      {/* {cropModalOpen && (
+        <CropImageModal
+          image={cropImage}
+          onClose={() => setCropModalOpen(false)}
+          onCropComplete={async (croppedBlob) => {
+            const formData = new FormData();
+            formData.append("profileImage", croppedBlob);
+
+            try {
+              setUploading(true);
+              const res = await api.put("/api/auth/upload-profile-image", formData);
+              setUser(res.data.user);
+              toast.success("Profile image updated!");
+            } catch {
+              toast.error("Upload failed");
+            } finally {
+              setUploading(false);
+              setCropModalOpen(false);
+            }
+          }}
+        />
+      )} */}
     </>
   );
 }

@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import cron from "node-cron";
 import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -24,6 +25,9 @@ import blogCategoryRoutes from "./routes/blogCategoryRoutes.js";
 import cookieParser from "cookie-parser";
 import aboutusRoutes from "./routes/aboutusRoutes.js"
 import addressRoutes from "./routes/addressRoutes.js";
+import { cleanupUnverifiedUsers } from "./utils/cleanupUnverifiedUsers.js";
+import { startOrderCleanupJob } from "./utils/orderCleanup.js";
+
 
 
 dotenv.config();
@@ -41,6 +45,9 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+cron.schedule("*/30 * * * *", cleanupUnverifiedUsers);
+startOrderCleanupJob();
+
 
 // Test route
 app.get("/", (req, res) => {
