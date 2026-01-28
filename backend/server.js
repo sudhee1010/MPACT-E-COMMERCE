@@ -27,6 +27,7 @@ import aboutusRoutes from "./routes/aboutusRoutes.js"
 import addressRoutes from "./routes/addressRoutes.js";
 import { cleanupUnverifiedUsers } from "./utils/cleanupUnverifiedUsers.js";
 import { startOrderCleanupJob } from "./utils/orderCleanup.js";
+import distributorEnquiryRoutes from "./routes/distributerEnquiryRoutes.js";
 
 
 
@@ -75,6 +76,7 @@ app.use("/api/blogs", blogRoutes);
 app.use("/api/blog-categories", blogCategoryRoutes);
 app.use("/api/aboutus", aboutusRoutes);
 app.use("/api/address", addressRoutes);
+app.use("/api/distributor",distributorEnquiryRoutes);
 
 const PORT = process.env.PORT || 5000;
 

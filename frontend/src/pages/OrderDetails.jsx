@@ -388,7 +388,7 @@ export default function OrderDetails() {
 
                     </div>
 
-                    {order.paymentStatus === "pending" && order.orderStatus !== "cancelled" && (
+                    {order.paymentStatus === "pending" && order.orderStatus === "initiated" && (
                         <button
                             disabled={retrying}
                             onClick={handleRetryPayment}
