@@ -482,15 +482,77 @@ export default function WishlistPage() {
   margin-top: 100px;
   text-align: center;
   color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.empty-state svg {
+  margin-bottom: 24px;
+  opacity: 0.7;
 }
 
 .empty-state h2 {
-  margin-top: 16px;
+  margin: 0 0 16px 0;
   color: #ffffff;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .empty-state p {
-  margin-top: 8px;
+  margin: 0;
+  color: #9ca3af;
+  font-size: 1.125rem;
+  max-width: 500px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .empty-state {
+    margin-top: 60px;
+    padding: 0 16px;
+  }
+  
+  .empty-state svg {
+    margin-bottom: 20px;
+  }
+  
+  .empty-state h2 {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+  
+  .empty-state p {
+    font-size: 1rem;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .empty-state {
+    margin-top: 40px;
+  }
+  
+  .empty-state svg {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 16px;
+  }
+  
+  .empty-state h2 {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+  }
+  
+  .empty-state p {
+    font-size: 0.875rem;
+    max-width: 300px;
+  }
 }
 
 /* ================= PRODUCT GRID (SAME AS PRODUCTS PAGE) ================= */
