@@ -1,184 +1,55 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  getCartApi,
-  updateCartItemApi,
-  removeCartItemApi,
-} from "../api/cartApi";
-import { useCart } from "../context/CartContext";
-// import toast from "react-hot-toast";
 
+export default function SideCart({ open, onClose }) {
+  const [cartItems, setCartItems] = useState([
+    {
+      id: 1,
+      title: "PROTEIN WAFERS – CHOCOLATE DELIGHT",
+      price: 2000,
+      oldPrice: 2999,
+      qty: 1,
+      image: "/images/product1.png",
+      specs: ["NO PRESERVATIVES", "NO GLUCOSE ADDED", "JAGGERY BASED"],
+    },
+  ]);
 
+  const packingCharge = 20;
 
-export default function SideCart() {
-
-  // const [cartItems, setCartItems] = useState([]);
-  const {
-    cartItems,
-    setCartItems,
-    refreshCart,
-    openSideCart,
-    setOpenSideCart,
-    cartMeta
-  } = useCart();
-
-
-
-  // const packingCharge = 20;
-
-  // const increaseQty = async (productId, currentQty) => {
-  //   try {
-  //     const res = await updateCartItemApi(productId, currentQty + 1);
-  //      console.log("UPDATE RESPONSE:", res.data); 
-
-  //     // 🔥 DIRECTLY UPDATE STATE FROM RESPONSE
-  //     setCartItems(res.data.items);
-
-  //   } catch (err) {
-  //     console.log("Increase qty error:", err);
-  //   }
-  // };
-
-  const increaseQty = async (productId, currentQty, stock) => {
-    if (currentQty >= stock) return; // 🔥 stop over stock
-
-    try {
-      // 🔥 Optimistically update UI first
-      setCartItems(prev =>
-        prev.map(item =>
-          item.product._id === productId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-
-      // Then update backend
-      await updateCartItemApi(productId, currentQty + 1);
-      refreshCart();
-
-    } catch (err) {
-      console.log("Increase qty error:", err);
-      fetchCart(); // rollback if error
-    }
+  const increaseQty = (id) => {
+    setCartItems(items =>
+      items.map(item =>
+        item.id === id ? { ...item, qty: item.qty + 1 } : item
+      )
+    );
   };
 
-
-  // const decreaseQty = async (productId, currentQty) => {
-  //   try {
-  //     const res = await updateCartItemApi(productId, currentQty - 1);
-  //      console.log("UPDATE RESPONSE:", res.data); 
-
-  //     // 🔥 DIRECTLY UPDATE STATE FROM RESPONSE
-  //     setCartItems(res.data.items);
-
-  //   } catch (err) {
-  //     console.log("Decrease qty error:", err);
-  //   }
-  // };
-
-  const decreaseQty = async (productId, currentQty) => {
-    try {
-      if (currentQty <= 1) {
-        const res = await removeCartItemApi(productId);
-        setCartItems(res.data.items);
-        refreshCart();
-        return;
-      }
-
-      // 🔥 Optimistically update UI
-      setCartItems(prev =>
-        prev.map(item =>
-          item.product._id === productId
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        )
-      );
-
-      await updateCartItemApi(productId, currentQty - 1);
-      refreshCart();
-
-    } catch (err) {
-      console.log("Decrease qty error:", err);
-      fetchCart(); // rollback
-    }
+  const decreaseQty = (id) => {
+    setCartItems(items =>
+      items.map(item =>
+        item.id === id && item.qty > 1
+          ? { ...item, qty: item.qty - 1 }
+          : item
+      )
+    );
   };
 
-
-
-
-
-  const removeItem = async (productId) => {
-    try {
-      const res = await removeCartItemApi(productId);
-
-      // 🔥 UPDATE STATE DIRECTLY
-      setCartItems(res.data.items);
-          refreshCart();
-
-    } catch (err) {
-      console.log("Remove item error:", err);
-    }
+  const removeItem = (id) => {
+    setCartItems(items => items.filter(item => item.id !== id));
   };
 
-
-  // Total MRP
   const totalMRP = cartItems.reduce(
-    (sum, item) => sum + item.originalPrice * item.quantity,
+    (sum, item) => sum + item.oldPrice * item.qty,
     0
   );
 
-  // Total Selling Price
   const totalPrice = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + item.price * item.qty,
     0
   );
 
-  // Discount
   const discount = totalMRP - totalPrice;
-
-  // Final Amount
-  // const finalAmount = totalPrice + packingCharge;
-  // const finalAmount = totalPrice;
-
-
-
-
-  // useEffect(() => {
-  //   if (open) {
-  //     fetchCart();
-  //   }
-  // }, [open]);
-
-  useEffect(() => {
-    if (openSideCart) {
-      refreshCart();
-    }
-  }, [openSideCart]);
-
-
-  useEffect(() => {
-    if (!cartItems.length) {
-      setOpenSideCart(false);
-    }
-
-    //  if (cartItems.length===0) {
-    //   toast.error("Your cart is empty");
-    //  }else{
-    //   setOpenSideCart(true);
-    // }
-  }, [cartItems]);
-
-
-
-  const fetchCart = async () => {
-    try {
-      const res = await getCartApi();
-      setCartItems(res.data.items || []);
-    } catch (error) {
-      console.log("Fetch side cart error:", error);
-    }
-  };
-
+  const finalAmount = totalPrice + packingCharge;
 
   return (
     <>
@@ -188,7 +59,7 @@ export default function SideCart() {
           inset: 0;
           background: rgba(0,0,0,.6);
           z-index: 999;
-          display: ${openSideCart ? "block" : "none"};
+          display: ${open ? "block" : "none"};
         }
 
         .sidecart {
@@ -196,9 +67,10 @@ export default function SideCart() {
           top: 0;
           right: 0;
           width: 520px;
+          max-width: 100%;
           height: 100vh;
           background: #2a2a2a;
-          transform: translateX(${openSideCart ? "0" : "100%"});
+          transform: translateX(${open ? "0" : "100%"});
           transition: .35s;
           z-index: 1000;
           display: flex;
@@ -299,47 +171,42 @@ export default function SideCart() {
         }
       `}</style>
 
-      <div className="overlay" onClick={() => setOpenSideCart(false)} />
+      <div className="overlay" onClick={onClose} />
 
       <div className="sidecart">
         <div className="header">
           <span>🛒 MY CART ({cartItems.length})</span>
-          <span style={{ cursor: "pointer" }} onClick={() => setOpenSideCart(false)}>✕</span>
+          <span style={{ cursor: "pointer" }} onClick={onClose}>✕</span>
         </div>
 
         <div className="body">
           {cartItems.length === 0 && <p>Your cart is empty</p>}
 
           {cartItems.map(item => (
-            <div className="item" key={item.product._id}>
-              {/* <img src={item.product.images[0].url || "/placeholder.png"} alt="" /> */}
-              <img
-                src={item.product.images?.[0]?.url || "/images/Product1.png"}
-                alt={item.product.name}
-              />
+            <div className="item" key={item.id}>
+              <img src={item.image} alt="" />
 
               <div>
-                <h4>{item.product.name}</h4>
+                <h4>{item.title}</h4>
 
-                {/* <div>
-                  {item.highlights?.map((s, i) => (
+                <div>
+                  {item.specs.map((s, i) => (
                     <span className="spec" key={i}>{s}</span>
                   ))}
-                </div> */}
+                </div>
 
                 <p>
-                  {/* ₹{item.price} <del>₹{item.orginalPrice}</del> */}
-                  ₹{item.price} <del>₹{item.originalPrice}</del>
+                  ₹{item.price} <del>₹{item.oldPrice}</del>
                 </p>
 
                 <div className="qty">
-                  <button onClick={() => decreaseQty(item.product._id, item.quantity)}>-</button>
-                  <span>{item.quantity}</span>
-                  <button onClick={() => increaseQty(item.product._id, item.quantity, item.product.countInStock)}>+</button>
+                  <button onClick={() => decreaseQty(item.id)}>-</button>
+                  <span>{item.qty}</span>
+                  <button onClick={() => increaseQty(item.id)}>+</button>
                 </div>
               </div>
 
-              <span className="remove" onClick={() => removeItem(item.product._id)}>
+              <span className="remove" onClick={() => removeItem(item.id)}>
                 Remove
               </span>
             </div>
@@ -359,32 +226,19 @@ export default function SideCart() {
                 <span>-₹{discount}</span>
               </div>
 
-              {/* <div className="row">
+              <div className="row">
                 <span>Packing</span>
                 <span>₹{packingCharge}</span>
-              </div> */}
-
-
-              <div className="row">
-                <span>Tax</span>
-                <span>₹{cartMeta.taxAmount.toFixed(2)}</span>
               </div>
 
               <div className="row green">
                 <span>Total</span>
-                <span>₹{cartMeta.totalWithTax.toFixed(2)}</span>
-              </div>
-
-
-              {/* <div className="row green">
-                <span>Total</span>
                 <span>₹{finalAmount}</span>
-              </div> */}
+              </div>
             </div>
 
-
             <div className="footer">
-              <Link to="/cart" onClick={() => setOpenSideCart(false)}>
+              <Link to="/cart" onClick={onClose}>
                 PLACE ORDER
               </Link>
             </div>
