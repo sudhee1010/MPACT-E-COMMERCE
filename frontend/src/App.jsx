@@ -36,6 +36,8 @@ import WishlistPage from "./pages/Wishlist.jsx";
 import TermsAndConditions from "./pages/TermsAndConditions.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import OrderDetails from "./pages/OrderDetails.jsx";
+import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
+
 
 /* Admin components */
 import { AdminLayout } from "./components/AdminLayout.jsx";
@@ -175,6 +177,7 @@ function App() {
           <Route path="/trackorder" element={<Trackpage />} />
           <Route path="/review" element={<Review />} />
           <Route path="/popup" element={<SuccessPopup />} />
+          <Route path="/distributor" element={<DistributorEnquiry />} />
 
 
 
