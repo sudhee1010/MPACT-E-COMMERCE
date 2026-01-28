@@ -1046,6 +1046,8 @@ import { addToCartApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+
 
 
 
@@ -1969,6 +1971,7 @@ cancelButton: {
 
   return (
     <>
+    <Navbar />
       {/* <ToastContainer position="top-center" autoClose={3000} /> */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
