@@ -36,6 +36,7 @@ import WishlistPage from "./pages/Wishlist.jsx";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import OrderDetails from "./pages/OrderDetails";
+import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
 
 
 function App() {
@@ -109,7 +110,7 @@ function App() {
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
-
+          <Route path="/distributor" element={<DistributorEnquiry />} />
 
 
 

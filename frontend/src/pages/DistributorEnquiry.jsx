@@ -1,116 +1,567 @@
-import { useState } from "react";
+// import React, { useState } from "react";
+// import api from "../api/axios";
+// import toast from "react-hot-toast";
+
+// const DistributorEnquiry = () => {
+//   const [loading, setLoading] = useState(false);
+//   const [errors, setErrors] = useState({});
+
+//   const [form, setForm] = useState({
+//     businessName: "",
+//     fullName: "",
+//     phone: "",
+//     email: "",
+//     businessType: "",
+//     city: "",
+//     remarks: "",
+//   });
+
+//   /* ================= HANDLE CHANGE ================= */
+//   const handleChange = (e) => {
+//     setForm({ ...form, [e.target.name]: e.target.value });
+//     setErrors({ ...errors, [e.target.name]: "" });
+//   };
+
+//   /* ================= VALIDATION ================= */
+//   const validate = () => {
+//     const newErrors = {};
+
+//     if (!form.businessName.trim())
+//       newErrors.businessName = "Business name is required";
+
+//     if (!form.fullName.trim())
+//       newErrors.fullName = "Full name is required";
+
+//     if (!/^\d{10}$/.test(form.phone))
+//       newErrors.phone = "Enter a valid 10-digit phone number";
+
+//     if (!/^\S+@\S+\.\S+$/.test(form.email))
+//       newErrors.email = "Enter a valid email address";
+
+//     if (!form.businessType)
+//       newErrors.businessType = "Select a business type";
+
+//     if (!form.city.trim())
+//       newErrors.city = "City is required";
+
+//     setErrors(newErrors);
+
+//     if (Object.keys(newErrors).length > 0) {
+//       toast.error("Please fill all required fields correctly");
+//       return false;
+//     }
+
+//     return true;
+//   };
+
+//   /* ================= SUBMIT ================= */
+//   const handleSubmit = async () => {
+//     if (!validate()) return;
+
+//     try {
+//       setLoading(true);
+//       await api.post("/api/distributor/distributor-enquiry", form);
+//       toast.success("Enquiry submitted successfully");
+
+//       setForm({
+//         businessName: "",
+//         fullName: "",
+//         phone: "",
+//         email: "",
+//         businessType: "",
+//         city: "",
+//         remarks: "",
+//       });
+//       setErrors({});
+//     } catch {
+//       toast.error("Failed to submit enquiry");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="page">
+//       <div className="content">
+//         <h1>DISTRIBUTOR / BULK ENQUIRY</h1>
+//         <p className="subtitle">
+//           Fill in the details below and our team will contact you shortly
+//         </p>
+
+//         {/* 👇 FLOATING CARD ENABLED */}
+//         <div className="card floating-card">
+//           <label>Business Name *</label>
+//           <input
+//             name="businessName"
+//             value={form.businessName}
+//             onChange={handleChange}
+//           />
+//           {errors.businessName && (
+//             <span className="error">{errors.businessName}</span>
+//           )}
+
+//           <div className="grid2">
+//             <div>
+//               <label>Full Name *</label>
+//               <input
+//                 name="fullName"
+//                 value={form.fullName}
+//                 onChange={handleChange}
+//               />
+//               {errors.fullName && (
+//                 <span className="error">{errors.fullName}</span>
+//               )}
+//             </div>
+
+//             <div>
+//               <label>Phone Number *</label>
+//               <input
+//                 name="phone"
+//                 value={form.phone}
+//                 onChange={handleChange}
+//               />
+//               {errors.phone && (
+//                 <span className="error">{errors.phone}</span>
+//               )}
+//             </div>
+//           </div>
+
+//           <label>Email Address *</label>
+//           <input
+//             name="email"
+//             value={form.email}
+//             onChange={handleChange}
+//           />
+//           {errors.email && <span className="error">{errors.email}</span>}
+
+//           <div className="grid2">
+//             <div>
+//               <label>Business Type *</label>
+//               <select
+//                 name="businessType"
+//                 value={form.businessType}
+//                 onChange={handleChange}
+//               >
+//                 <option value="">Select</option>
+//                 <option>Retailer</option>
+//                 <option>Wholesaler</option>
+//                 <option>Distributor</option>
+//                 <option>Manufacturer</option>
+//                 <option>Shop Owner</option>
+//                 <option>Other</option>
+//               </select>
+//               {errors.businessType && (
+//                 <span className="error">{errors.businessType}</span>
+//               )}
+//             </div>
+
+//             <div>
+//               <label>City *</label>
+//               <input
+//                 name="city"
+//                 value={form.city}
+//                 onChange={handleChange}
+//               />
+//               {errors.city && (
+//                 <span className="error">{errors.city}</span>
+//               )}
+//             </div>
+//           </div>
+
+//           <label>Remarks (Optional)</label>
+//           <textarea
+//             name="remarks"
+//             value={form.remarks}
+//             onChange={handleChange}
+//           />
+
+//           <div className="actions">
+//             <button
+//               className="primary"
+//               onClick={handleSubmit}
+//               disabled={loading}
+//             >
+//               {loading ? "SUBMITTING..." : "SUBMIT ENQUIRY"}
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* ================= CSS ================= */}
+//       <style>{`
+//         * { box-sizing: border-box; }
+//         body { margin: 0; }
+
+//         .page {
+//           background: #3a3a3a;
+//           min-height: 100vh;
+//           color: white;
+//         }
+
+//         .content {
+//           display: flex;
+//           flex-direction: column;
+//           align-items: center;
+//           padding: 40px 16px;
+//         }
+
+//         h1 {
+//           width: 900px;
+//           max-width: 100%;
+//           font-family: 'Jersey 25', sans-serif;
+//           font-weight: 100;
+//           margin-bottom: 8px;
+//         }
+
+//         .subtitle {
+//           width: 900px;
+//           max-width: 100%;
+//           color: #cbd5f5;
+//           margin-bottom: 24px;
+//         }
+
+//         .card {
+//           width: 900px;
+//           max-width: 100%;
+//           background: #1f1f1f;
+//           border: 2px solid #facc15;
+//           border-radius: 12px;
+//           padding: 28px;
+//         }
+
+//         /* 🌊 FLOATING CARD (ONLY ANIMATION) */
+//         .floating-card {
+//           animation: floatCard 4s ease-in-out infinite;
+//         }
+
+//         @keyframes floatCard {
+//           0% { transform: translateY(0); }
+//           50% { transform: translateY(-6px); }
+//           100% { transform: translateY(0); }
+//         }
+
+//         label {
+//           display: block;
+//           margin-bottom: 6px;
+//         }
+
+//         input, select, textarea {
+//           width: 100%;
+//           padding: 14px 16px;
+//           border-radius: 10px;
+//           border: 1.5px solid #facc15;
+//           background: #2b2b2b;
+//           color: white;
+//           margin-bottom: 6px;
+//           font-size: 14px;
+//         }
+
+//         textarea {
+//           resize: none;
+//           min-height: 90px;
+//         }
+
+//         .grid2 {
+//           display: grid;
+//           grid-template-columns: 1fr 1fr;
+//           gap: 16px;
+//         }
+
+//         .error {
+//           color: #ef4444;
+//           font-size: 12px;
+//           margin-bottom: 10px;
+//           display: block;
+//         }
+
+//         .actions {
+//           margin-top: 24px;
+//         }
+
+//         .primary {
+//           width: 100%;
+//           height: 52px;
+//           border-radius: 10px;
+//           background: #facc15;
+//           border: none;
+//           color: black;
+//           font-weight: bold;
+//           font-size: 18px;
+//           cursor: pointer;
+//         }
+
+//         .primary:disabled {
+//           opacity: 0.7;
+//           cursor: not-allowed;
+//         }
+
+//         @media (max-width: 900px) {
+//           .grid2 { grid-template-columns: 1fr; }
+//         }
+//       `}</style>
+//     </div>
+//   );
+// };
+
+// export default DistributorEnquiry;
+
+
+import React, { useState } from "react";
 import api from "../api/axios";
 import toast from "react-hot-toast";
 
-export default function DistributorEnquiry() {
+const DistributorEnquiry = () => {
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
   const [form, setForm] = useState({
     businessName: "",
     fullName: "",
     phone: "",
+    email: "",
     businessType: "",
     city: "",
-    email: "",
     remarks: "",
   });
 
-  const handleChange = (e) =>
+  /* ================= HANDLE CHANGE ================= */
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /* ================= VALIDATION ================= */
+  const validate = () => {
+    const newErrors = {};
 
-    await api.post("/distributor-enquiry", form); // cookies auto included
-    toast.success("Enquiry submitted successfully");
+    if (!form.businessName.trim())
+      newErrors.businessName = "Business name is required";
 
-    setForm({
-      businessName: "",
-      fullName: "",
-      phone: "",
-      businessType: "",
-      city: "",
-      email: "",
-      remarks: "",
-    });
+    if (!form.fullName.trim())
+      newErrors.fullName = "Full name is required";
+
+    if (!/^\d{10}$/.test(form.phone))
+      newErrors.phone = "Enter a valid 10-digit phone number";
+
+    if (!/^\S+@\S+\.\S+$/.test(form.email))
+      newErrors.email = "Enter a valid email address";
+
+    if (!form.businessType)
+      newErrors.businessType = "Select a business type";
+
+    if (!form.city.trim())
+      newErrors.city = "City is required";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fill all required fields correctly");
+      return false;
+    }
+
+    return true;
+  };
+
+  /* ================= SUBMIT ================= */
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+      await api.post("/api/distributor/distributor-enquiry", form);
+      toast.success("Enquiry submitted successfully");
+
+      setForm({
+        businessName: "",
+        fullName: "",
+        phone: "",
+        email: "",
+        businessType: "",
+        city: "",
+        remarks: "",
+      });
+      setErrors({});
+    } catch {
+      toast.error("Failed to submit enquiry");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
-      {/* ================== INLINE CSS ================== */}
+    <div className="page">
+      <div className="content">
+        <h1>DISTRIBUTOR / BULK ENQUIRY</h1>
+        <p className="subtitle">
+          Fill in the details below and our team will contact you shortly
+        </p>
+
+        {/* FLOATING CARD */}
+        <div className="card floating-card">
+          <label>Business Name *</label>
+          <input
+            name="businessName"
+            value={form.businessName}
+            onChange={handleChange}
+          />
+          {errors.businessName && (
+            <span className="error">{errors.businessName}</span>
+          )}
+
+          <div className="grid2">
+            <div>
+              <label>Full Name *</label>
+              <input
+                name="fullName"
+                value={form.fullName}
+                onChange={handleChange}
+              />
+              {errors.fullName && (
+                <span className="error">{errors.fullName}</span>
+              )}
+            </div>
+
+            <div>
+              <label>Phone Number *</label>
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+              />
+              {errors.phone && (
+                <span className="error">{errors.phone}</span>
+              )}
+            </div>
+          </div>
+
+          <label>Email Address *</label>
+          <input
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+          />
+          {errors.email && <span className="error">{errors.email}</span>}
+
+          <div className="grid2">
+            <div>
+              <label>Business Type *</label>
+              <select
+                name="businessType"
+                value={form.businessType}
+                onChange={handleChange}
+              >
+                <option value="">Select</option>
+                <option>Retailer</option>
+                <option>Wholesaler</option>
+                <option>Distributor</option>
+                <option>Manufacturer</option>
+                <option>Shop Owner</option>
+                <option>Other</option>
+              </select>
+              {errors.businessType && (
+                <span className="error">{errors.businessType}</span>
+              )}
+            </div>
+
+            <div>
+              <label>City *</label>
+              <input
+                name="city"
+                value={form.city}
+                onChange={handleChange}
+              />
+              {errors.city && (
+                <span className="error">{errors.city}</span>
+              )}
+            </div>
+          </div>
+
+          <label>Remarks (Optional)</label>
+          <textarea
+            name="remarks"
+            value={form.remarks}
+            onChange={handleChange}
+          />
+
+          <div className="actions">
+            <button
+              className="primary"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "SUBMITTING..." : "SUBMIT ENQUIRY"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= CSS ================= */}
       <style>{`
-        * {
-          box-sizing: border-box;
-          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; }
 
-        body {
-          background: #f4f6fb;
-        }
-
-        .enquiry-wrapper {
+        .page {
+          background: #3a3a3a;
           min-height: 100vh;
+          color: white;
+        }
+
+        .content {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          padding: 20px;
+          padding: 40px 16px;
         }
 
-        .enquiry-card {
-          width: 100%;
-          max-width: 720px;
-          background: white;
-          border-radius: 16px;
-          padding: 32px;
-          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
-        }
-
-        .enquiry-title {
-          text-align: center;
-          font-size: 26px;
-          font-weight: 700;
-          color: #1f2937;
+        h1 {
+          width: 900px;
+          max-width: 100%;
+          font-family: 'Jersey 25', sans-serif;
+          font-weight: 100;
           margin-bottom: 8px;
         }
 
-        .enquiry-subtitle {
-          text-align: center;
-          color: #6b7280;
-          margin-bottom: 30px;
-          font-size: 14px;
+        .subtitle {
+          width: 900px;
+          max-width: 100%;
+          color: #cbd5f5;
+          margin-bottom: 24px;
         }
 
-        .form-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 16px;
+        .card {
+          width: 900px;
+          max-width: 100%;
+          background: #1f1f1f;
+          border: 2px solid #facc15;
+          border-radius: 12px;
+          padding: 28px;
         }
 
-        .form-group {
-          display: flex;
-          flex-direction: column;
+        /* 🌊 FLOATING CARD */
+        .floating-card {
+          animation: floatCard 4s ease-in-out infinite;
         }
 
-        .form-group label {
-          font-size: 13px;
+        @keyframes floatCard {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+          100% { transform: translateY(0); }
+        }
+
+        label {
+          display: block;
           margin-bottom: 6px;
-          color: #374151;
-          font-weight: 500;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          padding: 12px;
-          border-radius: 8px;
-          border: 1px solid #d1d5db;
+        input, select, textarea {
+          width: 100%;
+          padding: 14px 16px;
+          border-radius: 10px;
+          border: 1.5px solid #facc15;
+          background: #2b2b2b;
+          color: white;
+          margin-bottom: 6px;
           font-size: 14px;
-          outline: none;
-          transition: border 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-          border-color: #2563eb;
         }
 
         textarea {
@@ -118,140 +569,58 @@ export default function DistributorEnquiry() {
           min-height: 90px;
         }
 
-        .full-width {
-          grid-column: span 2;
+        .grid2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
         }
 
-        .submit-btn {
-          margin-top: 20px;
+        .error {
+          color: #ef4444;
+          font-size: 12px;
+          margin-bottom: 10px;
+          display: block;
+        }
+
+        .actions {
+          margin-top: 24px;
+        }
+
+        /* 🔥 BUTTON WITH HOVER EFFECT */
+        .primary {
           width: 100%;
-          padding: 14px;
-          background: linear-gradient(135deg, #2563eb, #1e40af);
-          color: white;
-          border: none;
+          height: 52px;
           border-radius: 10px;
-          font-size: 15px;
-          font-weight: 600;
+          background: #facc15;
+          border: none;
+          color: black;
+          font-weight: bold;
+          font-size: 18px;
           cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .submit-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        .primary:hover:not(:disabled) {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 22px rgba(250, 204, 21, 0.35);
         }
 
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 768px) {
-          .form-grid {
-            grid-template-columns: 1fr;
-          }
+        .primary:active:not(:disabled) {
+          transform: translateY(0);
+          box-shadow: 0 5px 12px rgba(250, 204, 21, 0.25);
+        }
 
-          .full-width {
-            grid-column: span 1;
-          }
+        .primary:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
 
-          .enquiry-card {
-            padding: 24px;
-          }
+        @media (max-width: 900px) {
+          .grid2 { grid-template-columns: 1fr; }
         }
       `}</style>
-
-      {/* ================== UI ================== */}
-      <div className="enquiry-wrapper">
-        <div className="enquiry-card">
-          <h2 className="enquiry-title">Distributor / Bulk Enquiry</h2>
-          <p className="enquiry-subtitle">
-            Fill the form below and our team will contact you shortly
-          </p>
-
-          <form onSubmit={handleSubmit}>
-            <div className="form-grid">
-              <div className="form-group">
-                <label>Business Name</label>
-                <input
-                  name="businessName"
-                  value={form.businessName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Your Full Name</label>
-                <input
-                  name="fullName"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Phone Number</label>
-                <input
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Business Type</label>
-                <select
-                  name="businessType"
-                  value={form.businessType}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select business type</option>
-                  <option>Retailer</option>
-                  <option>Wholesaler</option>
-                  <option>Distributor</option>
-                  <option>Manufacturer</option>
-                  <option>Shop Owner</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>City</label>
-                <input
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group full-width">
-                <label>Remarks</label>
-                <textarea
-                  name="remarks"
-                  value={form.remarks}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <button className="submit-btn" type="submit">
-              Submit Enquiry
-            </button>
-          </form>
-        </div>
-      </div>
-    </>
+    </div>
   );
-}
+};
+
+export default DistributorEnquiry;
