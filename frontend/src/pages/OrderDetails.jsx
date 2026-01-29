@@ -10,6 +10,7 @@ export default function OrderDetails() {
     const [loading, setLoading] = useState(true);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [retrying, setRetrying] = useState(false);
+    const [downloadingInvoice, setDownloadingInvoice] = useState(false);
 
 
 
@@ -31,58 +32,6 @@ export default function OrderDetails() {
         document.body.style.overflow = showCancelModal ? "hidden" : "auto";
     }, [showCancelModal]);
 
-
-
-    // const handleRetryPayment = async () => {
-    //     if (retrying) return;
-    //     setRetrying(true);
-    //     try {
-    //         const { data } = await api.post("/api/payment/create-order", {
-    //             orderId: order._id
-    //         });
-
-    //         const options = {
-    //             key: data.key,
-    //             amount: data.amount,
-    //             currency: data.currency,
-    //             name: "MPACT",
-    //             description: "Retry Order Payment",
-    //             order_id: data.razorpayOrderId,
-
-    //             handler: async function (response) {
-    //                 await api.post("/api/payment/verify", {
-    //                     razorpay_order_id: response.razorpay_order_id,
-    //                     razorpay_payment_id: response.razorpay_payment_id,
-    //                     razorpay_signature: response.razorpay_signature,
-    //                     orderId: order._id
-    //                 });
-
-    //                 // window.location.reload(); 
-    //                 const refreshed = await api.get(`/api/orders/${order._id}`);
-    //                 setOrder(refreshed.data);
-
-    //             },
-
-    //             modal: {
-    //                 ondismiss: function () {
-    //                     setShowCancelModal(true);
-    //                 }
-    //             },
-
-
-    //             theme: { color: "#facc15" }
-    //         };
-
-    //         const razorpay = new window.Razorpay(options);
-    //         razorpay.open();
-    //     } catch (error) {
-    //         console.error("Retry payment error:", error);
-    //         toast.error("Unable to retry payment");
-    //     }
-    //     finally {
-    //         setRetrying(false);
-    //     }
-    // };
 
 
     const handleRetryPayment = async () => {
@@ -145,6 +94,41 @@ export default function OrderDetails() {
             setRetrying(false);
         }
     };
+
+
+    const handleDownloadInvoice = async () => {
+        if (downloadingInvoice) return;
+
+        setDownloadingInvoice(true);
+
+        try {
+            const response = await api.get(`/api/invoice/${order._id}`, {
+                responseType: "blob",
+            });
+
+            const blob = new Blob([response.data], {
+                type: "application/pdf",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `invoice-${order._id}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            toast.error("Failed to download invoice");
+        } finally {
+            setDownloadingInvoice(false);
+        }
+    };
+
+
 
 
     if (loading) {
@@ -376,10 +360,10 @@ export default function OrderDetails() {
 
                         <span
                             className={`status-text ${order.paymentStatus === "paid"
-                                    ? "status-paid"
-                                    : order.paymentStatus === "refunded"
-                                        ? "status-refunded"
-                                        : "status-pending"
+                                ? "status-paid"
+                                : order.paymentStatus === "refunded"
+                                    ? "status-refunded"
+                                    : "status-pending"
                                 }`}
                         >
                             Payment: {order.paymentStatus}
@@ -550,6 +534,31 @@ export default function OrderDetails() {
                         <span>₹{order.totalAmount}</span>
                     </div>
                 </div>
+
+
+                {order.paymentStatus === "paid" && (
+                    <button
+                        onClick={handleDownloadInvoice}
+                        disabled={downloadingInvoice}
+                        style={{
+                            background: downloadingInvoice ? "#9ca3af" : "#22c55e",
+                            color: "black",
+                            border: "none",
+                            padding: "10px 18px",
+                            borderRadius: "8px",
+                            fontWeight: "bold",
+                            cursor: downloadingInvoice ? "not-allowed" : "pointer",
+                            marginTop: "10px",
+                        }}
+                    >
+                        {downloadingInvoice ? "Generating Invoice..." : "Download Invoice"}
+                    </button>
+                )}
+
+
+
+
+
                 {showCancelModal && (
                     <div style={modalStyles.overlay}>
                         <div style={modalStyles.modal}>
