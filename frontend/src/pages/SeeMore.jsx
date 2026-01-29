@@ -310,8 +310,8 @@ export default function ProductPage() {
             </button>
 
             {/* Categories */}
-            <div className="filterSection">
-              <button
+            {/* <div className="filterSection">
+              <button 
                 className="filterSectionHeader"
                 onClick={() =>
                   setOpenSections((p) => ({ ...p, categories: !p.categories }))
@@ -353,7 +353,7 @@ export default function ProductPage() {
                   </label>
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* Price */}
             <div className="filterSection">
