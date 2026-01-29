@@ -403,7 +403,7 @@ export default function Products() {
 
 .add-to-cart-btn,
 .buy-btn {
-  width: 100%;
+  flex: 1;
   height: 48px;
   font-size: 15px;
   font-family: "Jersey 25", cursive;
@@ -451,7 +451,7 @@ export default function Products() {
   display: flex;
   justify-content: flex-end;
   margin-top: 24px;
-  max-width: 1401px;
+  max-width: 1230px;
   margin-left: auto;
   margin-right: auto;
   padding-right: 8px;
@@ -477,7 +477,7 @@ export default function Products() {
 .see-more button:hover {
   background: #ffeb00;
   color: #000;
-  transform: translateX(4px);
+  transform: translatex(4px);
 }
 
 /* ================= RESPONSIVE ================= */
