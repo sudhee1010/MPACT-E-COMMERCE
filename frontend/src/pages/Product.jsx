@@ -9,21 +9,17 @@ import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 
-
-
 export default function Products() {
   const [categories, setCategories] = useState([]);
   const [productsByCategory, setProductsByCategory] = useState({});
   // const [quantities, setQuantities] = useState({});
-  const [wishlist, setWishlist] = useState([]);;
+  const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   // const isLoggedIn = Boolean(localStorage.getItem("token"));
   const navigate = useNavigate();
   const { refreshCart, setOpenSideCart } = useCart();
-
-
 
   /* ================= FETCH CATEGORIES ================= */
   // useEffect(() => {
@@ -76,7 +72,6 @@ export default function Products() {
   //   if (categories.length) fetchProducts();
   // }, [categories]);
 
-
   useEffect(() => {
     if (!categories.length) return;
 
@@ -84,8 +79,8 @@ export default function Products() {
       categories.map((cat) =>
         api.get("/api/products", {
           params: { category: cat._id },
-        })
-      )
+        }),
+      ),
     )
       .then((results) => {
         const grouped = {};
@@ -137,13 +132,13 @@ export default function Products() {
       toast.success("Product added to cart 🛒");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Please login to add to cart"); {
+        error.response?.data?.message || "Please login to add to cart",
+      );
+      {
         setShowLoginModal(true);
       }
-    };
-  }
-
-
+    }
+  };
 
   /* ================= UI ================= */
   // if (loading) {
@@ -213,11 +208,12 @@ export default function Products() {
 }
 
 .section-title {
-  color: #ffffff;
-  font-size: clamp(18px, 2.2vw, 24px);
-  margin-bottom: 20px;
-  padding-left: 180px;
-  max-width: 1401px;
+  font-family: "Jersey 25", cursive;
+          font-size: clamp(36px, 6vw, 72px);
+          font-weight: 200;
+          max-width: 1380px;
+          padding-left: 1080px;
+
 }
 
 /* ================= PRODUCT GRID ================= */
@@ -575,15 +571,15 @@ export default function Products() {
 
           {Object.keys(productsByCategory).map((categoryName) => (
             <div className="section" key={categoryName}>
-
               <h2 className="section-title">{categoryName}</h2>
 
               <div className="product-grid">
                 {productsByCategory[categoryName].slice(0, 4).map((product) => (
                   <div className="product-card" key={product._id}>
                     <div
-                      className={`discount-badge ${product.discountPercent ? "show" : "hide"
-                        }`}
+                      className={`discount-badge ${
+                        product.discountPercent ? "show" : "hide"
+                      }`}
                     >
                       {product.discountPercent
                         ? `${product.discountPercent}% OFF`
@@ -592,8 +588,9 @@ export default function Products() {
 
                     {/* ❤️ WISHLIST */}
                     <button
-                      className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
-                        }`}
+                      className={`favorite-btn ${
+                        wishlist.includes(product._id) ? "active" : ""
+                      }`}
                       onClick={() => toggleWishlist(product._id)}
                     >
                       <Heart />
@@ -673,7 +670,6 @@ export default function Products() {
                         </button>
                       )}
                     </div>
-
                   </div>
                 ))}
               </div>
