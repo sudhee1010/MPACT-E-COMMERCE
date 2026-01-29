@@ -1108,6 +1108,7 @@ import { SiTiktok } from "react-icons/si";
 import WhatsAppFloat from '../components/WhatsAppFloat';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Footer from "../components/Footer";
+import { useAuth } from "../context/AuthContext";
 
 
 
@@ -1131,6 +1132,7 @@ const MPACTLandingPage = () => {
   const [heroSlides, setHeroSlides] = useState([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
 
 
@@ -1262,14 +1264,6 @@ const MPACTLandingPage = () => {
   }, []);
 
 
-
-
-  // const heroSlides = [
-  //   { id: 1, image: proteinGym },
-  //   { id: 2, image: proteinGym },
-  //   { id: 3, image: proteinGym },
-  // ];
-
   // for hero image
   useEffect(() => {
     const fetchHeroBanners = async () => {
@@ -1306,27 +1300,34 @@ const MPACTLandingPage = () => {
 
 
 
-  // const handleBuyNow = async (productId) => {
-  //   try {
-  //     await addToCartApi(productId, 1);
 
-  //     setCartMessage("✅ Product added to cart");
-  //     setTimeout(() => setCartMessage(""), 3000);
-
-  //     // 🔥 THIS WAS MISSING
-  //     navigate("/checkout"); // or "/checkout"
-  //   } catch (error) {
-  //     if (error.response?.status === 401) {
-  //       setShowLoginModal(true);
-  //     } else {
-  //       setCartMessage("❌ Failed to add to cart");
-  //       setTimeout(() => setCartMessage(""), 3000);
+  // const handleBuyNow = (product) => {
+  //   navigate("/checkout", {
+  //     state: {
+  //       directBuy: true,
+  //       product: {
+  //         _id: product._id,
+  //         name: product.name,
+  //         price: product.price,
+  //         image: product.images?.[0]?.url,
+  //         qty: 1
+  //       }
   //     }
-  //   }
+  //   });
   // };
 
 
   const handleBuyNow = (product) => {
+    // ⏳ Wait until auth state is resolved
+    if (loading) return;
+
+    // ❌ Not logged in → show login modal
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // ✅ Logged in → continue to checkout
     navigate("/checkout", {
       state: {
         directBuy: true,
@@ -1340,6 +1341,7 @@ const MPACTLandingPage = () => {
       }
     });
   };
+
 
 
 
@@ -2060,7 +2062,7 @@ const MPACTLandingPage = () => {
 
           <div style={{ textAlign: "center" }}>
             <button
-              onClick={() => navigate("/products")}
+              onClick={() => navigate("/product")}
               style={{
                 backgroundColor: hoveredButton === "see-more" ? "#eab308" : "#facc15",
                 color: "black",
@@ -2163,7 +2165,7 @@ const MPACTLandingPage = () => {
             </h3>
 
             <p style={{ color: "#d1d5db", marginBottom: "1.5rem" }}>
-              Please login to add items to your cart.
+              Please login to purchase this product.
             </p>
 
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
@@ -2200,7 +2202,7 @@ const MPACTLandingPage = () => {
           </div>
         </div>
       )}
-      
+
       <WhatsAppFloat />
 
     </div>
