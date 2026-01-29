@@ -283,11 +283,16 @@ export default function Navbar() {
           {/* <Link to="/seeMore">
             <img src="/icons/search.png" alt="Search" />
           </Link> */}
+          {!user && (
+            <Link to="/signup">
+              <img src="/icons/avatar.png" alt="User" />
+            </Link>
+          )}
 
 
-          <Link to="/signup">
+          {/* <Link to="/signup">
             <img src="/icons/avatar.png" alt="User" />
-          </Link>
+          </Link> */}
 
           {/* CART ICON → SIDE CART */}
           {/* <img
