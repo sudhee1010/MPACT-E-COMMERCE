@@ -1152,9 +1152,7 @@ const ProductPage = () => {
       setOpenSideCart(true);
       toast.success("Product added to cart 🛒");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Please login to add to cart",
-      );
+      toast.error( "Please login to add to cart");
       {
         setShowLoginModal(true);
       }
@@ -1229,7 +1227,6 @@ const handleBuyNow = () => {
     productSection: {
       maxWidth: 1400,
       margin: "0 auto",
-      marginLeft: "100px",
       padding: "60px 40px",
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
@@ -1242,7 +1239,6 @@ const handleBuyNow = () => {
       background: "#fff",
       width: "100%",
       height: 560,
-      marginLeft: "45px",
     },
     mainImage: {
       width: "100%",
@@ -1254,8 +1250,7 @@ const handleBuyNow = () => {
       display: "grid",
       gridTemplateColumns: "repeat(4, 1fr)",
       gap: 12,
-      marginLeft: "47px",
-      width: "95%",
+      width: "100%",
     },
     thumbnailBox: {
       border: "2px solid transparent",
@@ -1483,6 +1478,7 @@ modalOverlay: {
   alignItems: "center",
   justifyContent: "center",
   zIndex: 9999,
+  padding: "16px",
 },
 
 loginModal: {
@@ -1549,7 +1545,6 @@ cancelButton: {
       marginBottom: 12, // ⬅️ reduced (was 24)
       fontWeight: 700,
       textAlign: "left",
-      marginLeft: -55,
     },
 
     reviewsButtons: {
@@ -1594,7 +1589,7 @@ cancelButton: {
     popupOverlay: {
       position: "fixed",
       inset: 0,
-      background: "rgba(0,0,0,0.75)",
+      background: "rgba(0,0,0,0.85)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -1609,19 +1604,24 @@ cancelButton: {
       border: "2px solid #ffe600",
       padding: "clamp(20px, 4vw, 50px)",
       boxSizing: "border-box",
+      display: "flex",          
+      flexDirection: "column",  
+      minHeight: 0,
+      maxHeight: "calc(100vh - 32px)",
+      overflowY: "auto",
     },
     popupTitle: {
       fontFamily: "'Jersey 25', sans-serif",
       textAlign: "center",
       letterSpacing: 2,
-      marginBottom: "clamp(20px, 4vw, 40px)",
-      fontSize: "clamp(20px, 3vw, 28px)",
+      marginBottom: "clamp(16px, 3vh, 32px)",
+      fontSize: "clamp(18px, 3vw, 28px)",
     },
     popupUser: {
       display: "flex",
       gap: 16,
       alignItems: "center",
-      marginBottom: "clamp(20px, 4vw, 40px)",
+      marginBottom: "clamp(16px, 3vh, 32px)",
     },
     popupAvatar: {
       width: 46,
@@ -1646,7 +1646,7 @@ cancelButton: {
       display: "flex",
       justifyContent: "center",
       gap: "clamp(12px, 3vw, 30px)",
-      marginBottom: "clamp(20px, 4vw, 40px)",
+      marginBottom: "clamp(16px, 3vh, 32px)",
       flexWrap: "wrap",
     },
     popupStar: {
@@ -1673,7 +1673,7 @@ cancelButton: {
     },
     popupAddPhoto: {
       textAlign: "center",
-      marginBottom: 30,
+      marginBottom: "clamp(16px, 3vh, 24px)",
     },
     popupAddPhotoButton: {
       background: "#4a4a2f",
@@ -1689,6 +1689,7 @@ cancelButton: {
       justifyContent: "flex-end",
       gap: 16,
       flexWrap: "wrap",
+      marginTop: "12px",
     },
     popupButton: {
       background: "#ffe600",
@@ -1975,25 +1976,112 @@ cancelButton: {
       {/* <ToastContainer position="top-center" autoClose={3000} /> */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
+        
+        /* ✅ MOBILE RESPONSIVE STYLES */
+        @media (max-width: 768px) {
+          .product-section {
+            grid-template-columns: 1fr !important;
+            gap: 30px !important;
+            padding: 30px 20px !important;
+            margin-left: 0 !important;
+          }
+          
+          .main-image-container {
+            height: 300px !important;
+            margin-left: 0 !important;
+          }
+          
+          .main-image {
+            height: 300px !important;
+          }
+          
+          .thumbnails-container {
+            margin-left: 0 !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+          }
+          
+          .thumbnail-image {
+            height: 80px !important;
+          }
+          
+          .details-container {
+            max-width: 100% !important;
+          }
+          
+          .title {
+            font-size: 28px !important;
+          }
+          
+          .current-price {
+            font-size: 24px !important;
+          }
+          
+          .action-buttons {
+            flex-direction: column !important;
+          }
+          
+          .action-buttons button {
+            width: 100% !important;
+            font-size: 18px !important;
+          }
+          
+          .reviews-section {
+            padding: 20px 20px !important;
+          }
+          
+          .reviews-header {
+            margin-left: 0 !important;
+          }
+          
+          .reviews-grid {
+            grid-template-columns: 1fr !important;
+          }
+          
+          .range-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 16px !important;
+            padding: 0 20px !important;
+          }
+          
+          .range-title {
+            font-size: 32px !important;
+          }
+          
+          .reviews-buttons {
+            flex-direction: column !important;
+            width: 100% !important;
+          }
+          
+          .reviews-buttons button {
+            width: 100% !important;
+          }
+          
+          .popup-content {
+            padding: 20px !important;
+            max-height: calc(100vh - 32px) !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .range-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
 
       <div style={styles.container}>
-        <section style={styles.productSection}>
+        <section style={styles.productSection} className="product-section">
           <div>
-            <div style={styles.mainImageContainer}>
-              {/* <img
-                src={activeImage}
-                alt="product"
-                style={styles.mainImage}
-              /> */}
+            <div style={styles.mainImageContainer} className="main-image-container">
               <img
                 src={activeImage || images[0] || "/images/Product1.png"}
                 alt={product.name}
                 style={styles.mainImage}
+                className="main-image"
               />
             </div>
 
-            <div style={styles.thumbnailsContainer}>
+            <div style={styles.thumbnailsContainer} className="thumbnails-container">
               {images.map((src, i) => (
                 <div
                   key={i}
@@ -2019,14 +2107,15 @@ cancelButton: {
                     src={src}
                     alt={`thumb-${i}`}
                     style={styles.thumbnailImage}
+                    className="thumbnail-image"
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={styles.detailsContainer}>
-            <h1 style={styles.title}>{product.name}</h1>
+          <div style={styles.detailsContainer} className="details-container">
+            <h1 style={styles.title} className="title">{product.name}</h1>
 
             <div style={styles.ratingContainer}>
               <div style={styles.stars}></div>
@@ -2039,29 +2128,9 @@ cancelButton: {
               </span>
             </div>
 
-            {/* <div style={styles.priceContainer}> */}
-            {/* <span style={styles.price}>
-                RS : 2000
-              </span>
-              <span style={styles.oldPrice}>
-                RS : 2999
-              </span>
-              <span style={styles.discount}>
-                25% OFF
-              </span> */}
-            {/* RS : {product.price}
-              {product.originalPrice && (
-                <span style={styles.originalPrice}>RS : {product.originalPrice}</span>
-              )}
-              {product.discountPercent && (
-                <span style={styles.discountPercent}>{product.discountPercent}</span>
-              )}
-
-            </div> */}
-
             <div style={styles.priceBlock}>
               {/* Current Price */}
-              <span style={styles.currentPrice}>₹{product.price}</span>
+              <span style={styles.currentPrice} className="current-price">₹{product.price}</span>
 
               {/* Original Price (cut) */}
               {product.originalPrice > product.price && (
@@ -2078,32 +2147,7 @@ cancelButton: {
               )}
             </div>
 
-            {/* <div style={styles.tagsContainer}> */}
-            {/* {[
-                "NO PRESERVATIVES",
-                "JAGGERY BASED",
-                "NO ADDED COLOURS",
-                "80 % PEANUT",
-                "NO GLUCOSE ADDED",
-                "NO PRESERVATIVES",
-              ].map((tag, i) => (
-                <span key={i} style={styles.tag}>
-                  {tag}
-                </span>
-              ))} */}
-            {/* {product.specs?.map((tag, i) => (
-                <span key={i} style={styles.tag}>
-                  {tag}
-                </span>
-              ))}
-
-            </div> */}
-
             <div>
-              {/* <div style={styles.highlightsTitle}>
-    Highlights
-  </div> */}
-
               <div style={styles.highlightsContainer}>
                 {product.highlights?.map((item, i) => (
                   <span key={i} style={styles.highlightTag}>
@@ -2153,104 +2197,46 @@ cancelButton: {
                 </button>
               </div>
             </div>
-            <div style={styles.actionButtons}>
-              {/* <button
+            <div style={styles.actionButtons} className="action-buttons">
+              <button
                 style={styles.addToCartButton}
-                onClick={async () => {
-                  try {
-                    await api.post(
-                      "/cart",
-                      { productId: product._id, quantity: qty },
-                      { withCredentials: true },
-                    );
-                    alert("Added to cart");
-                  } catch (err) {
-                    alert("Please login to add items to cart");
-                  }
+                onClick={() => handleAddToCart(product._id)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#ffe600";
+                  e.currentTarget.style.color = "#000";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#2f2f2f";
+                  e.currentTarget.style.color = "#fff";
                 }}
               >
-                <img src="/icons/bag.png" alt="cart" style={styles.cartIcon} />
-                ADD TO CART
-              </button> */}
-
-              {/* <button
-                className="add-to-cart-btn"
-                onClick={() => handleAddToCart(product._id)}
-              >
-                🛒 Add to Cart
-              </button> */}
+                🛒 ADD TO CART
+              </button>
 
               <button
-  style={styles.addToCartButton}
-  onClick={() => handleAddToCart(product._id)}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.background = "#ffe600";
-    e.currentTarget.style.color = "#000";
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.background = "#2f2f2f";
-    e.currentTarget.style.color = "#fff";
-  }}
->
-  🛒 ADD TO CART
-</button>
-
-
-              {/* BUY NOW — FIXED */}
-             
-    
-  <button
-  style={{
-    ...styles.buyNowButton,
-    opacity: loading ? 0.6 : 1,
-    cursor: loading ? "not-allowed" : "pointer",
-  }}
-  disabled={loading}
-  onClick={handleBuyNow}
->
-  BUY NOW
-</button>
-
-
+                style={{
+                  ...styles.buyNowButton,
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+                disabled={loading}
+                onClick={handleBuyNow}
+              >
+                BUY NOW
+              </button>
             </div>
           </div>
         </section>
-        {/* 
-        <section style={styles.recommendedSection}>
-          <h2 style={styles.recommendedTitle}>
-            Recommended products
-          </h2>
-          <div style={styles.recommendedGrid}>
-            {[212, 212, 212, 212, 212].map((size, i) => (
-              <div
-                key={i}
-                style={styles.recommendedItem}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.transform = "scale(1.08)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
-                }
-              >
-                <img
-                  src="/images/chocolate.webp"
-                  alt="product"
-                  style={styles.recommendedImage}
-                />
-              </div>
-            ))}
-          </div>
-        </section> */}
 
-        <section style={styles.reviewsSection}>
+        <section style={styles.reviewsSection} className="reviews-section">
           <section style={{ maxWidth: 1200, margin: "0 auto", padding: 40 }}>
-            <div style={styles.reviewsHeader}>
+            <div style={styles.reviewsHeader} className="reviews-header">
               <div>
                 <h2>Customer Reviews</h2>
                 <div style={{ color: "#ffe600" }}></div>
               </div>
 
-              <div style={styles.reviewsButtons}>
+              <div style={styles.reviewsButtons} className="reviews-buttons">
                 <button
                   onClick={() => setShowReviewPopup(true)}
                   onMouseEnter={(e) => {
@@ -2292,10 +2278,11 @@ cancelButton: {
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={styles.popupContent}
+                className="popup-content"
               >
-                <h2 style={styles.popupTitle}>
+                {/* <h2 style={styles.popupTitle}>
                   PROTEIN WAFERS – VARIETY PACK OF 10
-                </h2>
+                </h2> */}
 
                 <div style={styles.popupUser}>
                   <div style={styles.popupUser}>
@@ -2375,7 +2362,7 @@ cancelButton: {
             </div>
           )}
 
-          <div style={styles.reviewsGrid}>
+          <div style={styles.reviewsGrid} className="reviews-grid">
             <div style={styles.reviewsLeftColumn}>
               {reviewsLoading && <p>Loading reviews...</p>}
 
@@ -2434,9 +2421,9 @@ cancelButton: {
         </section>
 
         <section style={styles.rangeSection}>
-          <h1 style={styles.rangeTitle}>Explore Our Range</h1>
+          <h1 style={styles.rangeTitle} className="range-title">Explore Our Range</h1>
 
-          <div style={styles.rangeGrid}>
+          <div style={styles.rangeGrid} className="range-grid">
             {relatedProducts.map((item) => (
               <div
                 key={item._id}
@@ -2463,7 +2450,6 @@ cancelButton: {
                   <div style={styles.rangeCardTitle}>{item.name}</div>
 
                   <div style={styles.rangeCardSubtitle}>
-                    {/* {item.weight || ""} */}
                     {item.countInStock} available
                   </div>
 
@@ -2477,7 +2463,7 @@ cancelButton: {
                     </span>
                   </div>
 
-                  <Link to={`/product/${item.id}`}>
+                  <Link to={`/productspec/${item._id}`}>
                     <button style={styles.rangeCardButton}>BUY NOW</button>
                   </Link>
                 </div>
@@ -2486,20 +2472,22 @@ cancelButton: {
           </div>
         </section>
 
-      {/* 🔐 LOGIN MODAL */}
-      {/* {showLoginModal && (
-        <div className="modal-overlay">
-          <div className="login-modal">
-            <h2>Login Required</h2>
-            <p>Please login to continue.</p>
+      {showLoginModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.loginModal}>
+            <h2 style={styles.loginTitle}>Login Required</h2>
+            <p style={styles.loginText}>Please login to continue.</p>
 
-            <div className="modal-actions">
-              <Link to="/login" className="action-link">
-                <button className="buy-btn">LOGIN</button>
-              </Link>
+            <div style={styles.modalActions}>
+              <button
+                style={{ ...styles.modalButton, ...styles.loginButton }}
+                onClick={() => navigate("/login")}
+              >
+                LOGIN
+              </button>
 
               <button
-                className="add-to-cart-btn"
+                style={{ ...styles.modalButton, ...styles.cancelButton }}
                 onClick={() => setShowLoginModal(false)}
               >
                 CANCEL
@@ -2507,31 +2495,7 @@ cancelButton: {
             </div>
           </div>
         </div>
-      )} */}
-      {showLoginModal && (
-  <div style={styles.modalOverlay}>
-    <div style={styles.loginModal}>
-      <h2 style={styles.loginTitle}>Login Required</h2>
-      <p style={styles.loginText}>Please login to continue.</p>
-
-      <div style={styles.modalActions}>
-        <button
-          style={{ ...styles.modalButton, ...styles.loginButton }}
-          onClick={() => navigate("/login")}
-        >
-          LOGIN
-        </button>
-
-        <button
-          style={{ ...styles.modalButton, ...styles.cancelButton }}
-          onClick={() => setShowLoginModal(false)}
-        >
-          CANCEL
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
         <Footer />
       </div>
