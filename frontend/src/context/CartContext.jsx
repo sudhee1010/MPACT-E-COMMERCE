@@ -18,18 +18,6 @@ export const CartProvider = ({ children }) => {
 
   // 🔥 Fetch cart from backend
 
-// const refreshCart = async () => {
-//   if (!user) return;   // 🔥 STOP UNAUTHORIZED CALL
-//   try {
-//     const res = await getCartApi();
-//     setCartItems(res.data.items || []);
-//   } catch (err) {
-//     if (err.response?.status !== 401) {
-//       console.log("Refresh cart error", err.message);
-//     }
-//   }
-// };
-
 const refreshCart = async () => {
   if (!user) return;
   try {
@@ -51,14 +39,6 @@ const refreshCart = async () => {
 
 
   // 🔥 Auto load cart when user logs in or page refreshes
-// useEffect(() => {
-//   if (user) {
-//     refreshCart();
-//   } else {
-//     setCartItems([]); // clear cart on logout
-//      setOpenSideCart(false);
-//   }
-// }, [user]);
 
 useEffect(() => {
   if (!user) {

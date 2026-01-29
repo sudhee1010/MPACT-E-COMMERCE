@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/axios";
+import toast from "react-hot-toast";
 // import { useCart } from "./CartContext";
 
 
@@ -17,20 +18,6 @@ export const AuthProvider = ({ children }) => {
   /* =========================
      AUTO FETCH PROFILE ON APP LOAD
   ========================= */
-  // useEffect(() => {
-  //   const fetchProfile = async () => {
-  //     try {
-  //       const res = await api.get("/api/auth/profile");
-  //       setUser(res.data);
-  //     } catch (error) {
-  //       setUser(null); // not logged in
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchProfile();
-  // }, []);
 
 
   useEffect(() => {
@@ -56,12 +43,14 @@ export const AuthProvider = ({ children }) => {
 const logout = async () => {
   try {
     await api.post("/api/auth/logout");
+    toast.success("Logged out successfully");
     setUser(null);
 
     // 🔥 CLEAR CART IMMEDIATELY
     // setCartItems([]);
   } catch (error) {
     console.log("Logout error", error);
+    toast.error("Logout failed");
   }
 };
 
