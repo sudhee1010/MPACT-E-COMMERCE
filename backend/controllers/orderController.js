@@ -2,6 +2,8 @@ import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
+import Product from "../models/Product.js";
+
 
 /* =========================================================
    PLACE ORDER (CHECKOUT)
@@ -95,20 +97,20 @@ export const placeOrder = async (req, res) => {
     const taxAmount = taxableAmount * TAX_RATE;
     const totalAmount = taxableAmount + taxAmount;
 
-/* ================= PREVENT DUPLICATE SAME-CART PENDING ================= */
-if (orderType === "cart" && cart) {
-  const existingPending = await Order.findOne({
-    user: req.user._id,
-    paymentStatus: "pending",
-    orderType: "cart",
-    totalAmount,
-    "orderItems.product": { $all: cart.items.map(i => i.product._id) }
-  });
+    /* ================= PREVENT DUPLICATE SAME-CART PENDING ================= */
+    if (orderType === "cart" && cart) {
+      const existingPending = await Order.findOne({
+        user: req.user._id,
+        paymentStatus: "pending",
+        orderType: "cart",
+        totalAmount,
+        "orderItems.product": { $all: cart.items.map(i => i.product._id) }
+      });
 
-  if (existingPending) {
-    return res.status(200).json(existingPending);
-  }
-}
+      if (existingPending) {
+        return res.status(200).json(existingPending);
+      }
+    }
 
 
     /* ================= CREATE ORDER ================= */
@@ -128,16 +130,16 @@ if (orderType === "cart" && cart) {
     });
 
     /* ================= EMAIL ================= */
-//     await sendEmail({
-//       to: req.user.email,
-//       subject: "Order Placed Successfully",
-//       text: `Your order (${order._id}) has been placed successfully.
+    //     await sendEmail({
+    //       to: req.user.email,
+    //       subject: "Order Placed Successfully",
+    //       text: `Your order (${order._id}) has been placed successfully.
 
-// Subtotal: ₹${subtotal}
-// Discount: -₹${discount}
-// Tax: ₹${taxAmount.toFixed(2)}
-// Total: ₹${totalAmount.toFixed(2)}`
-//     });
+    // Subtotal: ₹${subtotal}
+    // Discount: -₹${discount}
+    // Tax: ₹${taxAmount.toFixed(2)}
+    // Total: ₹${totalAmount.toFixed(2)}`
+    //     });
 
     /* ================= CLEAR CART ================= */
     // if (cart) {
@@ -247,6 +249,12 @@ export const returnOrder = async (req, res) => {
       return res.status(400).json({ message: "Order already returned" });
     }
 
+    for (const item of order.orderItems) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { countInStock: item.quantity }
+      });
+    }
+
     const now = new Date();
     const diffDays =
       (now - new Date(order.deliveredAt)) / (1000 * 60 * 60 * 24);
@@ -259,6 +267,8 @@ export const returnOrder = async (req, res) => {
     order.returnedAt = now;
     order.orderStatus = "returned";
     order.paymentStatus = "refunded";
+    order.isStockReduced = false;
+
 
     await order.save();
 
