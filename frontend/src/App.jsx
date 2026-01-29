@@ -37,6 +37,8 @@ import TermsAndConditions from "./pages/TermsAndConditions.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import OrderDetails from "./pages/OrderDetails.jsx";
 import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
+import ForgotPassword from "./pages/ForgotPassword";
+
 
 
 /* Admin components */
@@ -195,6 +197,8 @@ function App() {
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
 
 
             {/* ADMIN */}
