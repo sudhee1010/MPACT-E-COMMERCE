@@ -209,12 +209,14 @@ export default function Products() {
 
 .section-title {
   font-family: "Jersey 25", cursive;
-          font-size: clamp(36px, 6vw, 72px);
-          font-weight: 200;
-          max-width: 1380px;
-          padding-left: 1080px;
+  font-size: clamp(36px, 6vw, 72px);
+  font-weight: 200;
 
+  max-width: 1240px;
+  margin: 0 auto 16px;    
+  padding: 0 8px;         
 }
+
 
 /* ================= PRODUCT GRID ================= */
 .product-grid {
@@ -479,7 +481,6 @@ export default function Products() {
 /* ================= RESPONSIVE ================= */
 @media (max-width: 1024px) {
   .section-title {
-    padding-left: 0;
     text-align: center;
   }
 
