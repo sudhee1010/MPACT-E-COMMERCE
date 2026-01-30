@@ -5,9 +5,6 @@ import {
   Heart,
   Settings,
   Edit,
-  Search,
-  UserCircle,
-  ShoppingCart,
   Camera,
   Eye,
   EyeOff,
@@ -17,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { addToCartApi } from "../../api/cartApi";
 import { useAuth } from "../../context/AuthContext.jsx";
-// import CropImageModal from "../../components/CropImageModal";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -41,8 +37,6 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
-  // const [cropImage, setCropImage] = useState(null);
-  // const [cropModalOpen, setCropModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -50,19 +44,21 @@ export default function ProfilePage() {
     address: "",
   });
 
-  // const handleLogout = async () => {
-  //   try {
-  //     const respose=await api.post("/api/auth/logout"); // backend clears cookie
-  //     setUser(null);
-  //   setIsAuthenticated(false);
-  //     console.log("log",respose);
-      
-  //     toast.success("Logged out successfully");
-  //     navigate("/");
-  //   } catch {
-  //     toast.error("Logout failed");
-  //   }
-  // };
+  // Debounce for smoother transitions
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1024);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -85,12 +81,11 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  //fetching orders
   const fetchMyOrders = async () => {
     try {
       setOrdersLoading(true);
       const res = await api.get("/api/orders/my-orders");
-      setOrders(res.data); // assuming backend returns array
+      setOrders(res.data);
     } catch (error) {
       toast.error("Failed to load orders");
     } finally {
@@ -102,27 +97,20 @@ export default function ProfilePage() {
     try {
       setWishlistLoading(true);
       const res = await api.get("/api/wishlist");
-      setWishlist(res.data.wishlist); // assuming backend returns wishlist array
+      setWishlist(res.data.wishlist);
     } catch (error) {
       toast.error("Failed to load wishlist");
     } finally {
       setWishlistLoading(false);
     }
   };
+
   const handleAddToCart = async (productId) => {
     try {
-      // 1️⃣ Add product to cart
       await addToCartApi(productId, 1);
-
-      // 2️⃣ Remove product from wishlist
       await api.delete(`/api/wishlist/${productId}`);
-
-      // 3️⃣ Refresh wishlist UI
       fetchWishlist();
-
       toast.success("Added to cart 🛒");
-
-      // 4️⃣ Redirect to cart
       navigate("/cart");
     } catch (error) {
       toast.error(
@@ -136,10 +124,6 @@ export default function ProfilePage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // setCropImage(URL.createObjectURL(file));
-    // setCropModalOpen(true);
-
-    // Show preview immediately
     setPreviewImage(URL.createObjectURL(file));
 
     const formData = new FormData();
@@ -176,347 +160,334 @@ export default function ProfilePage() {
   return (
     <>
       <style>{`
-        @media (max-width: 768px) {
-          .nav-links {
-            display: none;
-          }
-          .profile-header {
-            flex-direction: column;
-            text-align: center;
-          }
-          .profile-info {
-            flex-direction: column;
-            align-items: center;
-          }
-          .form-grid {
-            grid-template-columns: 1fr;
-          }
-          .tab-text-full {
-            display: none;
-          }
-          .tab-text-short {
-            display: inline;
-          }
-        }
-
-        @media (min-width: 769px) {
-          .nav-links {
-            display: flex;
-          }
-          .profile-header {
-            flex-direction: row;
-            align-items: start;
-          }
-          .profile-info {
-            flex-direction: row;
-            align-items: start;
-          }
-          .form-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-          .tab-text-full {
-            display: inline;
-          }
-          .tab-text-short {
-            display: none;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .header-container {
-            padding: 1rem;
-          }
-          .main-content {
-            padding: 1rem;
-          }
-          .profile-card {
-            padding: 1.5rem;
-          }
-          .form-section {
-            padding: 1.5rem;
-          }
-          .profile-name {
-            font-size: 1.5rem;
-          }
-          .avatar {
-            width: 96px;
-            height: 96px;
-          }
-          .avatar-icon {
-            width: 40px;
-            height: 40px;
-          }
-        }
-
-        @media (min-width: 641px) {
-          .header-container {
-            padding: 1rem 2rem;
-          }
-          .main-content {
-            padding: 2rem;
-          }
-          .profile-card {
-            padding: 2rem;
-          }
-          .form-section {
-            padding: 2rem;
-          }
-          .profile-name {
-            font-size: 1.875rem;
-          }
-          .avatar {
-            width: 128px;
-            height: 128px;
-          }
-          .avatar-icon {
-            width: 48px;
-            height: 48px;
-          }
-        }
-
         * {
           margin: 0;
           padding: 0;
           box-sizing: border-box;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+          scroll-behavior: smooth;
         }
 
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          background-color: #323232;
+          color: #ffffff;
+          overflow-x: hidden;
         }
 
-        .container {
+        /* Container */
+        .profile-container {
           min-height: 100vh;
           background-color: #323232;
+          padding-top: 92px;
+          transition: padding-top 0.3s ease;
         }
 
-        .header {
-          background-color: #facc15;
-          position: relative;
+        @media (max-width: 600px) {
+          .profile-container {
+            padding-top: 72px;
+          }
         }
 
-        .header-container {
+        /* Main Content */
+        .profile-main {
           max-width: 1280px;
           margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+          padding: 2rem;
+          transition: padding 0.3s ease;
         }
 
-        .logo {
-          font-size: 2rem;
-          font-weight: bold;
-          color: #1f2937;
-          letter-spacing: -0.025em;
-        }
-
-        .nav-links {
-          align-items: center;
-          gap: 2rem;
-        }
-
-        .nav-link {
-          color: #1f2937;
-          font-weight: 600;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-
-        .nav-link:hover {
-          color: #374151;
-        }
-
-        .header-icons {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .icon-btn {
-          background: none;
-          border: none;
-          color: #1f2937;
-          cursor: pointer;
-          padding: 0.5rem;
-          transition: color 0.2s;
-        }
-
-        .icon-btn:hover {
-          color: #374151;
-        }
-
-        .main-content {
-          max-width: 1280px;
-          margin: 0 auto;
-        }
-
+        /* Profile Header Card */
         .profile-card {
           border: 2px solid #facc15;
-          border-radius: 0.5rem;
-          margin-bottom: 2rem;
-          margin-top:1.3rem;
-          margin-left:1rem;
-          margin-right:1rem;
-          margin-top:1rem;
+          border-radius: 0.75rem;
+          margin: 0 auto 2.5rem;
+          padding: 2rem;
+          background-color: #3a3a3a;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
+        /* Profile Header Layout */
         .profile-header {
           display: flex;
           justify-content: space-between;
-          gap: 1.5rem;
+          align-items: flex-start;
+          gap: 2rem;
+          flex-wrap: wrap;
+          transition: gap 0.3s ease;
         }
 
         .profile-info {
           display: flex;
-          gap: 1.5rem;
+          align-items: center;
+          gap: 1.75rem;
+          flex: 1;
+          min-width: 0;
+          transition: gap 0.3s ease;
         }
 
+        /* Avatar Section */
         .avatar-container {
           position: relative;
+          flex-shrink: 0;
+          transition: all 0.3s ease;
         }
 
         .avatar {
+          width: 120px;
+          height: 120px;
           background-color: #facc15;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
+          overflow: hidden;
+          border: 3px solid rgba(250, 204, 21, 0.3);
+          transition: all 0.3s ease;
+        }
+
+        .avatar:hover {
+          transform: scale(1.02);
+          box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.1);
         }
 
         .avatar-icon {
           color: #1f2937;
+          width: 56px;
+          height: 56px;
+          transition: transform 0.3s ease;
         }
 
         .camera-btn {
           position: absolute;
-          bottom: 0;
-          right: 0;
+          bottom: 6px;
+          right: 6px;
           background-color: #facc15;
-          border:none;
+          border: none;
           border-radius: 50%;
           padding: 0.5rem;
           cursor: pointer;
-          transition: background-color 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .camera-btn:hover {
           background-color: #fde047;
+          transform: scale(1.1) rotate(5deg);
+        }
+
+        .camera-btn:active {
+          transform: scale(0.95);
         }
 
         .camera-icon {
           color: #1f2937;
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
+          transition: transform 0.3s ease;
         }
 
+        /* Profile Details */
         .profile-details {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          margin-top:1.5rem;
+          min-width: 0;
+          flex: 1;
         }
 
         .profile-name {
-          font-weight: bold;
+          font-weight: 700;
           color: white;
           margin-bottom: 0.5rem;
+          font-size: 1.75rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          letter-spacing: -0.025em;
+          transition: font-size 0.3s ease;
         }
 
         .profile-email {
           color: #d1d5db;
-          margin-bottom: 0.25rem;
-          font-size:0.865rem;
+          margin-bottom: 0.5rem;
+          font-size: 1rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transition: font-size 0.3s ease;
         }
 
         .profile-member {
           color: #9ca3af;
-          font-size: 0.8rem;
-        
+          font-size: 0.875rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: font-size 0.3s ease;
         }
 
+        /* Edit Button */
         .edit-btn {
           background-color: #facc15;
           color: #1f2937;
-          padding: 0.75rem 1.5rem;
-          border-radius: 0.375rem;
+          padding: 0.875rem 1.75rem;
+          border-radius: 0.5rem;
           border: none;
           font-weight: 600;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.625rem;
           cursor: pointer;
-          transition: background-color 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           white-space: nowrap;
           height: fit-content;
+          flex-shrink: 0;
+          font-size: 0.95rem;
+          box-shadow: 0 2px 8px rgba(250, 204, 21, 0.3);
         }
 
         .edit-btn:hover {
           background-color: #fde047;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
         }
 
+        .edit-btn:active {
+          transform: translateY(0);
+        }
+
+        /* Tabs */
         .tabs-container {
           display: flex;
-          flex-wrap: wrap;
-          gap: 0.75rem;
-          margin-bottom: 1.5rem;
-          margin-left:1rem;
+          gap: 1rem;
+          margin: 0 auto 2rem;
+          padding: 0;
+          max-width: 1200px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          padding-bottom: 0.75rem;
+          transition: margin 0.3s ease;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+          display: none;
+          height: 4px;
+        }
+
+        .tabs-container:hover::-webkit-scrollbar {
+          display: block;
+        }
+
+        .tabs-container::-webkit-scrollbar-track {
+          background: rgba(250, 204, 21, 0.1);
+          border-radius: 2px;
+        }
+
+        .tabs-container::-webkit-scrollbar-thumb {
+          background: rgba(250, 204, 21, 0.5);
+          border-radius: 2px;
         }
 
         .tab-btn {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          padding: 0.55rem 1rem;
-          border-radius: 0.375rem;
+          gap: 0.75rem;
+          padding: 0.875rem 1.25rem;
+          border-radius: 0.75rem;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          min-width: fit-content;
+          white-space: nowrap;
+          font-size: 0.95rem;
+          border: 2px solid transparent;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .tab-btn::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          width: 0;
+          height: 3px;
+          background-color: #facc15;
+          transition: all 0.3s ease;
+          transform: translateX(-50%);
+        }
+
+        .tab-btn:hover::after {
+          width: 80%;
         }
 
         .tab-btn.active {
           background-color: #facc15;
           color: #1f2937;
-          border: none;
+          border-color: #facc15;
+          box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+          transform: translateY(-2px);
+        }
+
+        .tab-btn.active::after {
+          width: 0;
         }
 
         .tab-btn.inactive {
           background-color: transparent;
           color: white;
-          border: 2px solid #facc15;
+          border: 2px solid rgba(250, 204, 21, 0.3);
         }
 
         .tab-btn.inactive:hover {
-          background-color: #facc15;
-          color: #1f2937;
+          background-color: rgba(250, 204, 21, 0.1);
+          color: #fde047;
+          border-color: rgba(250, 204, 21, 0.5);
+          transform: translateY(-1px);
         }
 
+        /* Form Sections */
         .form-section {
           border: 2px solid #facc15;
-          border-radius: 0.5rem;
-          margin-left:1rem;
-          margin-right:1rem;
-          padding:1rem;
-          max-width:1200px;
+          border-radius: 0.75rem;
+          margin: 0 auto 2.5rem;
+          padding: 2rem;
+          background-color: #3a3a3a;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         .form-title {
-          font-size: 1.25rem;
-          font-weight: bold;
+          font-size: 1.5rem;
+          font-weight: 700;
           color: #facc15;
-          margin-bottom: 1.5rem;
-
+          margin-bottom: 2rem;
+          letter-spacing: -0.025em;
+          transition: font-size 0.3s ease;
         }
 
+        /* Form Grid */
         .form-grid {
           display: grid;
-          gap: 1rem;
-          max-width:1100px;
-          margin-left:1rem;
-          margin-bottom:1rem;
+          gap: 1.5rem;
+          width: 100%;
+          transition: gap 0.3s ease;
         }
 
         .form-group {
           display: flex;
           flex-direction: column;
+          transition: all 0.3s ease;
         }
 
         .form-group.full-width {
@@ -526,418 +497,941 @@ export default function ProfilePage() {
         .form-label {
           color: white;
           font-weight: 600;
-          margin-bottom: 0.5rem;
-          font-size:0.875rem;
+          margin-bottom: 0.75rem;
+          font-size: 0.95rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: font-size 0.3s ease;
         }
 
-        .form-input {
-          background-color: transparent;
-          border: 2px solid #facc15;
-          border-radius: 0.375rem;
-          padding: 0.75rem 1rem;
-          color: #d1d5db;
+        .form-input, .form-textarea {
+          background-color: rgba(255, 255, 255, 0.05);
+          border: 2px solid rgba(250, 204, 21, 0.3);
+          border-radius: 0.5rem;
+          padding: 1rem;
+          color: #ffffff;
           font-size: 1rem;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 100%;
+          font-family: inherit;
         }
 
-        .form-input.dim {
-          opacity: 0.4;
-          pointer-events: none;
-        }
-
-        .form-input:focus {
+        .form-input:focus, .form-textarea:focus {
           outline: none;
-          border-color: #fde047;
-        }
-
-        .form-input:disabled {
-          color: #9ca3af;
-          cursor: not-allowed;
+          border-color: #facc15;
+          box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+          background-color: rgba(255, 255, 255, 0.08);
+          transform: translateY(-1px);
         }
 
         .form-textarea {
-          background-color: transparent;
-          border: 2px solid #facc15;
-          border-radius: 0.375rem;
-          padding: 0.75rem 1rem;
-          color: #d1d5db;
-          font-size: 1rem;
           resize: none;
-          font-family: inherit;
-          transition: all 0.2s;
+          min-height: 120px;
+          line-height: 1.5;
         }
 
-        .form-textarea.dim {
-          opacity: 0.4;
+        .form-input.dim, .form-textarea.dim {
+          opacity: 0.6;
           pointer-events: none;
+          border-color: rgba(250, 204, 21, 0.1);
         }
 
-        .form-textarea:focus {
-          outline: none;
-          border-color: #fde047;
+        .form-input:disabled, .form-textarea:disabled {
+          color: #9ca3af;
+          cursor: not-allowed;
+          opacity: 0.5;
         }
 
+        /* Orders Section */
+        .order-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .order-card {
+          border: 2px solid #facc15;
+          border-radius: 0.75rem;
+          padding: 1.75rem;
+          background-color: #3a3a3a;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 24px rgba(250, 204, 21, 0.15);
+        }
+
+        .order-content {
+          display: flex;
+          gap: 1.25rem;
+          align-items: flex-start;
+          margin-bottom: 1.5rem;
+          flex-wrap: wrap;
+        }
+
+        .order-image {
+          width: 70px;
+          height: 70px;
+          border-radius: 0.5rem;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        .order-image:hover {
+          transform: scale(1.05);
+        }
+
+        .order-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          flex: 1;
+        }
+
+        .order-id {
+          color: white;
+          font-size: 1.1rem;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: -0.025em;
+        }
+
+        .order-date, .order-items {
+          color: #d1d5db;
+          font-size: 0.9rem;
+          margin: 0;
+        }
+
+        .order-actions {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+          justify-content: space-between;
+        }
+
+        .status-badge {
+          padding: 0.5rem 1.25rem;
+          border-radius: 2rem;
+          font-size: 0.875rem;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          min-width: 120px;
+          text-align: center;
+        }
+
+        .status-badge.delivered {
+          background-color: #10b981;
+          color: white;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .status-badge.transit {
+          background-color: #3b82f6;
+          color: white;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .view-details-btn {
+          background-color: #facc15;
+          color: #1f2937;
+          padding: 0.75rem 1.5rem;
+          border-radius: 0.5rem;
+          border: none;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          white-space: nowrap;
+          font-size: 0.95rem;
+          box-shadow: 0 2px 8px rgba(250, 204, 21, 0.3);
+        }
+
+        .view-details-btn:hover {
+          background-color: #fde047;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+        }
+
+        .view-details-btn:active {
+          transform: translateY(0);
+        }
+
+        .order-price {
+          color: #facc15;
+          font-size: 1.375rem;
+          font-weight: 700;
+          margin: 0;
+          letter-spacing: -0.025em;
+        }
+
+        /* Wishlist */
+        .wishlist-grid {
+          display: grid;
+          gap: 1.75rem;
+          transition: grid-template-columns 0.3s ease;
+        }
+
+        .wishlist-card {
+          border: 2px solid #facc15;
+          border-radius: 0.75rem;
+          overflow: hidden;
+          background-color: #3a3a3a;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .wishlist-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 28px rgba(250, 204, 21, 0.2);
+        }
+
+        .wishlist-image-container {
+          width: 100%;
+          height: 220px;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .wishlist-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.5s ease;
+        }
+
+        .wishlist-card:hover .wishlist-image {
+          transform: scale(1.05);
+        }
+
+        .wishlist-content {
+          padding: 1.5rem;
+        }
+
+        .wishlist-product-name {
+          color: white;
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin: 0 0 0.875rem 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          letter-spacing: -0.025em;
+        }
+
+        .wishlist-price {
+          color: #facc15;
+          font-size: 1.375rem;
+          font-weight: 700;
+          margin: 0 0 1.25rem 0;
+          letter-spacing: -0.025em;
+        }
+
+        .wishlist-actions {
+          display: flex;
+          gap: 0.875rem;
+          align-items: center;
+        }
+
+        .add-to-cart-btn {
+          flex: 1;
+          background-color: #facc15;
+          color: #1f2937;
+          padding: 0.875rem 1.25rem;
+          border-radius: 0.5rem;
+          border: none;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          font-size: 0.95rem;
+          box-shadow: 0 2px 8px rgba(250, 204, 21, 0.3);
+        }
+
+        .add-to-cart-btn:hover {
+          background-color: #fde047;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+        }
+
+        .add-to-cart-btn:active {
+          transform: translateY(0);
+        }
+
+        .add-to-cart-btn-disabled {
+          flex: 1;
+          background-color: #52525b;
+          color: #9ca3af;
+          padding: 0.875rem 1.25rem;
+          border-radius: 0.5rem;
+          border: none;
+          font-weight: 600;
+          cursor: not-allowed;
+          font-size: 0.95rem;
+        }
+
+        .remove-btn {
+          background-color: #dc2626;
+          color: white;
+          width: 44px;
+          height: 44px;
+          border-radius: 0.5rem;
+          border: none;
+          font-size: 1.5rem;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        .remove-btn:hover {
+          background-color: #b91c1c;
+          transform: scale(1.1);
+        }
+
+        .remove-btn:active {
+          transform: scale(0.95);
+        }
+
+        /* Settings */
+        .settings-container {
+          display: flex;
+          flex-direction: column;
+          gap: 1.75rem;
+        }
+
+        .settings-card {
+          border: 2px solid #facc15;
+          border-radius: 0.75rem;
+          padding: 1.75rem;
+          background-color: #3a3a3a;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-card:hover {
+          box-shadow: 0 8px 24px rgba(250, 204, 21, 0.15);
+        }
+
+        .settings-card-danger {
+          border: 2px solid #dc2626;
+          border-radius: 0.75rem;
+          padding: 1.75rem;
+          background-color: #3a3a3a;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-card-danger:hover {
+          box-shadow: 0 8px 24px rgba(220, 38, 38, 0.15);
+        }
+
+        .settings-section-title {
+          color: white;
+          font-size: 1.375rem;
+          font-weight: 700;
+          margin: 0 0 0.75rem 0;
+          letter-spacing: -0.025em;
+        }
+
+        .settings-section-title-danger {
+          color: #dc2626;
+          font-size: 1.375rem;
+          font-weight: 700;
+          margin: 0 0 0.75rem 0;
+          letter-spacing: -0.025em;
+        }
+
+        .settings-description {
+          color: #9ca3af;
+          font-size: 0.95rem;
+          margin: 0 0 1.75rem 0;
+          line-height: 1.6;
+        }
+
+        .update-password-btn, .delete-account-btn {
+          padding: 0.875rem 1.75rem;
+          border-radius: 0.5rem;
+          border: none;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          white-space: nowrap;
+          font-size: 0.95rem;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .update-password-btn {
+          background-color: #facc15;
+          color: #1f2937;
+        }
+
+        .update-password-btn:hover {
+          background-color: #fde047;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+        }
+
+        .update-password-btn:active {
+          transform: translateY(0);
+        }
+
+        .delete-account-btn {
+          background-color: #dc2626;
+          color: white;
+        }
+
+        .delete-account-btn:hover {
+          background-color: #b91c1c;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+        }
+
+        .delete-account-btn:active {
+          transform: translateY(0);
+        }
+
+        .logout-btn {
+          background-color: transparent;
+          color: white;
+          padding: 1rem 1.5rem;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 100%;
+          justify-content: center;
+          margin-top: 1rem;
+        }
+
+        .logout-btn:hover {
+          color: #facc15;
+          border-color: #facc15;
+          background-color: rgba(250, 204, 21, 0.1);
+          transform: translateY(-2px);
+        }
+
+        .logout-btn:active {
+          transform: translateY(0);
+        }
+
+        /* Empty State */
         .empty-state {
           color: #d1d5db;
+          text-align: center;
+          padding: 3rem 1rem;
+          font-size: 1.1rem;
+          line-height: 1.6;
+          border-radius: 0.75rem;
+          background-color: rgba(255, 255, 255, 0.03);
+          border: 2px dashed rgba(250, 204, 21, 0.2);
+          transition: all 0.3s ease;
         }
-          .order-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
 
-.order-card {
-  border: 2px solid #facc15;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap:1rem;
-  flex-wrap: wrap;
-}
+        .empty-state:hover {
+          border-color: rgba(250, 204, 21, 0.4);
+          background-color: rgba(255, 255, 255, 0.05);
+        }
 
-.order-content {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  flex: 1;
-}
+        /* Loading States */
+        .loading-container {
+          position: relative;
+        }
 
-.order-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 0.5rem;
-  object-fit: cover;
-}
+        .loading-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(250, 204, 21, 0.8);
+          border-radius: 50%;
+          color: #1f2937;
+          font-weight: 700;
+          font-size: 0.875rem;
+          animation: pulse 1.5s infinite;
+        }
 
-.order-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
+        @keyframes pulse {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 1; }
+        }
 
-.order-id {
-  color: white;
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-}
+        /* Responsive Breakpoints with Smooth Transitions */
+        @media (max-width: 1400px) {
+          .profile-main {
+            padding: 1.75rem;
+          }
+          
+          .profile-card, .form-section {
+            padding: 1.75rem;
+          }
+          
+          .wishlist-grid {
+            gap: 1.5rem;
+          }
+        }
 
-.order-date {
-  color: #9ca3af;
-  font-size: 0.875rem;
-  margin: 0;
-}
+        @media (max-width: 1200px) {
+          .profile-main {
+            padding: 1.5rem;
+          }
+          
+          .profile-card, .form-section {
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+          }
+          
+          .wishlist-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          
+          .avatar {
+            width: 110px;
+            height: 110px;
+          }
+          
+          .avatar-icon {
+            width: 52px;
+            height: 52px;
+          }
+          
+          .profile-name {
+            font-size: 1.6rem;
+          }
+        }
 
-.order-items {
-  color: #d1d5db;
-  font-size: 0.875rem;
-  margin: 0;
-}
+        @media (max-width: 1024px) {
+          .profile-main {
+            padding: 1.25rem;
+          }
+          
+          .profile-card, .form-section {
+            padding: 1.5rem;
+            border-radius: 0.625rem;
+          }
+          
+          .profile-header {
+            gap: 1.5rem;
+          }
+          
+          .profile-info {
+            gap: 1.5rem;
+          }
+          
+          .avatar {
+            width: 100px;
+            height: 100px;
+          }
+          
+          .camera-btn {
+            width: 36px;
+            height: 36px;
+          }
+          
+          .form-title {
+            font-size: 1.375rem;
+          }
+          
+          .tabs-container {
+            gap: 0.875rem;
+            margin-bottom: 1.75rem;
+          }
+        }
 
-.order-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
+        @media (max-width: 900px) {
+          .profile-container {
+            padding-top: 84px;
+          }
+          
+          .profile-main {
+            padding: 1.5rem;
+          }
+          
+          .profile-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1.5rem;
+          }
+          
+          .profile-info {
+            flex-direction: row;
+            align-items: center;
+            gap: 1.25rem;
+          }
+          
+          .edit-btn {
+            width: 100%;
+            justify-content: center;
+          }
+          
+          .form-grid {
+            gap: 1.25rem;
+          }
+          
+          .order-card {
+            padding: 1.5rem;
+          }
+          
+          .wishlist-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+          }
+        }
 
-.status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
+        @media (max-width: 768px) {
+          .profile-container {
+            padding-top: 76px;
+          }
+          
+          .profile-main {
+            padding: 1.25rem;
+          }
+          
+          .profile-card, .form-section {
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
+          }
+          
+          .profile-info {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 1.5rem;
+          }
+          
+          .profile-details {
+            align-items: center;
+            text-align: center;
+          }
+          
+          .avatar {
+            width: 100px;
+            height: 100px;
+          }
+          
+          .avatar-icon {
+            width: 48px;
+            height: 48px;
+          }
+          
+          .profile-name {
+            font-size: 1.5rem;
+          }
+          
+          .form-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .tabs-container {
+            margin-bottom: 1.5rem;
+          }
+          
+          .tab-btn {
+            padding: 0.75rem 1rem;
+          }
+          
+          .order-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+          }
+          
+          .view-details-btn, .order-price {
+            width: 100%;
+            text-align: center;
+          }
+          
+          .wishlist-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+          }
+        }
 
-.status-badge.delivered {
-  background-color: #10b981;
-  color: white;
-}
+        @media (max-width: 640px) {
+          .profile-container {
+            padding-top: 72px;
+          }
+          
+          .profile-main {
+            padding: 1rem;
+          }
+          
+          .profile-card, .form-section {
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+          }
+          
+          .profile-name {
+            font-size: 1.375rem;
+          }
+          
+          .profile-email {
+            font-size: 0.95rem;
+          }
+          
+          .avatar {
+            width: 90px;
+            height: 90px;
+          }
+          
+          .avatar-icon {
+            width: 44px;
+            height: 44px;
+          }
+          
+          .camera-btn {
+            width: 34px;
+            height: 34px;
+          }
+          
+          .camera-icon {
+            width: 16px;
+            height: 16px;
+          }
+          
+          .wishlist-image-container {
+            height: 200px;
+          }
+          
+          .form-title {
+            font-size: 1.25rem;
+          }
+          
+          .settings-card, .settings-card-danger {
+            padding: 1.25rem;
+          }
+          
+          .status-badge {
+            align-self: flex-start;
+            min-width: 110px;
+          }
+          
+          .edit-btn, .update-password-btn, .delete-account-btn, .view-details-btn, .add-to-cart-btn {
+            padding: 0.75rem 1.5rem;
+          }
+        }
 
-.status-badge.transit {
-  background-color: #3b82f6;
-  color: white;
-}
+        @media (max-width: 480px) {
+          .profile-container {
+            padding-top: 68px;
+          }
+          
+          .profile-main {
+            padding: 0.875rem;
+          }
+          
+          .profile-card, .form-section {
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+          }
+          
+          .avatar {
+            width: 80px;
+            height: 80px;
+          }
+          
+          .avatar-icon {
+            width: 40px;
+            height: 40px;
+          }
+          
+          .camera-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0.4rem;
+          }
+          
+          .camera-icon {
+            width: 14px;
+            height: 14px;
+          }
+          
+          .profile-name {
+            font-size: 1.25rem;
+          }
+          
+          .profile-email {
+            font-size: 0.9rem;
+          }
+          
+          .profile-member {
+            font-size: 0.8125rem;
+          }
+          
+          .tab-btn {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+            gap: 0.5rem;
+          }
+          
+          .order-content {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          
+          .wishlist-product-name {
+            font-size: 1rem;
+          }
+          
+          .wishlist-price {
+            font-size: 1.25rem;
+          }
+          
+          .form-input, .form-textarea {
+            padding: 0.875rem;
+            font-size: 0.95rem;
+          }
+          
+          .empty-state {
+            font-size: 1rem;
+            padding: 2rem 1rem;
+          }
+        }
 
-.view-details-btn {
-  background-color: #facc15;
-  color: #1f2937;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.375rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
+        @media (max-width: 360px) {
+          .profile-main {
+            padding: 0.75rem;
+          }
+          
+          .profile-card, .form-section {
+            padding: 0.875rem;
+          }
+          
+          .avatar {
+            width: 70px;
+            height: 70px;
+          }
+          
+          .profile-name {
+            font-size: 1.125rem;
+          }
+          
+          .tab-btn {
+            padding: 0.5rem;
+            font-size: 0.8125rem;
+          }
+          
+          .update-password-btn, .delete-account-btn, .view-details-btn, .add-to-cart-btn {
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+          }
+          
+          .remove-btn {
+            width: 40px;
+            height: 40px;
+          }
+          
+          .order-image {
+            width: 60px;
+            height: 60px;
+          }
+        }
 
-.view-details-btn:hover {
-  background-color: #fde047;
-}
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2000;
+          padding: 1rem;
+          animation: fadeIn 0.3s ease;
+          backdrop-filter: blur(4px);
+        }
 
-.order-price {
-  color: #facc15;
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin: 0;
-}
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
 
-@media (max-width: 768px) {
-  .order-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+        .modal-content {
+          background: linear-gradient(145deg, #3a3a3a, #323232);
+          padding: 2rem;
+          border-radius: 1rem;
+          width: 100%;
+          max-width: 400px;
+          border: 2px solid #facc15;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-  .order-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-  .order-image {
-    width: 60px;
-    height: 60px;
-  }
-}
-.wishlist-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-}
+        .modal-danger {
+          border-color: #dc2626;
+        }
 
-.wishlist-card {
-  border: 2px solid #facc15;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background-color: #3e3e44;
-}
+        .modal-title {
+          color: white;
+          margin-bottom: 1.25rem;
+          font-size: 1.5rem;
+          font-weight: 700;
+          letter-spacing: -0.025em;
+        }
 
-.wishlist-image-container {
-  width: 100%;
-  height: 250px;
-  overflow: hidden;
-}
+        .modal-text {
+          color: #d1d5db;
+          margin-bottom: 2rem;
+          font-size: 0.95rem;
+          line-height: 1.6;
+        }
 
-.wishlist-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+        .modal-buttons {
+          display: flex;
+          gap: 1rem;
+          justify-content: flex-end;
+        }
 
-.wishlist-content {
-  padding: 1.5rem;
-}
-
-.wishlist-product-name {
-  color: white;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.75rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.wishlist-price {
-  color: #facc15;
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin: 0 0 1rem 0;
-}
-
-.wishlist-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.add-to-cart-btn {
-  flex: 1;
-  background-color: #facc15;
-  color: #1f2937;
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.add-to-cart-btn:hover {
-  background-color: #fde047;
-}
-
-.add-to-cart-btn-disabled {
-  flex: 1;
-  background-color: #52525b;
-  color: #9ca3af;
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  font-weight: 600;
-  cursor: not-allowed;
-}
-
-.remove-btn {
-  background-color: #dc2626;
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 0.375rem;
-  border: none;
-  font-size: 1.5rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.remove-btn:hover {
-  background-color: #b91c1c;
-}
-
-@media (max-width: 1024px) {
-  .wishlist-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .wishlist-grid {
-    grid-template-columns: 1fr;
-  }
-}
-  .settings-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.settings-card {
-  border: 2px solid #facc15;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  background-color: #52525b;
-}
-
-.settings-card-danger {
-  border: 2px solid #dc2626;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  background-color: #52525b;
-}
-
-.settings-section-title {
-  color: white;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.settings-section-title-danger {
-  color: #dc2626;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.settings-description {
-  color: #9ca3af;
-  font-size: 0.875rem;
-  margin: 0 0 1.5rem 0;
-}
-
-.update-password-btn {
-  background-color: #facc15;
-  color: #1f2937;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.375rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.update-password-btn:hover {
-  background-color: #fde047;
-}
-
-.notification-options {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.notification-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-}
-
-.notification-checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: #facc15;
-}
-
-.notification-label {
-  color: white;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.delete-account-btn {
-  background-color: #dc2626;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.375rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.delete-account-btn:hover {
-  background-color: #b91c1c;
-}
-
-.logout-btn {
-  background-color: transparent;
-  color: white;
-  padding: 1rem;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: color 0.2s;
-}
-
-.logout-btn:hover {
-  color: #facc15;
-}
-
-.logout-btn span {
-  font-size: 1.25rem;
-}
-
+        @media (max-width: 480px) {
+          .modal-content {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+          }
+          
+          .modal-title {
+            font-size: 1.25rem;
+          }
+          
+          .modal-buttons {
+            flex-direction: column;
+          }
+          
+          .modal-buttons button {
+            width: 100%;
+          }
+        }
       `}</style>
 
-      <div className="container">
-        {/* Main Content */}
-        <main className="main-content">
+      <div className="profile-container">
+        <main className="profile-main">
           {/* Profile Header */}
           <div className="profile-card">
             <div className="profile-header">
               <div className="profile-info">
                 <div className="avatar-container">
-                  {/* <div className="avatar">
-                    <User className="avatar-icon" />
-                  </div> */}
                   <div className="avatar">
                     {previewImage ? (
                       <img
@@ -967,27 +1461,11 @@ export default function ProfilePage() {
                     )}
 
                     {uploading && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          inset: 0,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#1f2937",
-                          fontWeight: "bold",
-                          background: "rgba(250,204,21,0.6)",
-                          borderRadius: "50%",
-                        }}
-                      >
+                      <div className="loading-overlay">
                         Uploading...
                       </div>
                     )}
                   </div>
-
-                  {/* <button className="camera-btn">
-                    <Camera className="camera-icon" />
-                  </button> */}
 
                   <button
                     className="camera-btn"
@@ -1017,15 +1495,10 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* <button className="edit-btn" onClick={() => setIsEditing(!isEditing)}>
-                <Edit size={18} />
-                {isEditing ? 'Save Profile' : 'Edit Profile'}
-              </button> */}
               <button
                 className="edit-btn"
                 onClick={async () => {
                   if (isEditing) {
-                    // SAVE PROFILE
                     try {
                       const res = await api.put(
                         "/api/auth/update-profile",
@@ -1048,12 +1521,11 @@ export default function ProfilePage() {
                       );
                     }
                   } else {
-                    // ENTER EDIT MODE
                     setIsEditing(true);
                   }
                 }}
               >
-                <Edit size={18} />
+                <Edit size={20} />
                 {isEditing ? "Save Profile" : "Edit Profile"}
               </button>
             </div>
@@ -1065,15 +1537,10 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("profile")}
               className={`tab-btn ${activeTab === "profile" ? "active" : "inactive"}`}
             >
-              <User size={18} />
-              <span className="tab-text-full">Profile Info</span>
-              <span className="tab-text-short">Profile</span>
+              <User size={20} />
+              Profile
             </button>
 
-            {/* <button
-              onClick={() => setActiveTab('orders')}
-              className={`tab-btn ${activeTab === 'orders' ? 'active' : 'inactive'}`}
-            > */}
             <button
               onClick={() => {
                 setActiveTab("orders");
@@ -1081,15 +1548,10 @@ export default function ProfilePage() {
               }}
               className={`tab-btn ${activeTab === "orders" ? "active" : "inactive"}`}
             >
-              <Package size={18} />
-              <span className="tab-text-full">My Orders</span>
-              <span className="tab-text-short">Orders</span>
+              <Package size={20} />
+              Orders
             </button>
 
-            {/* <button
-              onClick={() => setActiveTab('wishlist')}
-              className={`tab-btn ${activeTab === 'wishlist' ? 'active' : 'inactive'}`}
-            > */}
             <button
               onClick={() => {
                 setActiveTab("wishlist");
@@ -1097,7 +1559,7 @@ export default function ProfilePage() {
               }}
               className={`tab-btn ${activeTab === "wishlist" ? "active" : "inactive"}`}
             >
-              <Heart size={18} />
+              <Heart size={20} />
               Wishlist
             </button>
 
@@ -1105,12 +1567,12 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("settings")}
               className={`tab-btn ${activeTab === "settings" ? "active" : "inactive"}`}
             >
-              <Settings size={18} />
+              <Settings size={20} />
               Settings
             </button>
           </div>
 
-          {/* Personal Information Form */}
+          {/* Personal Information */}
           {activeTab === "profile" && (
             <div className="form-section">
               <h2 className="form-title">Personal Information</h2>
@@ -1183,6 +1645,7 @@ export default function ProfilePage() {
             </div>
           )}
 
+          {/* Orders */}
           {activeTab === "orders" && (
             <div className="form-section">
               <h2 className="form-title">Order History</h2>
@@ -1190,39 +1653,12 @@ export default function ProfilePage() {
               {ordersLoading ? (
                 <p className="empty-state">Loading orders...</p>
               ) : orders.length === 0 ? (
-                // <p className="empty-state">You have no orders.</p>
                 <p className="empty-state">
                   You haven't placed any orders yet.
                 </p>
               ) : (
                 <div className="order-list">
                   {orders.map((order) => (
-                    // <div className="order-card" key={order._id}>
-                    //   <div className="order-content">
-                    //     <img
-                    //       src={order.items[0]?.product?.image}
-                    //       alt="Product"
-                    //       className="order-image"
-                    //     />
-
-                    //     <div className="order-details">
-                    //       <h3 className="order-id">#{order._id}</h3>
-                    //       <p className="order-date">
-                    //         {new Date(order.createdAt).toLocaleDateString()}
-                    //       </p>
-                    //       <p className="order-items">{order.items.length} items</p>
-                    //     </div>
-                    //   </div>
-
-                    //   <div className="order-actions">
-                    //     <span className={`status-badge ${order.status === "Delivered" ? "delivered" : "transit"}`}>
-                    //       {order.status}
-                    //     </span>
-                    //     <button className="view-details-btn">View Details</button>
-                    //     <p className="order-price">₹{order.totalPrice}</p>
-                    //   </div>
-                    // </div>
-
                     <div className="order-card" key={order._id}>
                       <div className="order-content">
                         <div
@@ -1242,11 +1678,6 @@ export default function ProfilePage() {
                                 }
                                 alt={item.name}
                                 className="order-image"
-                                style={{
-                                  width: "60px",
-                                  height: "60px",
-                                  objectFit: "cover",
-                                }}
                               />
                               <p
                                 style={{
@@ -1273,9 +1704,6 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="order-actions">
-                        {/* <span className={`status-badge ${order.orderStatus === "delivered" ? "delivered" : "transit"}`}>
-                          {order.orderStatus}
-                        </span> */}
                         <span
                           className={`status-badge ${
                             order.paymentStatus === "pending"
@@ -1290,7 +1718,6 @@ export default function ProfilePage() {
                             : order.orderStatus}
                         </span>
 
-                        {/* <button className="view-details-btn">View Details</button> */}
                         <button
                           className="view-details-btn"
                           onClick={() => navigate(`/orders/${order._id}`)}
@@ -1317,6 +1744,7 @@ export default function ProfilePage() {
             </div>
           )}
 
+          {/* Wishlist */}
           {activeTab === "wishlist" && (
             <div className="form-section">
               <h2 className="form-title">My Wishlist</h2>
@@ -1364,7 +1792,7 @@ export default function ProfilePage() {
                               try {
                                 await api.delete(`/api/wishlist/${item._id}`);
                                 toast.success("Removed from wishlist");
-                                fetchWishlist(); // refresh list
+                                fetchWishlist();
                               } catch {
                                 toast.error("Failed to remove item");
                               }
@@ -1381,21 +1809,19 @@ export default function ProfilePage() {
             </div>
           )}
 
+          {/* Settings */}
           {activeTab === "settings" && (
             <div className="form-section">
               <h2 className="form-title">Account Settings</h2>
 
               <div className="settings-container">
-                {/* Change Password Section */}
                 <div className="settings-card">
                   <h3 className="settings-section-title">Change Password</h3>
                   <p className="settings-description">
                     Update your password to keep your account secure
                   </p>
-                  {/* <button className="update-password-btn">Update Password</button> */}
                   <button
                     className="update-password-btn"
-                    // onClick={() => setShowPasswordModal(true)}
                     onClick={() => {
                       setCurrentPassword("");
                       setNewPassword("");
@@ -1408,29 +1834,6 @@ export default function ProfilePage() {
                   </button>
                 </div>
 
-                {/* Email Notifications Section */}
-                {/* <div className="settings-card">
-                  <h3 className="settings-section-title">Email Notifications</h3>
-
-                  <div className="notification-options">
-                    <label className="notification-item">
-                      <input type="checkbox" defaultChecked className="notification-checkbox" />
-                      <span className="notification-label">Order updates</span>
-                    </label>
-
-                    <label className="notification-item">
-                      <input type="checkbox" defaultChecked className="notification-checkbox" />
-                      <span className="notification-label">Promotional emails</span>
-                    </label>
-
-                    <label className="notification-item">
-                      <input type="checkbox" className="notification-checkbox" />
-                      <span className="notification-label">Newsletter</span>
-                    </label>
-                  </div>
-                </div> */}
-
-                {/* Delete Account Section */}
                 <div className="settings-card-danger">
                   <h3 className="settings-section-title-danger">
                     Delete Account
@@ -1438,7 +1841,6 @@ export default function ProfilePage() {
                   <p className="settings-description">
                     Permanently delete your account and all associated data
                   </p>
-                  {/* <button className="delete-account-btn">Delete Account</button> */}
                   <button
                     className="delete-account-btn"
                     onClick={() => setShowDeleteModal(true)}
@@ -1446,20 +1848,8 @@ export default function ProfilePage() {
                     Delete Account
                   </button>
                 </div>
-                {/* Log Out */}
-                <button
-                  className="logout-btn"
-                  onClick={logout}
-                  // onClick={async () => {
-                  //   try {
-                  //     await api.post("/api/auth/logout"); // backend clears cookie
-                  //     toast.success("Logged out successfully");
-                  //     navigate("/");
-                  //   } catch {
-                  //     toast.error("Logout failed");
-                  //   }
-                  // }}
-                >
+
+                <button className="logout-btn" onClick={logout}>
                   <svg
                     width="20"
                     height="20"
@@ -1480,47 +1870,20 @@ export default function ProfilePage() {
         </main>
       </div>
 
+      {/* Password Modal */}
       {showPasswordModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "#3e3e44",
-              padding: "2rem",
-              borderRadius: "8px",
-              width: "350px",
-              border: "2px solid #facc15",
-            }}
-          >
-            <h3 style={{ color: "white", marginBottom: "1rem" }}>
-              Update Password
-            </h3>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 className="modal-title">Update Password</h3>
 
-            {/* <input
-              type="password"
-              placeholder="Current password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="form-input"
-              style={{ marginBottom: "1rem" }}
-            /> */}
-            <div style={{ position: "relative", marginBottom: "1rem" }}>
+            <div style={{ position: "relative", marginBottom: "1.5rem" }}>
               <input
                 type={showCurrentPassword ? "text" : "password"}
                 placeholder="Current password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 className="form-input"
-                style={{ paddingRight: "40px" }}
+                style={{ paddingRight: "50px" }}
               />
 
               <button
@@ -1528,36 +1891,31 @@ export default function ProfilePage() {
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 style={{
                   position: "absolute",
-                  right: "10px",
+                  right: "12px",
                   top: "50%",
                   transform: "translateY(-50%)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
                   color: "#facc15",
-                  fontSize: "1.1rem",
+                  fontSize: "1.2rem",
+                  transition: "transform 0.2s ease",
                 }}
+                onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-50%) scale(1.1)"}
+                onMouseOut={(e) => e.currentTarget.style.transform = "translateY(-50%) scale(1)"}
               >
-                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
-            {/* <input
-              type="password"
-              placeholder="New password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="form-input"
-              style={{ marginBottom: "1rem" }}
-            /> */}
-            <div style={{ position: "relative", marginBottom: "1rem" }}>
+            <div style={{ position: "relative", marginBottom: "1.5rem" }}>
               <input
                 type={showNewPassword ? "text" : "password"}
                 placeholder="New password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="form-input"
-                style={{ paddingRight: "40px" }}
+                style={{ paddingRight: "50px" }}
               />
 
               <button
@@ -1565,28 +1923,31 @@ export default function ProfilePage() {
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 style={{
                   position: "absolute",
-                  right: "10px",
+                  right: "12px",
                   top: "50%",
                   transform: "translateY(-50%)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
                   color: "#facc15",
-                  fontSize: "1.1rem",
+                  fontSize: "1.2rem",
+                  transition: "transform 0.2s ease",
                 }}
+                onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-50%) scale(1.1)"}
+                onMouseOut={(e) => e.currentTarget.style.transform = "translateY(-50%) scale(1)"}
               >
-                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
-            <div style={{ position: "relative", marginBottom: "1rem" }}>
+            <div style={{ position: "relative", marginBottom: "2rem" }}>
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="form-input"
-                style={{ paddingRight: "40px" }}
+                style={{ paddingRight: "50px" }}
               />
 
               <button
@@ -1594,23 +1955,40 @@ export default function ProfilePage() {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={{
                   position: "absolute",
-                  right: "10px",
+                  right: "12px",
                   top: "50%",
                   transform: "translateY(-50%)",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
                   color: "#facc15",
-                  fontSize: "1.1rem",
+                  fontSize: "1.2rem",
+                  transition: "transform 0.2s ease",
                 }}
+                onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-50%) scale(1.1)"}
+                onMouseOut={(e) => e.currentTarget.style.transform = "translateY(-50%) scale(1)"}
               >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="modal-buttons">
               <button
-                type="button"
+                className="delete-account-btn"
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setShowCurrentPassword(false);
+                  setShowNewPassword(false);
+                  setShowConfirmPassword(false);
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
                 className="update-password-btn"
                 onClick={async () => {
                   if (newPassword !== confirmPassword) {
@@ -1644,70 +2022,22 @@ export default function ProfilePage() {
               >
                 Save
               </button>
-
-              <button
-                type="button"
-                className="delete-account-btn"
-                onClick={() => {
-                  setShowPasswordModal(false);
-                  setShowCurrentPassword(false);
-                  setShowNewPassword(false);
-                  setShowConfirmPassword(false);
-                  setCurrentPassword("");
-                  setNewPassword("");
-                  setConfirmPassword("");
-                }}
-              >
-                Cancel
-              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Delete Account Modal */}
       {showDeleteModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.7)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "#3e3e44",
-              padding: "2rem",
-              borderRadius: "10px",
-              width: "380px",
-              border: "2px solid #dc2626",
-            }}
-          >
-            <h3 style={{ color: "#dc2626", marginBottom: "0.75rem" }}>
-              Delete Account
-            </h3>
-
-            <p
-              style={{
-                color: "#d1d5db",
-                marginBottom: "1.5rem",
-                fontSize: "0.95rem",
-              }}
-            >
+        <div className="modal-overlay">
+          <div className="modal-content modal-danger">
+            <h3 className="modal-title">Delete Account</h3>
+            <p className="modal-text">
               Are you sure you want to permanently delete your account? This
               action <b>cannot be undone</b>.
             </p>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "1rem",
-                justifyContent: "flex-end",
-              }}
-            >
+            <div className="modal-buttons">
               <button
                 className="update-password-btn"
                 onClick={() => setShowDeleteModal(false)}
@@ -1721,7 +2051,7 @@ export default function ProfilePage() {
                   try {
                     await api.delete("/api/auth/delete-me");
                     toast.success("Account deleted successfully");
-                    navigate("/signup"); // or home
+                    navigate("/signup");
                   } catch {
                     toast.error("Failed to delete account");
                   }
@@ -1733,28 +2063,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-      {/* {cropModalOpen && (
-        <CropImageModal
-          image={cropImage}
-          onClose={() => setCropModalOpen(false)}
-          onCropComplete={async (croppedBlob) => {
-            const formData = new FormData();
-            formData.append("profileImage", croppedBlob);
-
-            try {
-              setUploading(true);
-              const res = await api.put("/api/auth/upload-profile-image", formData);
-              setUser(res.data.user);
-              toast.success("Profile image updated!");
-            } catch {
-              toast.error("Upload failed");
-            } finally {
-              setUploading(false);
-              setCropModalOpen(false);
-            }
-          }}
-        />
-      )} */}
     </>
   );
 }

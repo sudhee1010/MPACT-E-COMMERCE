@@ -1,4 +1,3 @@
-import Navbar from "../../components/Navbar";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Menu, X, Calendar, Clock, UserCircle } from "lucide-react";
@@ -424,92 +423,6 @@ const MPACTBlog = () => {
           }
         }
 
-        .header-container {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1rem;
-        }
-
-        .logo {
-          font-size: 1.5rem;
-          font-weight: 700;
-          letter-spacing: -0.025em;
-        }
-
-        .nav-desktop {
-          display: none;
-          gap: 2rem;
-          font-size: 0.875rem;
-          font-weight: 600;
-        }
-
-        .nav-link {
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-decoration: none;
-          color: inherit;
-        }
-
-        .nav-link:hover {
-          text-decoration: underline;
-        }
-
-        .nav-link.active {
-          font-weight: 700;
-          border-bottom: 2px solid #000;
-        }
-
-        .header-icons {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .icon-btn {
-          cursor: pointer;
-          transition: transform 0.2s ease;
-        }
-
-        .icon-btn:hover {
-          transform: scale(1.1);
-        }
-
-        .mobile-menu {
-          display: none;
-          flex-direction: column;
-          gap: 0.75rem;
-          margin-top: 1rem;
-          padding-top: 1rem;
-          border-top: 1px solid #000;
-        }
-
-        .mobile-menu.open {
-          display: flex;
-        }
-
-        @media (min-width: 768px) {
-          .logo {
-            font-size: 1.875rem;
-          }
-
-          .nav-desktop {
-            display: flex;
-          }
-
-          .mobile-menu-btn {
-            display: none;
-          }
-
-          .header-icons .icon-mobile {
-            display: none;
-          }
-
-          .header-container {
-            padding: 1rem 2rem;
-          }
-        }
-
         /* Search Bar */
         .search-wrapper {
           position: relative;
@@ -566,38 +479,7 @@ const MPACTBlog = () => {
         }
       `}</style>
 
-      {/* Header */}
-      <header className="header">
-        <div className="header-container container">
-          <div className="header-icons">
-            <button
-              className="mobile-menu-btn icon-btn"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-
-          {/* Mobile Navigation */}
-          <nav className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`}>
-            <a href="/" className="nav-link">
-              HOME
-            </a>
-            <a href="/products" className="nav-link">
-              PRODUCTS
-            </a>
-            <a href="/about" className="nav-link">
-              ABOUT US
-            </a>
-            <a href="/blog" className="nav-link active">
-              BLOG
-            </a>
-            <a href="/wishlist" className="nav-link">
-              WISHLIST
-            </a>
-          </nav>
-        </div>
-      </header>
+      
 
       {/* Hero Section */}
       <section style={{ textAlign: "center", padding: "3rem 1rem" }}>
