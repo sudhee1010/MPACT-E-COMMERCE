@@ -1374,18 +1374,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, AlertTriangle, Upload, X, DollarSign, Package, Percent, Loader2, Image as ImageIcon } from 'lucide-react';
 import * as productApi from '../api/productApi';
 
-const categories = [
-  'Electronics',
-  'Accessories',
-  'Clothing',
-  'Home & Garden',
-  'Sports & Outdoors',
-  'Books',
-  'Toys & Games',
-  'Health & Beauty',
-  'Automotive',
-  'Food & Beverages',
-];
 
 export function Products() {
   const [products, setProducts] = useState([]);
@@ -1395,6 +1383,7 @@ export function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false); // ✅ ADDED: Image upload state
+  const [categories, setCategories] = useState([]);
   const [pageInfo, setPageInfo] = useState({
     hasNextPage: false,
     nextCursor: null
@@ -1441,6 +1430,23 @@ export function Products() {
       setLoading(false);
     }
   };
+
+  // ADD THIS useEffect (after your existing useEffect for products):
+useEffect(() => {
+  fetchCategories();
+}, []);
+
+const fetchCategories = async () => {
+  try {
+    
+    const response = await fetch('/api/categories'); 
+    const data = await response.json();
+    setCategories(data);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    setError('Failed to load categories');
+  }
+};
 
   // ✅ ADDED: Load more products
   const loadMoreProducts = () => {
@@ -1691,7 +1697,7 @@ export function Products() {
       name: product.name,
       description: product.description || '',
       highlights: product.highlights || '',
-      category: product.category?._id || product.category || '',
+       category: product.category?._id || product.category || '',
       originalPrice: String(product.originalPrice || product.price),
       price: String(product.price),
       discountPercent: product.discountPercent || 0,
@@ -1900,7 +1906,7 @@ export function Products() {
                     >
                       <option value="">Select category</option>
                       {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
+                         <option key={category._id} value={category._id}>{category.name} </option>
                       ))}
                     </select>
                   </div>
@@ -2343,7 +2349,7 @@ export function Products() {
                     >
                       <option value="">Select category</option>
                       {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
+                        <option key={category._id} value={category._id}>{category.name}</option>
                       ))}
                     </select>
                   </div>
