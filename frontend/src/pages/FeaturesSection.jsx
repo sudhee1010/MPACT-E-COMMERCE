@@ -121,7 +121,7 @@ useEffect(() => {
 /* ================= SECTION ================= */
 
 .features {
-  height: calc(100vh - ${NAVBAR_HEIGHT}px);
+  height: calc(105vh - ${NAVBAR_HEIGHT}px);
   background: #111;
   display: flex;
   align-items: center;
