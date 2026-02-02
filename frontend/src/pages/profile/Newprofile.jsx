@@ -37,6 +37,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  
 
   const [formData, setFormData] = useState({
     name: "",
