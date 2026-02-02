@@ -480,14 +480,36 @@ export const googleLogin = async (req, res) => {
 /* ===========================
    GET CUSTOMER PROFILE
 =========================== */
-export const getCustomerProfile = async (req, res) => {
-  try {
-    // req.user comes from protect middleware
-    const user = req.user;
+// export const getCustomerProfile = async (req, res) => {
+//   try {
+//     // req.user comes from protect middleware
+//     const user = req.user;
 
-    if (user.role !== "customer") {
-      return res.status(403).json({ message: "Access denied" });
-    }
+//     if (user.role !== "customer") {
+//       return res.status(403).json({ message: "Access denied" });
+//     }
+
+//     res.json({
+//       _id: user._id,
+//       name: user.name,
+//       email: user.email,
+//       phone: user.phone,
+//       address: user.address,
+//       profileImage: user.profileImage || { url: "", public_id: "" },
+//       role: user.role,
+//       isEmailVerified: user.isEmailVerified,
+//       isPhoneVerified: user.isPhoneVerified,
+//       createdAt: user.createdAt,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
+export const getMyProfile = async (req, res) => {
+  try {
+    const user = req.user;
 
     res.json({
       _id: user._id,
@@ -505,6 +527,7 @@ export const getCustomerProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 //LOGOUT USER
 export const logoutUser = (req, res) => {
