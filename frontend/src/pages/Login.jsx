@@ -152,17 +152,29 @@ export default function LoginPage() {
   const { setUser } = useAuth();
 
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
+// const handleSubmit = async (e) => {
+//   e.preventDefault();
 
-  //   if (!email || !password) {
-  //     alert("Please fill all fields");
-  //     return;
-  //   }
+//   if (!email || !password) {
+//     toast.error("Please fill all fields");
+//     return;
+//   }
 
-  //   console.log("Login submitted:", { email, password });
-  //   // navigate("/home"); // enable after auth
-  // };
+//   try {
+//     const res = await api.post("/api/auth/login", { email, password });
+
+//     // 🔥 SAVE USER TO CONTEXT
+//     setUser(res.data.user);
+
+//     toast.success("Login successful");
+//     navigate("/");
+
+//   } catch (error) {
+//     toast.error(
+//       error.response?.data?.message || "Login failed"
+//     );
+//   }
+// };
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -175,42 +187,22 @@ const handleSubmit = async (e) => {
   try {
     const res = await api.post("/api/auth/login", { email, password });
 
-    // 🔥 SAVE USER TO CONTEXT
-    setUser(res.data.user);
+    const user = res.data.user;
 
+    setUser(user);
     toast.success("Login successful");
-    navigate("/");
+
+    // 🔥 THIS LINE IS THE KEY
+    if (user.role === "admin") {
+      navigate("/admindashboard");
+    } else {
+      navigate("/");
+    }
 
   } catch (error) {
-    toast.error(
-      error.response?.data?.message || "Login failed"
-    );
+    toast.error(error.response?.data?.message || "Login failed");
   }
 };
-
-
-
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   if (!email || !password) {
-//     toast.error("Please fill all fields");
-//     return;
-//   }
-
-//   try {
-//     await api.post("/api/auth/login", { email, password });
-
-//     toast.success("Login successful");
-//     navigate("/");
-
-//   } catch (error) {
-//     toast.error(
-//       error.response?.data?.message || "Login failed"
-//     );
-//   }
-// };
-
 
 
 

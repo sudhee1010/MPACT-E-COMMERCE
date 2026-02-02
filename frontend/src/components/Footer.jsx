@@ -221,15 +221,15 @@ export default function Footer() {
             {/* LINKS */}
             <div className="footer-links">
               <a href="/">Home</a>
-              <a href="#">Terms & Conditions</a>
+              <a href="/terms-and-conditions">Terms & Conditions</a>
 
-              <a href="/products">Products</a>
-              <a href="#">Privacy Policy</a>
+              <a href="/product">Products</a>
+              <a href="/privacy-policy">Privacy Policy</a>
 
-              <a href="about">About us</a>
+              <a href="/about">About us</a>
               <a href="#">Return Policy</a>
 
-              <a href="#">Blogs</a>
+              <a href="/blog">Blogs</a>
               <a href="/help">Help and Support</a>
 
               <a href="/faq">FAQ</a>

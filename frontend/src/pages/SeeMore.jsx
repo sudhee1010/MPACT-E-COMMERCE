@@ -310,8 +310,8 @@ export default function ProductPage() {
             </button>
 
             {/* Categories */}
-            <div className="filterSection">
-              <button
+            {/* <div className="filterSection">
+              <button 
                 className="filterSectionHeader"
                 onClick={() =>
                   setOpenSections((p) => ({ ...p, categories: !p.categories }))
@@ -353,7 +353,7 @@ export default function ProductPage() {
                   </label>
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* Price */}
             <div className="filterSection">
@@ -791,6 +791,7 @@ export default function ProductPage() {
 
 .add-to-cart-btn,
 .buy-btn {
+flex: 1;
   width: 100%;
   height: 48px;
   font-size: 15px;
@@ -1240,6 +1241,7 @@ export default function ProductPage() {
         /* LOGIN button (yellow filled) */
         .modal-actions .login-btn {
           background: #ffeb00;
+          width: 100%;
           color: #000;
           border: none;
           box-shadow: 0 4px 12px rgba(255, 235, 0, 0.4);

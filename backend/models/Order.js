@@ -65,6 +65,12 @@ const orderSchema = new mongoose.Schema(
       default: null
     },
 
+    isStockReduced: {
+      type: Boolean,
+      default: false
+    },
+
+
     /* ================== COUPON FIELDS (ADDED) ================== */
 
     subtotal: {

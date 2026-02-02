@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SideCart from "./SideCart"; // adjust path if needed
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,18 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { cartCount, setOpenSideCart } = useCart();
+
+  // Close on Escape only (don't lock body scroll for a compact dropdown menu)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
 
   const handleProfileClick = () => {
@@ -77,6 +89,10 @@ export default function Navbar() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
 
+        :root {
+          --navbar-height: 92px;
+        }
+
         * {
           margin: 0;
           padding: 0;
@@ -104,13 +120,13 @@ export default function Navbar() {
           top: 0;
           left: 0;
           width: 100%;
-          height: 92px;
+          height: var(--navbar-height);
           background-color: #ffd400;
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 0 60px;
-          z-index: 1000;
+          z-index: 1100;
         }
 
         /* LOGO */
@@ -143,17 +159,17 @@ export default function Navbar() {
         }
 
         /* RIGHT ICONS */
-       .nav-icons {
+        .nav-icons {
           display: flex;
-          align-items: center;          
-          gap: 24px;
+          align-items: center;
+          gap: 18px;
         }
 
         /* ALL ICONS (image-based) */
         .nav-icons img {
           width: 21px;
           height: 21px;
-          display: block;               
+          display: block;
           cursor: pointer;
         }
 
@@ -161,50 +177,72 @@ export default function Navbar() {
         .hamburger {
           color: #000;
           font-size: 22px;
-          line-height: 1;               
+          line-height: 1;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: 8px;
+          border-radius: 6px;
+        }
+
+        .hamburger:active,
+        .hamburger:focus {
+          outline: none;
+          opacity: 0.85;
         }
 
         /* MOBILE MENU */
         .mobile-menu {
           position: fixed;
-          top: 92px;
+          top: var(--navbar-height);
           left: 0;
           width: 100%;
+          height: auto; /* fit-content behavior */
+          max-height: calc(80vh - var(--navbar-height));
           background: #ffd400;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 28px;
-          padding: 40px 0;
+          gap: 20px;
+          padding: 12px 16px;
           transform: translateY(-120%);
-          transition: transform 0.3s ease;
-          z-index: 999;
+          transition: transform 0.28s ease, opacity 0.18s ease;
+          z-index: 1050;
+          overflow-y: auto; /* only scroll inside when needed */
+          -webkit-overflow-scrolling: touch;
         }
 
         .mobile-menu.open {
           transform: translateY(0);
+          opacity: 1;
         }
 
         .mobile-menu a {
           font-family: 'Jersey 25', sans-serif;
-          font-size: 26px;
+          font-size: 20px;
           color: #000;
           text-decoration: none;
+          width: 100%;
+          text-align: center;
+          padding: 10px 8px;
+          border-radius: 6px;
         }
 
+        .mobile-menu a:active {
+          opacity: 0.8;
+        }
+
+        /* PAGE OFFSET FIX */
         .page-wrapper {
-          padding-top: 92px;
+          padding-top: var(--navbar-height);
         }
 
         .hamburger {
           display: none;
         }
-          
-        @media (max-width: 900px) {
+
+        @media (max-width: 1106px) {
           .nav-links {
             display: none;
           }
@@ -212,24 +250,40 @@ export default function Navbar() {
           .hamburger {
             display: block;
           }
+
+          /* slightly reduce logo on medium screens */
+          .nav-logo {
+            font-size: 40px;
+          }
         }
 
         @media (max-width: 600px) {
+          :root {
+            --navbar-height: 72px;
+          }
+
           .navbar {
-            height: 72px;
-            padding: 0 20px;
+            padding: 0 16px;
           }
 
           .nav-logo {
             font-size: 34px;
           }
 
+          .nav-icons img {
+            width: 18px;
+            height: 18px;
+          }
+
           .mobile-menu {
-            top: 72px;
+            top: var(--navbar-height);
+            height: auto;
+            max-height: calc(80vh - var(--navbar-height));
+            padding-top: 12px;
           }
 
           .page-wrapper {
-            padding-top: 72px;
+            padding-top: var(--navbar-height);
           }
         }
       `}</style>
@@ -283,11 +337,16 @@ export default function Navbar() {
           {/* <Link to="/seeMore">
             <img src="/icons/search.png" alt="Search" />
           </Link> */}
+          {!user && (
+            <Link to="/signup">
+              <img src="/icons/avatar.png" alt="User" />
+            </Link>
+          )}
 
 
-          <Link to="/signup">
+          {/* <Link to="/signup">
             <img src="/icons/avatar.png" alt="User" />
-          </Link>
+          </Link> */}
 
           {/* CART ICON → SIDE CART */}
           {/* <img
@@ -352,14 +411,30 @@ export default function Navbar() {
 
 
           {/* HAMBURGER */}
-          <div className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+          <div
+            className="hamburger"
+            role="button"
+            tabIndex={0}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen(!menuOpen)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") setMenuOpen(!menuOpen);
+            }}
+          >
             ☰
           </div>
         </div>
       </nav>
 
       {/* ================= MOBILE MENU ================= */}
-      <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
+      <div
+        id="mobile-menu"
+        role="navigation"
+        aria-hidden={!menuOpen}
+        className={`mobile-menu ${menuOpen ? "open" : ""}`}
+      >
         <Link to="/" onClick={() => setMenuOpen(false)}>HOME</Link>
         <Link to="/product" onClick={() => setMenuOpen(false)}>PRODUCTS</Link>
         <Link to="/about" onClick={() => setMenuOpen(false)}>ABOUT US</Link>
