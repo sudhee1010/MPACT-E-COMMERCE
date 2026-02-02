@@ -8,10 +8,7 @@ import {
 import { useCart } from "../context/CartContext";
 // import toast from "react-hot-toast";
 
-
-
 export default function SideCart() {
-
   // const [cartItems, setCartItems] = useState([]);
   const {
     cartItems,
@@ -21,8 +18,6 @@ export default function SideCart() {
     setOpenSideCart,
     cartMeta
   } = useCart();
-
-
 
   // const packingCharge = 20;
 
@@ -61,7 +56,6 @@ export default function SideCart() {
       fetchCart(); // rollback if error
     }
   };
-
 
   // const decreaseQty = async (productId, currentQty) => {
   //   try {
@@ -103,10 +97,6 @@ export default function SideCart() {
     }
   };
 
-
-
-
-
   const removeItem = async (productId) => {
     try {
       const res = await removeCartItemApi(productId);
@@ -119,7 +109,6 @@ export default function SideCart() {
       console.log("Remove item error:", err);
     }
   };
-
 
   // Total MRP
   const totalMRP = cartItems.reduce(
@@ -140,9 +129,6 @@ export default function SideCart() {
   // const finalAmount = totalPrice + packingCharge;
   // const finalAmount = totalPrice;
 
-
-
-
   // useEffect(() => {
   //   if (open) {
   //     fetchCart();
@@ -154,7 +140,6 @@ export default function SideCart() {
       refreshCart();
     }
   }, [openSideCart]);
-
 
   useEffect(() => {
     if (!cartItems.length) {
@@ -168,8 +153,6 @@ export default function SideCart() {
     // }
   }, [cartItems]);
 
-
-
   const fetchCart = async () => {
     try {
       const res = await getCartApi();
@@ -179,28 +162,30 @@ export default function SideCart() {
     }
   };
 
-
   return (
     <>
       <style>{`
         .overlay {
           position: fixed;
-          inset: 0;
+          top: 70px; /* Adjust to match your navbar height */
+          left: 0;
+          right: 0;
+          bottom: 0;
           background: rgba(0,0,0,.6);
-          z-index: 999;
+          z-index: 998; /* Below navbar but above page content */
           display: ${openSideCart ? "block" : "none"};
         }
 
         .sidecart {
           position: fixed;
-          top: 0;
+          top: 70px; /* Same as navbar height */
           right: 0;
           width: 520px;
-          height: 100vh;
+          height: calc(100vh - 70px); /* Subtract navbar height */
           background: #2a2a2a;
           transform: translateX(${openSideCart ? "0" : "100%"});
           transition: .35s;
-          z-index: 1000;
+          z-index: 999; /* Above overlay */
           display: flex;
           flex-direction: column;
         }
@@ -364,7 +349,6 @@ export default function SideCart() {
                 <span>₹{packingCharge}</span>
               </div> */}
 
-
               <div className="row">
                 <span>Tax</span>
                 <span>₹{cartMeta.taxAmount.toFixed(2)}</span>
@@ -375,13 +359,11 @@ export default function SideCart() {
                 <span>₹{cartMeta.totalWithTax.toFixed(2)}</span>
               </div>
 
-
               {/* <div className="row green">
                 <span>Total</span>
                 <span>₹{finalAmount}</span>
               </div> */}
             </div>
-
 
             <div className="footer">
               <Link to="/cart" onClick={() => setOpenSideCart(false)}>
