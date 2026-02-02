@@ -1,6 +1,6 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-// import axios from "axios";
 import { Heart } from "lucide-react";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
@@ -12,75 +12,40 @@ import { useCart } from "../context/CartContext";
 export default function Products() {
   const [categories, setCategories] = useState([]);
   const [productsByCategory, setProductsByCategory] = useState({});
-  // const [quantities, setQuantities] = useState({});
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  // const isLoggedIn = Boolean(localStorage.getItem("token"));
   const navigate = useNavigate();
   const { refreshCart, setOpenSideCart } = useCart();
 
   /* ================= FETCH CATEGORIES ================= */
-  // useEffect(() => {
-  //   const fetchCategories = async () => {
-  //     try {
-  //       const { data } = await axios.get(
-  //         "http://localhost:5000/api/categories"
-  //       );
-  //       setCategories(data);
-  //     } catch (err) {
-  //       setError("Failed to load categories");
-  //     }
-  //   };
-  //   fetchCategories();
-  // }, []);
   useEffect(() => {
     api
       .get("/api/categories")
-      .then((res) => setCategories(res.data))
+      .then((res) => {
+        // Only show active categories
+        const activeCategories = res.data.filter(cat => cat.isActive);
+        setCategories(activeCategories);
+      })
       .catch(() => setError("Failed to load categories"));
   }, []);
 
   /* ================= FETCH PRODUCTS PER CATEGORY ================= */
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       setLoading(true);
-
-  //       const results = await Promise.all(
-  //         categories.map((cat) =>
-  //           axios.get("http://localhost:5000/api/products", {
-  //             params: { category: cat._id },
-  //           })
-  //         )
-  //       );
-
-  //       const grouped = {};
-  //       categories.forEach((cat, index) => {
-  //         grouped[cat.name] = results[index].data.products || [];
-  //       });
-
-  //       setProductsByCategory(grouped);
-  //     } catch (err) {
-  //       setError("Failed to load products");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   if (categories.length) fetchProducts();
-  // }, [categories]);
-
   useEffect(() => {
     if (!categories.length) return;
 
+    setLoading(true);
     Promise.all(
       categories.map((cat) =>
         api.get("/api/products", {
-          params: { category: cat._id },
-        }),
-      ),
+          params: { 
+            category: cat._id,
+            page: 1,
+            limit: 4 // Show only 4 products per category
+          },
+        })
+      )
     )
       .then((results) => {
         const grouped = {};
@@ -90,7 +55,10 @@ export default function Products() {
         setProductsByCategory(grouped);
         setLoading(false);
       })
-      .catch(() => setError("Failed to load products"));
+      .catch(() => {
+        setError("Failed to load products");
+        setLoading(false);
+      });
   }, [categories]);
 
   /* ================= FETCH WISHLIST ================= */
@@ -139,27 +107,6 @@ export default function Products() {
       }
     }
   };
-
-  /* ================= UI ================= */
-  // if (loading) {
-  //   return (
-  //     <>
-  //       <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
-  //         Loading products...
-  //       </p>
-  //     </>
-  //   );
-  // }
-
-  // if (error) {
-  //   return (
-  //     <>
-  //       <p style={{ textAlign: "center", marginTop: 100, color: "red" }}>
-  //         {error}
-  //       </p>
-  //     </>
-  //   );
-  // }
 
   if (loading) {
     return (
@@ -509,6 +456,63 @@ export default function Products() {
   }
 }
 
+
+@media (max-width: 1324px) and (min-width: 1024px) {
+
+  /* Page padding tighten */
+  .products-page {
+    padding: 32px;
+  }
+
+  /* Section title align + spacing */
+  .section-title {
+    max-width: 1100px;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+
+  /* Product grid fix */
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, 260px);
+    gap: 16px;
+    max-width: 1200px;
+  }
+
+  /* Card resize */
+  .product-card {
+    width: 260px;
+    height: 600px;
+  }
+
+  /* Image height scale */
+  .product-image-container {
+    height: 320px;
+  }
+
+  /* Text tighten */
+  .product-title {
+    font-size: 13px;
+  }
+
+  .price {
+    font-size: 18px;
+  }
+
+  /* Buttons scale */
+  .add-to-cart-btn,
+  .buy-btn {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  /* See more align */
+  .see-more {
+    max-width: 1100px;
+    padding-right: 0;
+  }
+}
+
+
 /* ================= MODAL ================= */
 .modal-overlay {
   position: fixed;
@@ -627,22 +631,6 @@ export default function Products() {
                       </div>
                     )}
                     <div className="price">₹{product.price}</div>
-
-                    {/* <div className="action-buttons">
-                      <button
-                        className="add-to-cart-btn"
-                        onClick={() => handleAddToCart(product._id)}
-                      >
-                        🛒 Add to Cart
-                      </button>
-
-                      <Link
-                        to={`/productspec/${product._id}`}
-                        className="action-link"
-                      >
-                        <button className="buy-btn">BUY NOW</button>
-                      </Link>
-                    </div> */}
 
                     <div className="action-buttons">
                       {product.countInStock > 0 ? (

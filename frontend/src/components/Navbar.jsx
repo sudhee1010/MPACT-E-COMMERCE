@@ -144,7 +144,7 @@ export default function Navbar() {
           left: 50%;
           transform: translateX(-50%);
           display: flex;
-          gap: 48px;
+          gap: clamp(20px, 3vw, 48px);
         }
 
         .nav-links a {
@@ -152,6 +152,7 @@ export default function Navbar() {
           font-size: 20px;
           color: #000;
           text-decoration: none;
+          white-space: nowrap;
         }
 
         .nav-links a:hover {
