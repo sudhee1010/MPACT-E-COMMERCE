@@ -138,3 +138,42 @@ export const getStockMovements = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch stock movements" });
   }
 };
+
+
+export const getLowStockItems = async (req, res) => {
+  try {
+    const items = await Inventory.find({
+      $expr: { $lte: ["$currentStock", "$minStock"] }
+    }).populate("product", "name");
+
+    const formatted = items.map(item => ({
+      productName: item.product.name,
+      warehouse: item.warehouse,
+      currentStock: item.currentStock,
+      minStock: item.minStock
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch low stock items" });
+  }
+};
+
+
+export const getOutOfStockItems = async (req, res) => {
+  try {
+    const items = await Inventory.find({ currentStock: 0 })
+      .populate("product", "name");
+
+    const formatted = items.map(item => ({
+      productName: item.product.name,
+      warehouse: item.warehouse,
+      currentStock: item.currentStock,
+      minStock: item.minStock
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch out of stock items" });
+  }
+};
