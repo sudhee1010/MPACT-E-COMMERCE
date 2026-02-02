@@ -34,6 +34,26 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+
+    if (status === "delivered") {
+      return res.status(400).json({
+        message: "Use delivery endpoint to mark as delivered"
+      });
+    }
+
+    const allowedStatuses = [
+      "initiated",
+      "placed",
+      "packed",
+      "shipped",
+      "cancelled"
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        message: "Invalid order status"
+      });
+    }
     order.orderStatus = status;
     await order.save();
 
@@ -94,6 +114,7 @@ export const markOrderDelivered = async (req, res) => {
 
     /* ================= UPDATE ORDER ================= */
     order.orderStatus = "delivered";
+    order.paymentStatus = "paid";
     order.deliveredAt = new Date();
     order.isStockReduced = true;
 
