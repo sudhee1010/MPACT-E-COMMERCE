@@ -609,7 +609,7 @@ export default function ProductPage() {
         .filterSidebar {
           position: fixed;
           left: 0;
-          top: 0;
+          // top: 50;
           width: 374px;
           height: 100vh;
           background: #ffeb00;
@@ -750,6 +750,7 @@ export default function ProductPage() {
         .priceSlider {
           width: 100%;
           height: 8px;
+          border-radius: 10px;
           background: #000;
           outline: none;
           -webkit-appearance: none;

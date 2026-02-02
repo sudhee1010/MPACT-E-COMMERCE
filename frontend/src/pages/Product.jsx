@@ -509,6 +509,63 @@ export default function Products() {
   }
 }
 
+
+@media (max-width: 1324px) and (min-width: 1024px) {
+
+  /* Page padding tighten */
+  .products-page {
+    padding: 32px;
+  }
+
+  /* Section title align + spacing */
+  .section-title {
+    max-width: 1100px;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+
+  /* Product grid fix */
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, 260px);
+    gap: 16px;
+    max-width: 1200px;
+  }
+
+  /* Card resize */
+  .product-card {
+    width: 260px;
+    height: 600px;
+  }
+
+  /* Image height scale */
+  .product-image-container {
+    height: 320px;
+  }
+
+  /* Text tighten */
+  .product-title {
+    font-size: 13px;
+  }
+
+  .price {
+    font-size: 18px;
+  }
+
+  /* Buttons scale */
+  .add-to-cart-btn,
+  .buy-btn {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  /* See more align */
+  .see-more {
+    max-width: 1100px;
+    padding-right: 0;
+  }
+}
+
+
 /* ================= MODAL ================= */
 .modal-overlay {
   position: fixed;
