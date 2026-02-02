@@ -189,7 +189,8 @@ function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<Faq />} />
-          <Route path="/Nutrition" element={<Nutrition />} />
+          {/* <Route path="/Nutrition" element={<Nutrition />} /> */}
+          <Route path="/blog/:slug" element={<Nutrition />} /> 
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
