@@ -44,7 +44,7 @@ export function AdminLayout() {
     { label: "Customers", path: "/customers", icon: Users },
     { label: "Reports", path: "/reports", icon: BarChart3 },
     { label: "Coupons", path: "/coupons", icon: Package },
-    { label: "Inbox", path: "/inbox", icon: BarChart3 },
+    { label: "Distributor Enquiries", path: "/admin-distributor", icon: BarChart3 },
     { label: "CMS", path: "/cms", icon: Image },
     { label: "Ads Banner", path: "/adsbanner", icon: Monitor },
   ];

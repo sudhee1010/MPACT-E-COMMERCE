@@ -105,6 +105,7 @@ import { Switch } from "./components/ui/Switch.jsx";
 import { Sonner } from "./components/ui/Sonner.jsx";
 import { Slider } from "./components/ui/Slider.jsx";
 import { Skeleton } from "./components/ui/Skeleton.jsx";
+import AdminDistributor from "./components/AdminDistributor.jsx";
 
 
 function App() {
@@ -113,6 +114,7 @@ function App() {
 
   const isAdminRoute = [
     "/admindashboard",
+    "/admin-distributor",
     "/orders",
     "/products",
     "/productupdates",
@@ -208,6 +210,7 @@ function App() {
           <Route element={<AdminLayout />}>
           
             <Route path="/admindashboard" element={<Dashboard />} />
+            <Route path="/admin-distributor" element={<AdminDistributor />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/products" element={<Products />} />
             <Route path="/productupdates" element={<ProductUpdates />} />
