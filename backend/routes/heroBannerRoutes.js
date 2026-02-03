@@ -3,7 +3,7 @@ import {
   getHeroBanners,
   createHeroBanner,
   updateHeroBanner,
-  deleteHeroBanner
+  deleteHeroBanner, getAllHeroBannersAdmin
 } from "../controllers/heroBannerController.js";
 
 import upload from "../middlewares/uploadMiddleware.js";
@@ -13,9 +13,11 @@ import { isAdmin } from "../middlewares/adminMiddleware.js";
 const router = express.Router();
 
 router.get("/", getHeroBanners);
+router.get("/admin", protect, isAdmin, getAllHeroBannersAdmin);
+
 
 router.post(
-  "/",
+  "/create-hero",
   protect,
   isAdmin,
   upload.single("image"),

@@ -5,16 +5,43 @@ import cloudinary from "../config/cloudinary.js";
  * @desc    Get active hero banners (Public)
  * @route   GET /api/hero-banners
  */
+// export const getHeroBanners = async (req, res, next) => {
+//   try {
+//     const banners = await HeroBanner.find({ isActive: true })
+//       .sort({ order: 1, createdAt: -1 });
+
+//     res.status(200).json(banners);
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+
+
+// GET /api/hero-banners (PUBLIC)
 export const getHeroBanners = async (req, res, next) => {
   try {
     const banners = await HeroBanner.find({ isActive: true })
-      .sort({ order: 1, createdAt: -1 });
+      .sort({ order: 1, createdAt: 1 });
 
     res.status(200).json(banners);
   } catch (error) {
     next(error);
   }
 };
+
+
+// GET /api/hero-banners/admin
+export const getAllHeroBannersAdmin = async (req, res, next) => {
+  try {
+    const banners = await HeroBanner.find().sort({ order: 1, createdAt: 1 });
+    res.status(200).json(banners);
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 /**
  * @desc    Create hero banner (Admin)
@@ -31,7 +58,6 @@ export const createHeroBanner = async (req, res, next) => {
         url: req.file.path,
         public_id: req.file.filename
       },
-      title: req.body.title || "",
       order: req.body.order || 0,
       isActive: true
     });
@@ -41,6 +67,7 @@ export const createHeroBanner = async (req, res, next) => {
     next(error);
   }
 };
+
 
 /**
  * @desc    Update hero banner (Admin)
