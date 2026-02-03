@@ -1,60 +1,87 @@
-import React from 'react';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Users, Package } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { TrendingUp, TrendingDown, ShoppingBag, Users, Package } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import api from "../api/axios";
 
-const statsData = [
-  {
-    title: 'Total Revenue',
-    value: '$45,231.89',
-    change: '+20.1%',
-    trend: 'up',
-    icon: DollarSign,
-    color: 'bg-blue-500',
-  },
-  {
-    title: 'Orders',
-    value: '2,345',
-    change: '+15.3%',
-    trend: 'up',
-    icon: ShoppingBag,
-    color: 'bg-green-500',
-  },
-  {
-    title: 'Customers',
-    value: '1,234',
-    change: '+8.2%',
-    trend: 'up',
-    icon: Users,
-    color: 'bg-purple-500',
-  },
-  {
-    title: 'Products',
-    value: '567',
-    change: '-2.4%',
-    trend: 'down',
-    icon: Package,
-    color: 'bg-orange-500',
-  },
-];
+// Small Rupee icon component (keeps same API as lucide icons)
+const RupeeIcon = ({ size = 24, className = '' }) => (
+  <span style={{ fontSize: size }} className={className} aria-hidden>
+    &#8377;
+  </span>
+);
 
-const salesData = [
-  { month: 'Jan', sales: 4000, orders: 240 },
-  { month: 'Feb', sales: 3000, orders: 180 },
-  { month: 'Mar', sales: 5000, orders: 300 },
-  { month: 'Apr', sales: 4500, orders: 270 },
-  { month: 'May', sales: 6000, orders: 360 },
-  { month: 'Jun', sales: 7000, orders: 420 },
-];
+// initial placeholders (until API responds)
+const initialStats = {
+  totalRevenue: 0,
+  totalOrders: 0,
+  totalUsers: 0,
+  totalProducts: 0
+};
 
-const recentOrders = [
-  { id: '#ORD-001', customer: 'John Doe', product: 'Wireless Headphones', amount: '$129.99', status: 'Completed' },
-  { id: '#ORD-002', customer: 'Jane Smith', product: 'Smart Watch', amount: '$299.99', status: 'Processing' },
-  { id: '#ORD-003', customer: 'Bob Johnson', product: 'Laptop Stand', amount: '$49.99', status: 'Shipped' },
-  { id: '#ORD-004', customer: 'Alice Brown', product: 'USB-C Cable', amount: '$19.99', status: 'Completed' },
-  { id: '#ORD-005', customer: 'Charlie Wilson', product: 'Phone Case', amount: '$24.99', status: 'Pending' },
-];
+const initialSales = [];
+const initialRecentOrders = [];
 
 export function Dashboard() {
+  const [stats, setStats] = useState(initialStats);
+  const [salesData, setSalesData] = useState(initialSales);
+  const [recentOrders, setRecentOrders] = useState(initialRecentOrders);
+  const [loading, setLoading] = useState(true);
+
+  const currency = (num) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(num);
+
+  const normalizeStatus = (status) => {
+    const map = {
+      initiated: 'Pending',
+      placed: 'Processing',
+      packed: 'Processing',
+      shipped: 'Shipped',
+      delivered: 'Completed',
+      cancelled: 'Cancelled'
+    };
+    return map[status] || status;
+  };
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const [dashboardRes, analyticsRes, ordersRes] = await Promise.all([
+          api.get('/api/admin/dashboard'),
+          api.get('/api/admin/analytics/monthly'),
+          api.get('/api/admin/orders/recent')
+        ]);
+
+        setStats(dashboardRes.data || initialStats);
+        setSalesData(analyticsRes.data || initialSales);
+
+        const mappedOrders = (ordersRes.data || []).map(o => ({
+          id: `#${o._id.slice(-6)}`,
+          customer: o.user?.name || o.user?.email || '—',
+          product: o.orderItems?.[0]?.product?.name || o.orderItems?.[0]?.name || '—',
+          amount: currency(o.totalAmount || o.totalPrice || 0),
+          status: normalizeStatus(o.orderStatus)
+        }));
+
+        setRecentOrders(mappedOrders);
+      } catch (err) {
+        console.error('Dashboard load error', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, []);
+
+  const statsData = [
+    { title: 'Total Revenue', value: currency(stats.totalRevenue || 0), change: '', trend: 'up', icon: RupeeIcon, color: 'bg-blue-500' },
+    { title: 'Orders', value: stats.totalOrders || 0, change: '', trend: 'up', icon: ShoppingBag, color: 'bg-green-500' },
+    { title: 'Customers', value: stats.totalUsers || 0, change: '', trend: 'up', icon: Users, color: 'bg-purple-500' },
+    { title: 'Products', value: stats.totalProducts || 0, change: '', trend: 'down', icon: Package, color: 'bg-orange-500' }
+  ];
+
+  if (loading) return <div className="text-gray-300">Loading dashboard...</div>;
+
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
@@ -67,21 +94,6 @@ export function Dashboard() {
                 <div className="flex-1">
                   <p className="text-sm text-gray-400">{stat.title}</p>
                   <p className="text-2xl font-bold text-white mt-2">{stat.value}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    {stat.trend === 'up' ? (
-                      <TrendingUp size={16} className="text-yellow-400" />
-                    ) : (
-                      <TrendingDown size={16} className="text-red-400" />
-                    )}
-                    <span
-                      className={`text-sm font-medium ${
-                        stat.trend === 'up' ? 'text-yellow-400' : 'text-red-400'
-                      }`}
-                    >
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-gray-500">from last month</span>
-                  </div>
                 </div>
                 <div className={`${stat.color} p-3 rounded-lg`}>
                   <Icon size={24} className="text-white" />
