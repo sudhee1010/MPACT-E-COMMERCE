@@ -11,39 +11,6 @@ import api from "../api/axios";
 import toast from "react-hot-toast";
 
 
-
-// Initial Blog posts
-const initialBlogPosts = [
-  {
-    id: 'B001',
-    title: 'Latest Trends in Technology for 2024',
-    excerpt: 'Discover the newest innovations shaping our digital future. From AI to quantum computing, learn what trends will dominate the tech landscape this year.',
-    content: 'The technology landscape is evolving at an unprecedented pace. In 2024, we are witnessing several key trends that are shaping our digital future. Artificial Intelligence continues to dominate, with more sophisticated applications emerging daily. Quantum computing is moving from theoretical to practical applications, promising breakthroughs in various fields. Additionally, edge computing is becoming increasingly important as we generate more data than ever before. This article explores these trends in detail, providing insights into what businesses and individuals should expect in the coming months.',
-    author: 'John Doe',
-    date: '2024-01-15',
-    category: 'Technology',
-    tags: ['AI', 'Innovation', 'Future Tech'],
-    readTime: '5 min',
-    isFeatured: true,
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800',
-    active: true,
-  },
-  {
-    id: 'B002',
-    title: 'Sustainable Business Practices in Modern Companies',
-    excerpt: 'How forward-thinking companies are adopting eco-friendly approaches to reduce their carbon footprint and contribute to a greener future.',
-    content: 'Sustainability is no longer just a buzzword; it is a business imperative. Modern companies are recognizing that sustainable practices are not only good for the environment but also good for business. From reducing waste in manufacturing processes to implementing green energy solutions, businesses are finding innovative ways to minimize their environmental impact. This article explores case studies of companies that have successfully integrated sustainability into their core operations, the benefits they have realized, and practical steps other businesses can take to follow their lead.',
-    author: 'Jane Smith',
-    date: '2024-01-10',
-    category: 'Business',
-    tags: ['Sustainability', 'Green Business', 'Eco-Friendly'],
-    readTime: '7 min',
-    isFeatured: false,
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800',
-    active: true,
-  },
-];
-
 // Initial Home Videos data
 const initialHomeVideos = [
   {
@@ -72,14 +39,47 @@ export default function CMS() {
   const [loadingBanner, setLoadingBanner] = useState(false);
 
 
-  const [blogPosts, setBlogPosts] = useState(initialBlogPosts);
+  const [blogs, setBlogs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [blogSaving, setBlogSaving] = useState(false);
+
+  const [blogForm, setBlogForm] = useState({
+    title: "",
+    description: "",
+    content: "",
+    category: "",
+    tags: "",
+    readTime: 5,
+    isFeatured: false,
+    author: "",
+    coverImage: null,
+    imagePreview: ""
+  });
+
+  const resetBlogForm = () => {
+    setBlogForm({
+      title: "",
+      description: "",
+      content: "",
+      category: "",
+      tags: "",
+      readTime: 5,
+      isFeatured: false,
+      author: "",
+      coverImage: null,
+      imagePreview: ""
+    });
+  };
+
+
+  const [editingBlog, setEditingBlog] = useState(null);
   const [homeVideos, setHomeVideos] = useState(initialHomeVideos);
 
   const [isHomeCarouselDialogOpen, setIsHomeCarouselDialogOpen] = useState(false);
   const [isBlogDialogOpen, setIsBlogDialogOpen] = useState(false);
   const [isHomeVideosDialogOpen, setIsHomeVideosDialogOpen] = useState(false);
 
-  const [editingBlog, setEditingBlog] = useState(null);
 
   const [knowMore, setKnowMore] = useState({
     sectionTitle: "",
@@ -101,20 +101,6 @@ export default function CMS() {
   });
 
 
-  const [blogForm, setBlogForm] = useState({
-    title: '',
-    excerpt: '',
-    content: '',
-    author: '',
-    date: '',
-    category: '',
-    tags: '',
-    readTime: '',
-    isFeatured: false,
-    image: null,
-    imagePreview: '',
-    active: true,
-  });
 
   const [homeVideosForm, setHomeVideosForm] = useState({
     videoFile: null,
@@ -403,93 +389,104 @@ export default function CMS() {
 
 
   // Blog Functions
-  const handleAddBlog = () => {
-    const tagsArray = blogForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+  useEffect(() => {
+    fetchCategories();
+    fetchBlogs();
+  }, []);
 
-    const newPost = {
-      id: `B${String(blogPosts.length + 1).padStart(3, '0')}`,
-      title: blogForm.title,
-      excerpt: blogForm.excerpt,
-      content: blogForm.content,
-      author: blogForm.author,
-      date: blogForm.date || new Date().toISOString().split('T')[0],
-      category: blogForm.category,
-      tags: tagsArray,
-      readTime: blogForm.readTime,
-      isFeatured: blogForm.isFeatured,
-      image: blogForm.imagePreview,
-      active: blogForm.active,
-    };
-    setBlogPosts([...blogPosts, newPost]);
-    resetBlogForm();
-    setIsBlogDialogOpen(false);
-  };
-
-  const handleEditBlog = () => {
-    if (!editingBlog) return;
-
-    const tagsArray = blogForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-
-    setBlogPosts(blogPosts.map(b =>
-      b.id === editingBlog.id ? {
-        ...b,
-        title: blogForm.title,
-        excerpt: blogForm.excerpt,
-        content: blogForm.content,
-        author: blogForm.author,
-        date: blogForm.date,
-        category: blogForm.category,
-        tags: tagsArray,
-        readTime: blogForm.readTime,
-        isFeatured: blogForm.isFeatured,
-        image: blogForm.imagePreview,
-        active: blogForm.active
-      } : b
-    ));
-    resetBlogForm();
-    setEditingBlog(null);
-  };
-
-  const handleDeleteBlog = (id) => {
-    if (window.confirm('Are you sure you want to delete this blog post?')) {
-      setBlogPosts(blogPosts.filter(b => b.id !== id));
+  const fetchCategories = async () => {
+    try {
+      const { data } = await api.get("/api/blog-categories");
+      setCategories(data);
+    } catch (err) {
+      toast.error("Failed to load categories");
     }
   };
 
-  const openEditBlogDialog = (post) => {
-    setEditingBlog(post);
-    setBlogForm({
-      title: post.title,
-      excerpt: post.excerpt,
-      content: post.content,
-      author: post.author,
-      date: post.date,
-      category: post.category,
-      tags: post.tags.join(', '),
-      readTime: post.readTime,
-      isFeatured: post.isFeatured,
-      image: null,
-      imagePreview: post.image,
-      active: post.active,
-    });
+  const fetchBlogs = async () => {
+    try {
+      setBlogLoading(true);
+      const { data } = await api.get("/api/blogs");
+      setBlogs(data);
+    } catch {
+      toast.error("Failed to load blogs");
+    } finally {
+      setBlogLoading(false);
+    }
   };
 
-  const resetBlogForm = () => {
-    setBlogForm({
-      title: '',
-      excerpt: '',
-      content: '',
-      author: '',
-      date: '',
-      category: '',
-      tags: '',
-      readTime: '',
-      isFeatured: false,
-      image: null,
-      imagePreview: '',
-      active: true,
-    });
+  const handleCreateBlog = async () => {
+    try {
+      setBlogSaving(true);
+
+      const formData = new FormData();
+      Object.keys(blogForm).forEach((key) => {
+        if (key === "coverImage") {
+          if (blogForm.coverImage)
+            formData.append("coverImage", blogForm.coverImage);
+        } else {
+          formData.append(key, blogForm[key]);
+        }
+      });
+
+      await api.post("/api/blogs", formData);
+
+      toast.success("Blog created");
+      resetBlogForm();
+      setIsBlogDialogOpen(false);
+      fetchBlogs();
+
+    } catch {
+      toast.error("Create failed");
+    } finally {
+      setBlogSaving(false);
+    }
   };
+
+  const handleUpdateBlog = async () => {
+    try {
+      setBlogSaving(true);
+
+      const formData = new FormData();
+      Object.keys(blogForm).forEach((key) => {
+        if (key === "coverImage") {
+          if (blogForm.coverImage)
+            formData.append("coverImage", blogForm.coverImage);
+        } else {
+          formData.append(key, blogForm[key]);
+        }
+      });
+
+      await api.put(`/api/blogs/${editingBlog._id}`, formData);
+
+      toast.success("Blog updated");
+      setEditingBlog(null);
+      resetBlogForm();
+      setIsBlogDialogOpen(false);
+      fetchBlogs();
+
+    } catch {
+      toast.error("Update failed");
+    } finally {
+      setBlogSaving(false);
+    }
+  };
+
+  const handleDeleteBlog = async (id) => {
+    if (!window.confirm("Delete this blog?")) return;
+
+    try {
+      await api.delete(`/api/blogs/${id}`);
+      toast.success("Deleted successfully");
+      fetchBlogs();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+
+
+
 
   // Home Videos Functions
   const handleAddHomeVideo = () => {
@@ -898,389 +895,240 @@ export default function CMS() {
 
 
         {/* Blog Tab */}
-        <TabsContent value="blog" className="space-y-4">
+        <TabsContent value="blog" className="space-y-6">
+
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Manage Blog Posts</h3>
-            <Dialog open={isBlogDialogOpen} onOpenChange={setIsBlogDialogOpen}>
+            <h3 className="text-lg font-semibold">Manage Blogs</h3>
+
+            <Dialog
+              open={isBlogDialogOpen}
+              onOpenChange={(open) => {
+                setIsBlogDialogOpen(open);
+
+                if (!open) {
+                  setEditingBlog(null);
+                  resetBlogForm();
+                }
+              }}
+            >
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus size={20} className="mr-2" />
-                  Add Post
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  + Add Blog
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
+
+              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add Blog Post</DialogTitle>
+                  <DialogTitle>
+                    {editingBlog ? "Edit Blog" : "Create Blog"}
+                  </DialogTitle>
                 </DialogHeader>
+
                 <div className="space-y-4 py-4">
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.title}
-                      onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
-                      placeholder="Enter post title"
-                    />
-                  </div>
-                  <div>
-                    <Label>Excerpt</Label>
-                    <Textarea
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.excerpt}
-                      onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
-                      placeholder="Enter post excerpt (short description)"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label>Content</Label>
-                    <Textarea
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.content}
-                      onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
-                      placeholder="Enter full blog content"
-                      rows={8}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Author</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        value={blogForm.author}
-                        onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
-                        placeholder="Author name"
-                      />
-                    </div>
-                    <div>
-                      <Label>Date</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        type="date"
-                        value={blogForm.date}
-                        onChange={(e) => setBlogForm({ ...blogForm, date: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Category</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        value={blogForm.category}
-                        onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
-                        placeholder="Technology, Business, etc."
-                      />
-                    </div>
-                    <div>
-                      <Label>Read Time</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        value={blogForm.readTime}
-                        onChange={(e) => setBlogForm({ ...blogForm, readTime: e.target.value })}
-                        placeholder="e.g., 5 min"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Tags (comma separated)</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.tags}
-                      onChange={(e) => setBlogForm({ ...blogForm, tags: e.target.value })}
-                      placeholder="AI, Innovation, Technology, etc."
-                    />
-                  </div>
-                  <div>
-                    <Label>Featured Image</Label>
-                    {blogForm.imagePreview ? (
-                      <div className="relative mt-2">
-                        <img
-                          src={blogForm.imagePreview}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(setBlogForm, 'image', 'imagePreview')}
-                          className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-2">
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-2 text-gray-400" />
-                            <p className="mb-2 text-sm text-gray-400">Click to upload image</p>
-                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, setBlogForm, 'image', 'imagePreview')}
-                          />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={blogForm.isFeatured}
-                          onCheckedChange={(checked) => setBlogForm({ ...blogForm, isFeatured: checked })}
-                        />
-                        <Label>Featured Post</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={blogForm.active}
-                          onCheckedChange={(checked) => setBlogForm({ ...blogForm, active: checked })}
-                        />
-                        <Label>Active</Label>
-                      </div>
-                    </div>
-                  </div>
-                  <Button onClick={handleAddBlog} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Add Post
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
 
-
-
-
-
-
-            {/* Edit Blog Dialog */}
-            <Dialog open={!!editingBlog} onOpenChange={(open) => !open && setEditingBlog(null)}>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Edit Blog Post</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.title}
-                      onChange={(e) => setBlogForm({ ...blogForm, title: e.target.value })}
-                      placeholder="Enter post title"
-                    />
-                  </div>
-                  <div>
-                    <Label>Excerpt</Label>
-                    <Textarea
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.excerpt}
-                      onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
-                      placeholder="Enter post excerpt (short description)"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label>Content</Label>
-                    <Textarea
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.content}
-                      onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
-                      placeholder="Enter full blog content"
-                      rows={8}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Author</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        value={blogForm.author}
-                        onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
-                        placeholder="Author name"
-                      />
-                    </div>
-                    <div>
-                      <Label>Date</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        type="date"
-                        value={blogForm.date}
-                        onChange={(e) => setBlogForm({ ...blogForm, date: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Category</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        value={blogForm.category}
-                        onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
-                        placeholder="Technology, Business, etc."
-                      />
-                    </div>
-                    <div>
-                      <Label>Read Time</Label>
-                      <Input
-                        className="bg-gray-800 border-gray-700 text-white"
-                        value={blogForm.readTime}
-                        onChange={(e) => setBlogForm({ ...blogForm, readTime: e.target.value })}
-                        placeholder="e.g., 5 min"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Tags (comma separated)</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={blogForm.tags}
-                      onChange={(e) => setBlogForm({ ...blogForm, tags: e.target.value })}
-                      placeholder="AI, Innovation, Technology, etc."
-                    />
-                  </div>
-                  <div>
-                    <Label>Featured Image</Label>
-                    {blogForm.imagePreview ? (
-                      <div className="relative mt-2">
-                        <img
-                          src={blogForm.imagePreview}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(setBlogForm, 'image', 'imagePreview')}
-                          className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-2">
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-2 text-gray-400" />
-                            <p className="mb-2 text-sm text-gray-400">Click to upload image</p>
-                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, setBlogForm, 'image', 'imagePreview')}
-                          />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={blogForm.isFeatured}
-                          onCheckedChange={(checked) => setBlogForm({ ...blogForm, isFeatured: checked })}
-                        />
-                        <Label>Featured Post</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={blogForm.active}
-                          onCheckedChange={(checked) => setBlogForm({ ...blogForm, active: checked })}
-                        />
-                        <Label>Active</Label>
-                      </div>
-                    </div>
-                  </div>
-                  <Button onClick={handleEditBlog} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Update Post
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {blogPosts.map((post) => (
-              <div key={post.id} className="bg-[#2a2a2a] rounded-lg shadow-sm overflow-hidden border border-gray-700">
-                <div className="relative h-48 bg-gray-900">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
+                  <Input
+                    placeholder="Title"
+                    className="bg-gray-800"
+                    value={blogForm.title}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, title: e.target.value })
+                    }
                   />
-                  {post.isFeatured && (
-                    <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 text-xs font-semibold rounded">
-                      Featured
-                    </div>
-                  )}
-                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 text-xs rounded">
-                    {post.category}
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-white mb-2">{post.title}</h4>
-                      <p className="text-sm text-gray-300 mb-3 line-clamp-2">{post.excerpt}</p>
 
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {post.tags.map((tag, index) => (
-                          <span key={index} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-800 text-gray-300 rounded-full">
-                            <Tag size={10} />
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+                  <Textarea
+                    placeholder="Short Description"
+                    className="bg-gray-800"
+                    value={blogForm.description}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, description: e.target.value })
+                    }
+                  />
 
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
-                        <div className="flex items-center gap-1">
-                          <FileText size={12} />
-                          <span>{post.author}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          <span>{post.date}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock size={12} />
-                          <span>{post.readTime} read</span>
-                        </div>
-                      </div>
+                  <Textarea
+                    placeholder="Full Content (HTML)"
+                    className="bg-gray-800"
+                    rows={6}
+                    value={blogForm.content}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, content: e.target.value })
+                    }
+                  />
+
+                  <select
+                    className="bg-gray-800 p-2 rounded w-full"
+                    value={blogForm.category}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, category: e.target.value })
+                    }
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <Input
+                    placeholder="Tags (comma separated)"
+                    className="bg-gray-800"
+                    value={blogForm.tags}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, tags: e.target.value })
+                    }
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Read Time (minutes)"
+                    className="bg-gray-800"
+                    value={blogForm.readTime}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, readTime: e.target.value })
+                    }
+                  />
+
+                  <Input
+                    placeholder="Author"
+                    className="bg-gray-800"
+                    value={blogForm.author}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, author: e.target.value })
+                    }
+                  />
+
+                  <div>
+                    <Label>Cover Image</Label>
+
+                    {blogForm.imagePreview && (
+                      <img
+                        src={blogForm.imagePreview}
+                        className="w-full h-60 object-cover rounded mt-2"
+                      />
+                    )}
+
+                    <input
+                      type="file"
+                      className="mt-2 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setBlogForm({
+                            ...blogForm,
+                            coverImage: file,
+                            imagePreview: reader.result
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </div>
+
+
+                  <div className="flex items-center justify-between bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-600 p-4 rounded-lg">
+                    <div>
+                      <p className="text-white font-semibold text-sm">Featured Blog</p>
+                      <p className="text-xs text-gray-400">
+                        Highlight this blog on homepage
+                      </p>
                     </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${post.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}
-                    >
-                      {post.active ? 'Active' : 'Inactive'}
-                    </span>
+
+                    <Switch
+                      checked={blogForm.isFeatured}
+                      onCheckedChange={(checked) =>
+                        setBlogForm({ ...blogForm, isFeatured: checked })
+                      }
+                      className="data-[state=checked]:bg-yellow-500 data-[state=unchecked]:bg-gray-600"
+                    />
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEditBlogDialog(post)}
-                      className="flex-1 bg-gray-800 text-white hover:bg-gray-700 border-gray-600"
-                    >
-                      <Edit size={16} className="mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDeleteBlog(post.id)}
-                      className="text-red-400 hover:bg-red-900 border-red-600"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
+
+                  <Button
+                    disabled={blogSaving}
+                    onClick={editingBlog ? handleUpdateBlog : handleCreateBlog}
+                    className="w-full bg-blue-600"
+                  >
+                    {blogSaving
+                      ? "Processing..."
+                      : editingBlog
+                        ? "Update Blog"
+                        : "Create Blog"}
+                  </Button>
+
                 </div>
-              </div>
-            ))}
+              </DialogContent>
+            </Dialog>
           </div>
+
+          {blogLoading ? (
+            <div className="text-center py-20">Loading...</div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-6">
+              {blogs.map((blog) => (
+                <div
+                  key={blog._id}
+                  className="bg-[#2a2a2a] rounded-xl border border-gray-700 overflow-hidden"
+                >
+                  <img
+                    src={blog.coverImage}
+                    className="h-48 w-full object-cover"
+                  />
+
+                  <div className="p-4 space-y-2">
+                    <h4 className="font-semibold">{blog.title}</h4>
+                    <p className="text-sm text-gray-400 line-clamp-2">
+                      {blog.description}
+                    </p>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-blue-400">
+                        {blog.category?.name}
+                      </span>
+                      {blog.isFeatured && (
+                        <span className="text-xs bg-blue-600 px-2 py-1 rounded">
+                          ⭐ Featured
+                        </span>
+                      )}
+
+
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setEditingBlog(blog);
+                          setBlogForm({
+                            ...blog,
+                            tags: blog.tags.join(", "),
+                            imagePreview: blog.coverImage
+                          });
+                          setIsBlogDialogOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteBlog(blog._id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
+
+
+
+
 
         {/* Home Videos Tab - No Edit Option */}
         <TabsContent value="homeVideos" className="space-y-4">
