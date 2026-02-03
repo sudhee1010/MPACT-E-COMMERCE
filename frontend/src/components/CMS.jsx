@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, MoveUp, MoveDown, Image as ImageIcon, Upload, X, ChevronLeft, ChevronRight, Play, FileText, Users, Calendar, Film, Tag, Clock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -7,34 +7,9 @@ import { Label } from '../components/ui/Label';
 import { Textarea } from '../components/ui/Textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import { Switch } from '../components/ui/Switch';
+import api from "../api/axios";
+import toast from "react-hot-toast";
 
-// Initial Home Carousel data
-const initialHomeCarousel = [
-  {
-    id: 'C001',
-    title: 'Premium Headphones',
-    description: 'Experience crystal clear sound',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-    order: 1,
-    active: true,
-  },
-  {
-    id: 'C002',
-    title: 'Smart Watches',
-    description: 'Stay connected in style',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800',
-    order: 2,
-    active: true,
-  },
-  {
-    id: 'C003',
-    title: 'Tech Accessories',
-    description: 'Enhance your workspace',
-    image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800',
-    order: 3,
-    active: true,
-  },
-];
 
 // Initial About Us sections
 const initialAboutSections = [
@@ -113,7 +88,8 @@ const initialHomeVideos = [
 ];
 
 export default function CMS() {
-  const [homeCarousel, setHomeCarousel] = useState(initialHomeCarousel);
+  // const [homeCarousel, setHomeCarousel] = useState(initialHomeCarousel);
+  const [homeCarousel, setHomeCarousel] = useState([]);
   const [aboutSections, setAboutSections] = useState(initialAboutSections);
   const [blogPosts, setBlogPosts] = useState(initialBlogPosts);
   const [homeVideos, setHomeVideos] = useState(initialHomeVideos);
@@ -189,44 +165,114 @@ export default function CMS() {
   };
 
   // Home Carousel Functions
-  const handleAddHomeCarousel = () => {
-    const newSlide = {
-      id: `C${String(homeCarousel.length + 1).padStart(3, '0')}`,
-      title: homeCarouselForm.title,
-      description: homeCarouselForm.description,
-      image: homeCarouselForm.imagePreview,
-      order: homeCarousel.length + 1,
-      active: homeCarouselForm.active,
-    };
-    setHomeCarousel([...homeCarousel, newSlide]);
-    resetHomeCarouselForm();
-    setIsHomeCarouselDialogOpen(false);
-  };
 
-  const handleDeleteHomeCarousel = (id) => {
-    if (window.confirm('Are you sure you want to delete this slide?')) {
-      setHomeCarousel(homeCarousel.filter(c => c.id !== id));
+  const handleAddHomeCarousel = async () => {
+    if (!homeCarouselForm.image) {
+      toast.error("Please select an image");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("image", homeCarouselForm.image);
+
+      const { data } = await api.post("/api/hero-banners/create-hero", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setHomeCarousel(prev => [...prev, data]);
+      resetHomeCarouselForm();
+      setIsHomeCarouselDialogOpen(false);
+
+      toast.success("Banner uploaded successfully ✅");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Upload failed");
     }
   };
 
-  const moveHomeCarouselSlide = (id, direction) => {
-    const index = homeCarousel.findIndex(c => c.id === id);
-    if (index === -1) return;
-    
-    const newSlides = [...homeCarousel];
-    if (direction === 'up' && index > 0) {
-      [newSlides[index], newSlides[index - 1]] = [newSlides[index - 1], newSlides[index]];
-    } else if (direction === 'down' && index < newSlides.length - 1) {
-      [newSlides[index], newSlides[index + 1]] = [newSlides[index + 1], newSlides[index]];
+  useEffect(() => {
+    fetchHeroBanners();
+  }, []);
+
+  const fetchHeroBanners = async () => {
+    try {
+      const { data } = await api.get("api/hero-banners/admin");
+      setHomeCarousel(data);
+    } catch (err) {
+      console.error(err);
     }
-    
-    // Update order
-    newSlides.forEach((slide, idx) => {
-      slide.order = idx + 1;
-    });
-    
-    setHomeCarousel(newSlides);
   };
+
+
+
+  const handleDeleteHomeCarousel = async (id) => {
+    if (!window.confirm("Delete this banner?")) return;
+
+    try {
+      await api.delete(`/api/hero-banners/${id}`);
+      setHomeCarousel(prev => prev.filter(b => b._id !== id));
+      toast.success("Banner deleted");
+    } catch (err) {
+      toast.error("Delete failed");
+    }
+  };
+
+
+  // const moveHomeCarouselSlide = (id, direction) => {
+  //   const index = homeCarousel.findIndex(c => c._id === id);
+  //   if (index === -1) return;
+
+  //   const newSlides = [...homeCarousel];
+  //   if (direction === 'up' && index > 0) {
+  //     [newSlides[index], newSlides[index - 1]] = [newSlides[index - 1], newSlides[index]];
+  //   } else if (direction === 'down' && index < newSlides.length - 1) {
+  //     [newSlides[index], newSlides[index + 1]] = [newSlides[index + 1], newSlides[index]];
+  //   }
+
+  //   // Update order
+  //   newSlides.forEach((slide, idx) => {
+  //     slide.order = idx + 1;
+  //   });
+
+  //   setHomeCarousel(newSlides);
+  // };
+
+
+  const moveHomeCarouselSlide = async (id, direction) => {
+  const index = homeCarousel.findIndex(b => b._id === id);
+  if (index === -1) return;
+
+  const updated = [...homeCarousel];
+
+  if (direction === "up" && index > 0) {
+    [updated[index], updated[index - 1]] =
+      [updated[index - 1], updated[index]];
+  }
+
+  if (direction === "down" && index < updated.length - 1) {
+    [updated[index], updated[index + 1]] =
+      [updated[index + 1], updated[index]];
+  }
+
+  // assign new order
+  const reordered = updated.map((b, i) => ({
+    ...b,
+    order: i + 1,
+  }));
+
+  setHomeCarousel(reordered);
+
+  try {
+    await Promise.all(
+      reordered.map(b =>
+        api.put(`/api/hero-banners/${b._id}`, { order: b.order })
+      )
+    );
+  } catch {
+    toast.error("Order update failed");
+  }
+};
+
 
   const resetHomeCarouselForm = () => {
     setHomeCarouselForm({
@@ -255,9 +301,9 @@ export default function CMS() {
 
   const handleEditAbout = () => {
     if (!editingAbout) return;
-    setAboutSections(aboutSections.map(a => 
-      a.id === editingAbout.id ? { 
-        ...a, 
+    setAboutSections(aboutSections.map(a =>
+      a.id === editingAbout.id ? {
+        ...a,
         title: aboutForm.title,
         content: aboutForm.content,
         image: aboutForm.imagePreview,
@@ -277,19 +323,19 @@ export default function CMS() {
   const moveAboutSection = (id, direction) => {
     const index = aboutSections.findIndex(a => a.id === id);
     if (index === -1) return;
-    
+
     const newSections = [...aboutSections];
     if (direction === 'up' && index > 0) {
       [newSections[index], newSections[index - 1]] = [newSections[index - 1], newSections[index]];
     } else if (direction === 'down' && index < newSections.length - 1) {
       [newSections[index], newSections[index + 1]] = [newSections[index + 1], newSections[index]];
     }
-    
+
     // Update order
     newSections.forEach((section, idx) => {
       section.order = idx + 1;
     });
-    
+
     setAboutSections(newSections);
   };
 
@@ -317,7 +363,7 @@ export default function CMS() {
   // Blog Functions
   const handleAddBlog = () => {
     const tagsArray = blogForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-    
+
     const newPost = {
       id: `B${String(blogPosts.length + 1).padStart(3, '0')}`,
       title: blogForm.title,
@@ -339,12 +385,12 @@ export default function CMS() {
 
   const handleEditBlog = () => {
     if (!editingBlog) return;
-    
+
     const tagsArray = blogForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-    
-    setBlogPosts(blogPosts.map(b => 
-      b.id === editingBlog.id ? { 
-        ...b, 
+
+    setBlogPosts(blogPosts.map(b =>
+      b.id === editingBlog.id ? {
+        ...b,
         title: blogForm.title,
         excerpt: blogForm.excerpt,
         content: blogForm.content,
@@ -456,7 +502,7 @@ export default function CMS() {
                   <DialogTitle>Add Home Carousel Slide</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <div>
+                  {/* <div>
                     <Label>Title</Label>
                     <Input
                       className="bg-gray-800 border-gray-700 text-white"
@@ -464,8 +510,8 @@ export default function CMS() {
                       onChange={(e) => setHomeCarouselForm({ ...homeCarouselForm, title: e.target.value })}
                       placeholder="Enter slide title"
                     />
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <Label>Description</Label>
                     <Textarea
                       className="bg-gray-800 border-gray-700 text-white"
@@ -473,7 +519,7 @@ export default function CMS() {
                       onChange={(e) => setHomeCarouselForm({ ...homeCarouselForm, description: e.target.value })}
                       placeholder="Enter description"
                     />
-                  </div>
+                  </div> */}
                   <div>
                     <Label>Image</Label>
                     {homeCarouselForm.imagePreview ? (
@@ -526,46 +572,46 @@ export default function CMS() {
 
           <div className="space-y-3">
             {homeCarousel.map((slide, index) => (
-              <div key={slide.id} className="bg-[#2a2a2a] rounded-lg shadow-sm p-4 flex gap-4 border border-gray-700">
+              <div key={slide._id} className="bg-[#2a2a2a] rounded-lg shadow-sm p-4 flex gap-4 border border-gray-700">
                 <div className="w-32 h-20 rounded-md overflow-hidden flex-shrink-0">
                   <img
-                    src={slide.image}
-                    alt={slide.title}
+                    src={slide.image.url}
+                    alt="Hero Banner"
                     className="w-full h-full object-cover"
                   />
+
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
-                    <div>
+                    {/* <div>
                       <h4 className="font-semibold text-white mb-1">{slide.title}</h4>
                       <p className="text-sm text-gray-300">{slide.description}</p>
-                    </div>
+                    </div> */}
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        slide.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${slide.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}
                     >
-                      {slide.active ? 'Active' : 'Inactive'}
+                      {slide.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => moveHomeCarouselSlide(slide.id, 'up')}
+                    onClick={() => moveHomeCarouselSlide(slide._id, 'up')}
                     disabled={index === 0}
                     className="p-1 text-gray-300 hover:bg-gray-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <MoveUp size={18} />
                   </button>
                   <button
-                    onClick={() => moveHomeCarouselSlide(slide.id, 'down')}
+                    onClick={() => moveHomeCarouselSlide(slide._id, 'down')}
                     disabled={index === homeCarousel.length - 1}
                     className="p-1 text-gray-300 hover:bg-gray-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <MoveDown size={18} />
                   </button>
                   <button
-                    onClick={() => handleDeleteHomeCarousel(slide.id)}
+                    onClick={() => handleDeleteHomeCarousel(slide._id)}
                     className="p-1 text-red-400 hover:bg-red-900 rounded"
                   >
                     <Trash2 size={18} />
@@ -575,6 +621,10 @@ export default function CMS() {
             ))}
           </div>
         </TabsContent>
+
+
+
+        
 
         {/* About Us Tab */}
         <TabsContent value="about" className="space-y-4">
@@ -776,9 +826,8 @@ export default function CMS() {
                   )}
                   <div className="flex items-center justify-between">
                     <span
-                      className={`px-3 py-1 text-sm font-medium rounded-full ${
-                        section.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`px-3 py-1 text-sm font-medium rounded-full ${section.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}
                     >
                       {section.active ? 'Active' : 'Inactive'}
                     </span>
@@ -1131,7 +1180,7 @@ export default function CMS() {
                     <div className="flex-1">
                       <h4 className="font-semibold text-white mb-2">{post.title}</h4>
                       <p className="text-sm text-gray-300 mb-3 line-clamp-2">{post.excerpt}</p>
-                      
+
                       <div className="flex flex-wrap gap-1 mb-3">
                         {post.tags.map((tag, index) => (
                           <span key={index} className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-800 text-gray-300 rounded-full">
@@ -1140,7 +1189,7 @@ export default function CMS() {
                           </span>
                         ))}
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-xs text-gray-400">
                         <div className="flex items-center gap-1">
                           <FileText size={12} />
@@ -1157,9 +1206,8 @@ export default function CMS() {
                       </div>
                     </div>
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        post.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${post.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}
                     >
                       {post.active ? 'Active' : 'Inactive'}
                     </span>
@@ -1275,9 +1323,8 @@ export default function CMS() {
                       <span className="text-xs text-gray-400">Home Video</span>
                     </div>
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        video.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${video.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}
                     >
                       {video.active ? 'Active' : 'Inactive'}
                     </span>

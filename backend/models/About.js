@@ -12,6 +12,7 @@ const aboutSchema = new mongoose.Schema(
         text: String
       }
     ],
+    
 
     videos: [
       {
