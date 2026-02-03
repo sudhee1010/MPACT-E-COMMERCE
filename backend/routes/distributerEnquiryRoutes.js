@@ -3,6 +3,7 @@ import {
   submitDistributorEnquiry,
   getDistributorEnquiries,
   updateDistributorStatus,
+  deleteDistributorEnquiry,
 } from "../controllers/distributerEnquiryController.js";
 
 import { protect } from "../middlewares/authMiddleware.js";
@@ -26,6 +27,13 @@ router.patch(
   protect,
   isAdmin,
   updateDistributorStatus
+);
+
+router.delete(
+  "/distributor-enquiry/:id",
+  protect,
+  isAdmin,
+  deleteDistributorEnquiry
 );
 
 export default router;

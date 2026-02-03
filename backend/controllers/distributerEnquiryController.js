@@ -43,3 +43,19 @@ export const updateDistributorStatus = async (req, res) => {
 
   res.json(enquiry);
 };
+
+/* =========================
+   ADMIN: DELETE ENQUIRY
+========================= */
+export const deleteDistributorEnquiry = async (req, res) => {
+  try {
+    const enquiry = await DistributorEnquiry.findByIdAndDelete(req.params.id);
+    if (!enquiry) {
+      return res.status(404).json({ success: false, message: "Enquiry not found" });
+    }
+
+    res.json({ success: true, id: req.params.id });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to delete enquiry" });
+  }
+};
