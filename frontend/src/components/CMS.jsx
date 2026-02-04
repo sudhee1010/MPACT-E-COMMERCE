@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { Switch } from '../components/ui/Switch';
 import api from "../api/axios";
 import toast from "react-hot-toast";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 
 
 
@@ -23,6 +24,10 @@ export default function CMS() {
   const [loadingVideo, setLoadingVideo] = useState(false);
   const [loadingKnowMore, setLoadingKnowMore] = useState(false);
   const [loadingBanner, setLoadingBanner] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
 
 
   const [blogs, setBlogs] = useState([]);
@@ -131,6 +136,12 @@ export default function CMS() {
     }));
   };
 
+  const openConfirm = (action) => {
+    setConfirmAction(() => action);
+    setConfirmOpen(true);
+  };
+
+
   // Home Carousel Functions
 
   const handleAddHomeCarousel = async () => {
@@ -179,17 +190,24 @@ export default function CMS() {
 
 
 
-  const handleDeleteHomeCarousel = async (id) => {
-    if (!window.confirm("Delete this banner?")) return;
-
-    try {
-      await api.delete(`/api/hero-banners/${id}`);
-      setHomeCarousel(prev => prev.filter(b => b._id !== id));
-      toast.success("Banner deleted");
-    } catch (err) {
-      toast.error("Delete failed");
-    }
+  const handleDeleteHomeCarousel = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/hero-banners/${id}`);
+        setHomeCarousel(prev =>
+          prev.filter(b => b._id !== id)
+        );
+        toast.success("Banner deleted");
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
+    });
   };
+
 
 
   const moveHomeCarouselSlide = async (id, direction) => {
@@ -470,17 +488,22 @@ export default function CMS() {
     }
   };
 
-  const handleDeleteBlog = async (id) => {
-    if (!window.confirm("Delete this blog?")) return;
-
-    try {
-      await api.delete(`/api/blogs/${id}`);
-      toast.success("Deleted successfully");
-      fetchBlogs();
-    } catch {
-      toast.error("Delete failed");
-    }
+  const handleDeleteBlog = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/blogs/${id}`);
+        toast.success("Blog deleted successfully");
+        fetchBlogs();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
+    });
   };
+
 
 
 
@@ -544,17 +567,24 @@ export default function CMS() {
     }
   };
 
-  const handleDeleteVideoCMS = async (id) => {
-    if (!window.confirm("Delete this video?")) return;
 
-    try {
-      await api.delete(`/api/videos/${id}`);
-      toast.success("Deleted successfully");
-      fetchVideos();
-    } catch {
-      toast.error("Delete failed");
-    }
+  const handleDeleteVideoCMS = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/videos/${id}`);
+        toast.success("Deleted successfully");
+        fetchVideos();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
+    });
   };
+
+
 
 
 
@@ -1284,8 +1314,8 @@ export default function CMS() {
 
                     <span
                       className={`text-xs px-3 py-1 rounded-full font-semibold ${video.isActive
-                          ? "bg-green-600 text-white"
-                          : "bg-gray-600 text-white"
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-600 text-white"
                         }`}
                     >
                       {video.isActive ? "ACTIVE" : "INACTIVE"}
@@ -1312,6 +1342,14 @@ export default function CMS() {
         </TabsContent>
 
       </Tabs>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={setConfirmOpen}
+        onConfirm={() => confirmAction && confirmAction()}
+        loading={confirmLoading}
+      />
+
     </div>
   );
 }
