@@ -231,8 +231,13 @@ export const cancelOrder = async (req, res) => {
 
 
 
-export const returnOrder = async (req, res) => {
+
+export const requestReturn = async (req, res) => {
   try {
+    // const { reason } = req.body;
+    const reason = req.body?.reason || null;
+
+
     const order = await Order.findById(req.params.id);
 
     if (!order) return res.status(404).json({ message: "Order not found" });
@@ -245,14 +250,8 @@ export const returnOrder = async (req, res) => {
       return res.status(400).json({ message: "Only delivered orders can be returned" });
     }
 
-    if (order.isReturned) {
-      return res.status(400).json({ message: "Order already returned" });
-    }
-
-    for (const item of order.orderItems) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { countInStock: item.quantity }
-      });
+    if (order.orderStatus === "return_requested") {
+      return res.status(400).json({ message: "Return already requested" });
     }
 
     const now = new Date();
@@ -263,21 +262,16 @@ export const returnOrder = async (req, res) => {
       return res.status(400).json({ message: "Return window expired" });
     }
 
-    order.isReturned = true;
+    order.orderStatus = "return_requested";
+    order.returnReason = reason;
     order.returnedAt = now;
-    order.orderStatus = "returned";
-    order.paymentStatus = "refunded";
-    order.isStockReduced = false;
-
 
     await order.save();
 
-    res.json({ message: "Order returned successfully", order });
+    res.json({ message: "Return request submitted", order });
 
   } catch (error) {
-    console.error("Return Order Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
-
 

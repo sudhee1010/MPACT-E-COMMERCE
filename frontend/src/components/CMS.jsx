@@ -517,7 +517,10 @@ export default function CMS() {
   const fetchVideos = async () => {
     try {
       setVideoLoading(true);
-      const { data } = await api.get("/api/videos");
+
+      // IMPORTANT: add ?admin=true
+      const { data } = await api.get("/api/videos?admin=true");
+
       setVideos(data);
     } catch {
       toast.error("Failed to load videos");
@@ -525,6 +528,7 @@ export default function CMS() {
       setVideoLoading(false);
     }
   };
+
 
   const handleUploadVideo = async () => {
     if (!videoForm.videoFile) {

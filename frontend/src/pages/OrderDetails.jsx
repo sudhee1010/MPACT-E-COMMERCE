@@ -577,17 +577,17 @@ export default function OrderDetails() {
             `}</style>
 
             <div className="order-page">
-                <button 
-    className="back-btn" 
-    onClick={() => {
-        navigate("/profile");
-        // You can also store the active tab in localStorage or state
-        localStorage.setItem("profileActiveTab", "orders");
-    }}
-    style={{ marginLeft: "10px" }}
->
-    ← Back to Profile
-</button>
+                <button
+                    className="back-btn"
+                    onClick={() => {
+                        navigate("/profile");
+                        // You can also store the active tab in localStorage or state
+                        localStorage.setItem("profileActiveTab", "orders");
+                    }}
+                    style={{ marginLeft: "10px" }}
+                >
+                    ← Back to Profile
+                </button>
 
                 {/* Order Header */}
                 <div className="order-header">
@@ -636,7 +636,30 @@ export default function OrderDetails() {
                                 </button>
                             )}
 
-                            {canReturn && (
+                            {/* {canReturn && (
+                                <button
+                                    className="action-btn return-btn"
+                                    onClick={handleReturnOrder}
+                                    disabled={returning}
+                                >
+                                    {returning ? "Processing..." : "Return Order"}
+                                </button>
+                            )} */}
+                            {/* {canReturn && (
+                                <button
+                                    className="action-btn return-btn"
+                                    onClick={handleReturnOrder}
+                                    disabled={returning || order.isReturned}
+                                >
+                                    {returning
+                                        ? "Processing..."
+                                        : order.isReturned
+                                            ? "Return Requested"
+                                            : "Return Order"}
+                                </button>
+                            )} */}
+                            {/* Normal Return Button */}
+                            {canReturn && order.orderStatus === "delivered" && (
                                 <button
                                     className="action-btn return-btn"
                                     onClick={handleReturnOrder}
@@ -645,6 +668,22 @@ export default function OrderDetails() {
                                     {returning ? "Processing..." : "Return Order"}
                                 </button>
                             )}
+
+                            {/* Return Requested State */}
+                            {order.orderStatus === "return_requested" && (
+                                <button className="action-btn return-btn" disabled>
+                                    Return Requested
+                                </button>
+                            )}
+
+                            {/* Returned State */}
+                            {order.orderStatus === "returned" && (
+                                <button className="action-btn return-btn" disabled>
+                                    Returned & Refunded
+                                </button>
+                            )}
+
+
 
                             {order.paymentStatus === "paid" && (
                                 <button
