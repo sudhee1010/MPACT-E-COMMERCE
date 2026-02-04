@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import api from "../api/axios";
+import toast from "react-hot-toast";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   Home,
@@ -15,6 +18,17 @@ import {
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+    const { logout } = useAuth();
+
+
+      const handleLogout = async () => {
+    try {
+      await logout();         
+      navigate("/");    
+    } catch (err) {
+      toast.error("Logout failed");
+    }
+  };
 
   const active = (path) =>
     location.pathname === path
@@ -30,7 +44,7 @@ export function AdminLayout() {
     { label: "Customers", path: "/customers", icon: Users },
     { label: "Reports", path: "/reports", icon: BarChart3 },
     { label: "Coupons", path: "/coupons", icon: Package },
-    { label: "Inbox", path: "/inbox", icon: BarChart3 },
+    { label: "Distributor Enquiries", path: "/admin-distributor", icon: BarChart3 },
     { label: "CMS", path: "/cms", icon: Image },
     { label: "Ads Banner", path: "/adsbanner", icon: Monitor },
   ];
@@ -40,14 +54,6 @@ export function AdminLayout() {
     { label: "Global Settings", path: "/settings", icon: Settings },
   ];
 
-  const handleLogout = () => {
-    // Clear admin authentication
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminUser");
-    
-    // Redirect to home page 
-    navigate("/");
-  };
 
   return (
     <>

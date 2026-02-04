@@ -15,6 +15,7 @@ import { isAdmin } from "../middlewares/adminMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
 import uploadVideo from "../middlewares/uploadVideo.js";
 
+
 const router = express.Router();
 
 /* PUBLIC */

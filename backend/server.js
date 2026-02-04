@@ -29,6 +29,8 @@ import { cleanupUnverifiedUsers } from "./utils/cleanupUnverifiedUsers.js";
 import { startOrderCleanupJob } from "./utils/orderCleanup.js";
 import distributorEnquiryRoutes from "./routes/distributerEnquiryRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js"
+import inventoryRoutes from "./routes/inventoryRoutes.js"
+import reportRoutes from "./routes/reportRoutes.js";
 
 
 
@@ -79,6 +81,8 @@ app.use("/api/aboutus", aboutusRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/distributor",distributorEnquiryRoutes);
 app.use("/api/invoice", invoiceRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/reports", reportRoutes);
 
 
 const PORT = process.env.PORT || 5000;

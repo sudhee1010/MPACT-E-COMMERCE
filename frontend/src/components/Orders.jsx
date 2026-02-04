@@ -26,6 +26,9 @@ export function Orders() {
     return map[status] || status;
   };
 
+  const formatINR = (num) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(num);
+
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -212,7 +215,7 @@ const updateOrderStatus = async (orderId, newStatus) => {
                   <td className="py-3 px-4 text-sm text-gray-400">{order.orderItems[0]?.name}</td>
                   <td className="py-3 px-4 text-sm text-white">{order.orderItems.reduce((s, i) => s + i.quantity, 0)}</td>
                   <td className="py-3 px-4 text-sm font-medium text-yellow-400">
-                    ${order.totalAmount.toFixed(2)}
+                    {formatINR(order.totalAmount)}
                   </td>
                   <td className="py-3 px-4">
                     <span
@@ -321,7 +324,7 @@ const updateOrderStatus = async (orderId, newStatus) => {
                                 <div className="flex justify-between font-semibold text-white">
                                   <span>Total</span>
                                   <span className="text-yellow-400">
-                                    ${selectedOrder.totalAmount.toFixed(2)}
+                                    {formatINR(selectedOrder.totalAmount)}
                                   </span>
                                 </div>
                               </div>

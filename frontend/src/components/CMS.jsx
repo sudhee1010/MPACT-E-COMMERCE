@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, MoveUp, MoveDown, Image as ImageIcon, Upload, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, MoveUp, MoveDown, Image as ImageIcon, Upload, X, ChevronLeft, ChevronRight, Play, FileText, Users, Calendar, Film, Tag, Clock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/Dialog';
@@ -7,472 +7,602 @@ import { Label } from '../components/ui/Label';
 import { Textarea } from '../components/ui/Textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import { Switch } from '../components/ui/Switch';
+import api from "../api/axios";
+import toast from "react-hot-toast";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 
-const initialBanners = [
-  {
-    id: 'B001',
-    title: 'Summer Sale',
-    subtitle: 'Up to 50% off on selected items',
-    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200',
-    buttonText: 'Shop Now',
-    buttonLink: '/shop',
-    active: true,
-  },
-  {
-    id: 'B002',
-    title: 'New Arrivals',
-    subtitle: 'Check out our latest collection',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200',
-    buttonText: 'Explore',
-    buttonLink: '/new',
-    active: true,
-  },
-];
 
-const initialCarousel = [
-  {
-    id: 'C001',
-    title: 'Premium Headphones',
-    description: 'Experience crystal clear sound',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-    order: 1,
-    active: true,
-  },
-  {
-    id: 'C002',
-    title: 'Smart Watches',
-    description: 'Stay connected in style',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800',
-    order: 2,
-    active: true,
-  },
-  {
-    id: 'C003',
-    title: 'Tech Accessories',
-    description: 'Enhance your workspace',
-    image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800',
-    order: 3,
-    active: true,
-  },
-];
 
-const initialHeroSections = [
-  {
-    id: 'H001',
-    heading: 'Welcome to Our Store',
-    subheading: 'Discover amazing products at unbeatable prices',
-    backgroundImage: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1920',
-    ctaText: 'Start Shopping',
-    ctaLink: '/products',
-    active: true,
-  },
-];
 
 export default function CMS() {
-  const [banners, setBanners] = useState(initialBanners);
-  const [carouselSlides, setCarouselSlides] = useState(initialCarousel);
-  const [heroSections, setHeroSections] = useState(initialHeroSections);
+  const [homeCarousel, setHomeCarousel] = useState([]);
+  const [about, setAbout] = useState(null);
+  const [heroTitle, setHeroTitle] = useState("");
+  const [newHighlight, setNewHighlight] = useState("");
+  const [loadingHero, setLoadingHero] = useState(false);
+  const [loadingHighlight, setLoadingHighlight] = useState(false);
+  const [loadingVideo, setLoadingVideo] = useState(false);
+  const [loadingKnowMore, setLoadingKnowMore] = useState(false);
+  const [loadingBanner, setLoadingBanner] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
-  const [isBannerDialogOpen, setIsBannerDialogOpen] = useState(false);
-  const [isCarouselDialogOpen, setIsCarouselDialogOpen] = useState(false);
-  const [isHeroDialogOpen, setIsHeroDialogOpen] = useState(false);
 
-  const [editingBanner, setEditingBanner] = useState(null);
-  const [editingCarousel, setEditingCarousel] = useState(null);
-  const [editingHero, setEditingHero] = useState(null);
 
-  const [bannerForm, setBannerForm] = useState({
-    title: '',
-    subtitle: '',
-    image: '',
-    buttonText: '',
-    buttonLink: '',
-    active: true,
+  const [blogs, setBlogs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [blogSaving, setBlogSaving] = useState(false);
+
+  const [blogForm, setBlogForm] = useState({
+    title: "",
+    description: "",
+    content: "",
+    category: "",
+    tags: "",
+    readTime: 5,
+    isFeatured: false,
+    author: "",
+    coverImage: null,
+    imagePreview: ""
   });
 
-  const [carouselForm, setCarouselForm] = useState({
+  const resetBlogForm = () => {
+    setBlogForm({
+      title: "",
+      description: "",
+      content: "",
+      category: "",
+      tags: "",
+      readTime: 5,
+      isFeatured: false,
+      author: "",
+      coverImage: null,
+      imagePreview: ""
+    });
+  };
+
+  const [videos, setVideos] = useState([]);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [videoSaving, setVideoSaving] = useState(false);
+
+  const [videoForm, setVideoForm] = useState({
+    title: "",
+    description: "",
+    videoFile: null,
+    videoPreview: ""
+  });
+
+
+
+  const [editingBlog, setEditingBlog] = useState(null);
+  // const [homeVideos, setHomeVideos] = useState(initialHomeVideos);
+
+  const [isHomeCarouselDialogOpen, setIsHomeCarouselDialogOpen] = useState(false);
+  const [isBlogDialogOpen, setIsBlogDialogOpen] = useState(false);
+  const [isHomeVideosDialogOpen, setIsHomeVideosDialogOpen] = useState(false);
+
+
+  const [knowMore, setKnowMore] = useState({
+    sectionTitle: "",
+    heading: "",
+    imageHeading: "",
+    description: "",
+    image: "",
+    imageFile: null,
+    imagePreview: ""
+  });
+
+
+  const [homeCarouselForm, setHomeCarouselForm] = useState({
     title: '',
     description: '',
-    image: '',
+    image: null,
+    imagePreview: '',
     active: true,
   });
 
-  const [heroForm, setHeroForm] = useState({
-    heading: '',
-    subheading: '',
-    backgroundImage: '',
-    ctaText: '',
-    ctaLink: '',
-    active: true,
-  });
 
-  // Banner Functions
-  const handleAddBanner = () => {
-    const newBanner = {
-      id: `B${String(banners.length + 1).padStart(3, '0')}`,
-      ...bannerForm,
-    };
-    setBanners([...banners, newBanner]);
-    resetBannerForm();
-    setIsBannerDialogOpen(false);
-  };
 
-  const handleEditBanner = () => {
-    if (!editingBanner) return;
-    setBanners(banners.map(b => b.id === editingBanner.id ? { ...b, ...bannerForm } : b));
-    resetBannerForm();
-    setEditingBanner(null);
-  };
+  // const [homeVideosForm, setHomeVideosForm] = useState({
+  //   videoFile: null,
+  //   videoPreview: '',
+  //   active: true,
+  // });
 
-  const handleDeleteBanner = (id) => {
-    if (window.confirm('Are you sure you want to delete this banner?')) {
-      setBanners(banners.filter(b => b.id !== id));
+  // File upload handler
+  const handleFileUpload = (event, setForm, formKey, previewKey) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm(prev => ({
+          ...prev,
+          [formKey]: file,
+          [previewKey]: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const openEditBannerDialog = (banner) => {
-    setEditingBanner(banner);
-    setBannerForm({
-      title: banner.title,
-      subtitle: banner.subtitle,
-      image: banner.image,
-      buttonText: banner.buttonText,
-      buttonLink: banner.buttonLink,
-      active: banner.active,
-    });
+  // Remove uploaded file
+  const handleRemoveFile = (setForm, formKey, previewKey) => {
+    setForm(prev => ({
+      ...prev,
+      [formKey]: null,
+      [previewKey]: ''
+    }));
   };
 
-  const resetBannerForm = () => {
-    setBannerForm({
-      title: '',
-      subtitle: '',
-      image: '',
-      buttonText: '',
-      buttonLink: '',
-      active: true,
-    });
+  const openConfirm = (action) => {
+    setConfirmAction(() => action);
+    setConfirmOpen(true);
   };
 
-  // Carousel Functions
-  const handleAddCarousel = () => {
-    const newSlide = {
-      id: `C${String(carouselSlides.length + 1).padStart(3, '0')}`,
-      ...carouselForm,
-      order: carouselSlides.length + 1,
-    };
-    setCarouselSlides([...carouselSlides, newSlide]);
-    resetCarouselForm();
-    setIsCarouselDialogOpen(false);
-  };
 
-  const handleEditCarousel = () => {
-    if (!editingCarousel) return;
-    setCarouselSlides(carouselSlides.map(c => 
-      c.id === editingCarousel.id ? { ...c, ...carouselForm } : c
-    ));
-    resetCarouselForm();
-    setEditingCarousel(null);
-  };
+  // Home Carousel Functions
 
-  const handleDeleteCarousel = (id) => {
-    if (window.confirm('Are you sure you want to delete this slide?')) {
-      setCarouselSlides(carouselSlides.filter(c => c.id !== id));
+  const handleAddHomeCarousel = async () => {
+    if (!homeCarouselForm.image) {
+      toast.error("Please select an image");
+      return;
+    }
+
+    try {
+      setLoadingBanner(true);
+
+      const formData = new FormData();
+      formData.append("image", homeCarouselForm.image);
+
+      const { data } = await api.post(
+        "/api/hero-banners/create-hero",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      setHomeCarousel(prev => [...prev, data]);
+      resetHomeCarouselForm();
+      setIsHomeCarouselDialogOpen(false);
+
+      toast.success("Banner uploaded successfully");
+    } catch (err) {
+      toast.error("Upload failed");
+    } finally {
+      setLoadingBanner(false);
     }
   };
 
-  const moveCarouselSlide = (id, direction) => {
-    const index = carouselSlides.findIndex(c => c.id === id);
+
+  useEffect(() => {
+    fetchHeroBanners();
+  }, []);
+
+  const fetchHeroBanners = async () => {
+    try {
+      const { data } = await api.get("api/hero-banners/admin");
+      setHomeCarousel(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+
+  const handleDeleteHomeCarousel = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/hero-banners/${id}`);
+        setHomeCarousel(prev =>
+          prev.filter(b => b._id !== id)
+        );
+        toast.success("Banner deleted");
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
+    });
+  };
+
+
+
+  const moveHomeCarouselSlide = async (id, direction) => {
+    const index = homeCarousel.findIndex(b => b._id === id);
     if (index === -1) return;
-    
-    const newSlides = [...carouselSlides];
-    if (direction === 'up' && index > 0) {
-      [newSlides[index], newSlides[index - 1]] = [newSlides[index - 1], newSlides[index]];
-    } else if (direction === 'down' && index < newSlides.length - 1) {
-      [newSlides[index], newSlides[index + 1]] = [newSlides[index + 1], newSlides[index]];
+
+    const updated = [...homeCarousel];
+
+    if (direction === "up" && index > 0) {
+      [updated[index], updated[index - 1]] =
+        [updated[index - 1], updated[index]];
     }
-    
-    // Update order
-    newSlides.forEach((slide, idx) => {
-      slide.order = idx + 1;
-    });
-    
-    setCarouselSlides(newSlides);
+
+    if (direction === "down" && index < updated.length - 1) {
+      [updated[index], updated[index + 1]] =
+        [updated[index + 1], updated[index]];
+    }
+
+    // assign new order
+    const reordered = updated.map((b, i) => ({
+      ...b,
+      order: i + 1,
+    }));
+
+    setHomeCarousel(reordered);
+
+    try {
+      await Promise.all(
+        reordered.map(b =>
+          api.put(`/api/hero-banners/${b._id}`, { order: b.order })
+        )
+      );
+    } catch {
+      toast.error("Order update failed");
+    }
   };
 
-  const openEditCarouselDialog = (slide) => {
-    setEditingCarousel(slide);
-    setCarouselForm({
-      title: slide.title,
-      description: slide.description,
-      image: slide.image,
-      active: slide.active,
-    });
-  };
 
-  const resetCarouselForm = () => {
-    setCarouselForm({
+  const resetHomeCarouselForm = () => {
+    setHomeCarouselForm({
       title: '',
       description: '',
-      image: '',
+      image: null,
+      imagePreview: '',
       active: true,
     });
   };
 
-  // Hero Section Functions
-  const handleAddHero = () => {
-    const newHero = {
-      id: `H${String(heroSections.length + 1).padStart(3, '0')}`,
-      ...heroForm,
-    };
-    setHeroSections([...heroSections, newHero]);
-    resetHeroForm();
-    setIsHeroDialogOpen(false);
-  };
 
-  const handleEditHero = () => {
-    if (!editingHero) return;
-    setHeroSections(heroSections.map(h => 
-      h.id === editingHero.id ? { ...h, ...heroForm } : h
-    ));
-    resetHeroForm();
-    setEditingHero(null);
-  };
 
-  const handleDeleteHero = (id) => {
-    if (window.confirm('Are you sure you want to delete this hero section?')) {
-      setHeroSections(heroSections.filter(h => h.id !== id));
+
+
+
+  // About Us Functions
+  useEffect(() => {
+    fetchAbout();
+  }, []);
+
+  const fetchAbout = async () => {
+    try {
+      const { data } = await api.get("/api/aboutus");
+      setAbout(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const openEditHeroDialog = (hero) => {
-    setEditingHero(hero);
-    setHeroForm({
-      heading: hero.heading,
-      subheading: hero.subheading,
-      backgroundImage: hero.backgroundImage,
-      ctaText: hero.ctaText,
-      ctaLink: hero.ctaLink,
-      active: hero.active,
+  useEffect(() => {
+    if (about?.heroTitle) {
+      setHeroTitle(about.heroTitle);
+    }
+  }, [about]);
+
+  const handleSaveHeroTitle = async () => {
+    try {
+      const { data } = await api.put("/api/aboutus/hero-title", {
+        heroTitle,
+      });
+
+      toast.success(data.message);
+      fetchAbout();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Error saving");
+    }
+  };
+
+  const handleAddHighlight = async () => {
+    if (!newHighlight.trim()) return;
+
+    try {
+      await api.post("/api/aboutus/highlight", {
+        text: newHighlight,
+      });
+
+      toast.success("Highlight added");
+      setNewHighlight("");
+      fetchAbout();
+    } catch {
+      toast.error("Error adding highlight");
+    }
+  };
+
+  const handleDeleteHighlight = async (id) => {
+    try {
+      await api.delete(`/api/aboutus/highlight/${id}`);
+      toast.success("Deleted");
+      fetchAbout();
+    } catch {
+      toast.error("Error deleting");
+    }
+  };
+
+  const handleAddVideo = async (file) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("video", file);
+
+    try {
+      setLoadingVideo(true);
+
+      await api.post("/api/aboutus/video", formData);
+
+      toast.success("Video uploaded");
+      fetchAbout();
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setLoadingVideo(false);
+    }
+  };
+
+
+
+  const handleDeleteVideo = async (id) => {
+    try {
+      await api.delete(`/api/aboutus/video/${id}`);
+      toast.success("Deleted");
+      fetchAbout();
+    } catch {
+      toast.error("Error deleting");
+    }
+  };
+
+
+  const handleSaveKnowMore = async () => {
+    const formData = new FormData();
+    formData.append("sectionTitle", knowMore.sectionTitle);
+    formData.append("heading", knowMore.heading);
+    formData.append("imageHeading", knowMore.imageHeading);
+    formData.append("description", knowMore.description);
+
+    if (knowMore.imageFile) {
+      formData.append("image", knowMore.imageFile);
+    }
+
+    try {
+      setLoadingKnowMore(true);
+
+      await api.put("/api/aboutus/know-more", formData);
+
+      toast.success("Updated");
+      fetchAbout();
+    } catch {
+      toast.error("Error updating");
+    } finally {
+      setLoadingKnowMore(false);
+    }
+  };
+
+
+
+  const handleDeleteKnowMoreImage = async () => {
+    await api.delete("/api/aboutus/know-more/image");
+    fetchAbout();
+  };
+
+  useEffect(() => {
+    if (about?.knowMore) {
+      setKnowMore({
+        sectionTitle: about.knowMore.sectionTitle || "",
+        heading: about.knowMore.heading || "",
+        imageHeading: about.knowMore.imageHeading || "",
+        description: about.knowMore.description || "",
+        image: about.knowMore.image || "",
+        imageFile: null,
+        imagePreview: about.knowMore.image || ""
+      });
+    }
+  }, [about]);
+
+
+
+
+
+
+  // Blog Functions
+  useEffect(() => {
+    fetchCategories();
+    fetchBlogs();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await api.get("/api/blog-categories");
+      setCategories(data);
+    } catch (err) {
+      toast.error("Failed to load categories");
+    }
+  };
+
+  const fetchBlogs = async () => {
+    try {
+      setBlogLoading(true);
+      const { data } = await api.get("/api/blogs");
+      setBlogs(data);
+    } catch {
+      toast.error("Failed to load blogs");
+    } finally {
+      setBlogLoading(false);
+    }
+  };
+
+  const handleCreateBlog = async () => {
+    try {
+      setBlogSaving(true);
+
+      const formData = new FormData();
+      Object.keys(blogForm).forEach((key) => {
+        if (key === "coverImage") {
+          if (blogForm.coverImage)
+            formData.append("coverImage", blogForm.coverImage);
+        } else {
+          formData.append(key, blogForm[key]);
+        }
+      });
+
+      await api.post("/api/blogs", formData);
+
+      toast.success("Blog created");
+      resetBlogForm();
+      setIsBlogDialogOpen(false);
+      fetchBlogs();
+
+    } catch {
+      toast.error("Create failed");
+    } finally {
+      setBlogSaving(false);
+    }
+  };
+
+  const handleUpdateBlog = async () => {
+    try {
+      setBlogSaving(true);
+
+      const formData = new FormData();
+      Object.keys(blogForm).forEach((key) => {
+        if (key === "coverImage") {
+          if (blogForm.coverImage)
+            formData.append("coverImage", blogForm.coverImage);
+        } else {
+          formData.append(key, blogForm[key]);
+        }
+      });
+
+      await api.put(`/api/blogs/${editingBlog._id}`, formData);
+
+      toast.success("Blog updated");
+      setEditingBlog(null);
+      resetBlogForm();
+      setIsBlogDialogOpen(false);
+      fetchBlogs();
+
+    } catch {
+      toast.error("Update failed");
+    } finally {
+      setBlogSaving(false);
+    }
+  };
+
+  const handleDeleteBlog = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/blogs/${id}`);
+        toast.success("Blog deleted successfully");
+        fetchBlogs();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
     });
   };
 
-  const resetHeroForm = () => {
-    setHeroForm({
-      heading: '',
-      subheading: '',
-      backgroundImage: '',
-      ctaText: '',
-      ctaLink: '',
-      active: true,
+
+
+
+
+
+  // Home Videos Functions
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const fetchVideos = async () => {
+    try {
+      setVideoLoading(true);
+      const { data } = await api.get("/api/videos");
+      setVideos(data);
+    } catch {
+      toast.error("Failed to load videos");
+    } finally {
+      setVideoLoading(false);
+    }
+  };
+
+  const handleUploadVideo = async () => {
+    if (!videoForm.videoFile) {
+      toast.error("Please select a video");
+      return;
+    }
+
+    try {
+      setVideoSaving(true);
+
+      const formData = new FormData();
+      formData.append("title", videoForm.title);
+      formData.append("description", videoForm.description);
+      formData.append("video", videoForm.videoFile);
+
+      await api.post("/api/videos", formData);
+
+      toast.success("Video uploaded");
+      setVideoForm({
+        title: "",
+        description: "",
+        videoFile: null,
+        videoPreview: ""
+      });
+      fetchVideos();
+
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setVideoSaving(false);
+    }
+  };
+
+  const handleToggleVideo = async (id) => {
+    try {
+      await api.put(`/api/videos/${id}/toggle`);
+      fetchVideos();
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
+
+
+  const handleDeleteVideoCMS = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/videos/${id}`);
+        toast.success("Deleted successfully");
+        fetchVideos();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
     });
   };
+
+
+
+
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="banners" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="banners">Banners</TabsTrigger>
-          <TabsTrigger value="carousel">Carousel</TabsTrigger>
-          <TabsTrigger value="hero">Hero Sections</TabsTrigger>
+      <Tabs defaultValue="homeCarousel" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="homeCarousel">Home Carousel</TabsTrigger>
+          <TabsTrigger value="about">About Us</TabsTrigger>
+          <TabsTrigger value="blog">Blog</TabsTrigger>
+          <TabsTrigger value="homeVideos">Home Videos</TabsTrigger>
         </TabsList>
 
-        {/* Banners Tab */}
-        <TabsContent value="banners" className="space-y-4">
+        {/* Home Carousel Tab - No Edit Option */}
+        <TabsContent value="homeCarousel" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Manage Banners</h3>
-            <Dialog open={isBannerDialogOpen} onOpenChange={setIsBannerDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
-                  <Plus size={20} className="mr-2" />
-                  Add Banner
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Banner</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div>
-                    <Label className="text-gray-300">Title</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.title}
-                      onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
-                      placeholder="Enter banner title"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Subtitle</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.subtitle}
-                      onChange={(e) => setBannerForm({ ...bannerForm, subtitle: e.target.value })}
-                      placeholder="Enter subtitle"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Image URL</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.image}
-                      onChange={(e) => setBannerForm({ ...bannerForm, image: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Button Text</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.buttonText}
-                      onChange={(e) => setBannerForm({ ...bannerForm, buttonText: e.target.value })}
-                      placeholder="Shop Now"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Button Link</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.buttonLink}
-                      onChange={(e) => setBannerForm({ ...bannerForm, buttonLink: e.target.value })}
-                      placeholder="/shop"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-gray-300">Active</Label>
-                    <Switch
-                      checked={bannerForm.active}
-                      onCheckedChange={(checked) => setBannerForm({ ...bannerForm, active: checked })}
-                    />
-                  </div>
-                  <Button onClick={handleAddBanner} className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
-                    Add Banner
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit Banner Dialog */}
-            <Dialog open={!!editingBanner} onOpenChange={(open) => !open && setEditingBanner(null)}>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
-
-                <DialogHeader>
-                  <DialogTitle>Edit Banner</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div>
-                    <Label className="text-gray-300">Title</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.title}
-                      onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
-                      placeholder="Enter banner title"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Subtitle</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.subtitle}
-                      onChange={(e) => setBannerForm({ ...bannerForm, subtitle: e.target.value })}
-                      placeholder="Enter subtitle"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Image URL</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.image}
-                      onChange={(e) => setBannerForm({ ...bannerForm, image: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Button Text</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.buttonText}
-                      onChange={(e) => setBannerForm({ ...bannerForm, buttonText: e.target.value })}
-                      placeholder="Shop Now"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Button Link</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.buttonLink}
-                      onChange={(e) => setBannerForm({ ...bannerForm, buttonLink: e.target.value })}
-                      placeholder="/shop"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-gray-300">Active</Label>
-                    <Switch
-                      checked={bannerForm.active}
-                      onCheckedChange={(checked) => setBannerForm({ ...bannerForm, active: checked })}
-                    />
-                  </div>
-                  <Button onClick={handleEditBanner} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Update Banner
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {banners.map((banner) => (
-              <div key={banner.id} className="bg-[#2a2a2a] rounded-lg shadow-sm overflow-hidden">
-                <div className="aspect-video bg-gray-100">
-                  <img
-                    src={banner.image}
-                    alt={banner.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h4 className="font-semibold text-white-900">{banner.title}</h4>
-                      <p className="text-sm text-white-600">{banner.subtitle}</p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        banner.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {banner.active ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEditBannerDialog(banner)}
-                      className="flex-1"
-                    >
-                      <Edit size={16} className="mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDeleteBanner(banner.id)}
-                      className="text-red-600 hover:bg-red-50"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Carousel Tab */}
-        <TabsContent value="carousel" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Manage Carousel Slides</h3>
-            <Dialog open={isCarouselDialogOpen} onOpenChange={setIsCarouselDialogOpen}>
+            <h3 className="text-lg font-semibold">Manage Home Carousel Slides</h3>
+            <Dialog open={isHomeCarouselDialogOpen} onOpenChange={setIsHomeCarouselDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus size={20} className="mr-2" />
@@ -480,89 +610,76 @@ export default function CMS() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
-
                 <DialogHeader>
-                  <DialogTitle>Add Carousel Slide</DialogTitle>
+                  <DialogTitle>Add Home Carousel Slide</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <div>
+                  {/* <div>
                     <Label>Title</Label>
                     <Input
-                      value={carouselForm.title}
-                      onChange={(e) => setCarouselForm({ ...carouselForm, title: e.target.value })}
+                      className="bg-gray-800 border-gray-700 text-white"
+                      value={homeCarouselForm.title}
+                      onChange={(e) => setHomeCarouselForm({ ...homeCarouselForm, title: e.target.value })}
                       placeholder="Enter slide title"
                     />
-                  </div>
-                  <div>
+                  </div> */}
+                  {/* <div>
                     <Label>Description</Label>
                     <Textarea
-                      value={carouselForm.description}
-                      onChange={(e) => setCarouselForm({ ...carouselForm, description: e.target.value })}
+                      className="bg-gray-800 border-gray-700 text-white"
+                      value={homeCarouselForm.description}
+                      onChange={(e) => setHomeCarouselForm({ ...homeCarouselForm, description: e.target.value })}
                       placeholder="Enter description"
                     />
-                  </div>
+                  </div> */}
                   <div>
-                    <Label>Image URL</Label>
-                    <Input
-                      value={carouselForm.image}
-                      onChange={(e) => setCarouselForm({ ...carouselForm, image: e.target.value })}
-                      placeholder="https://..."
-                    />
+                    <Label>Image</Label>
+                    {homeCarouselForm.imagePreview ? (
+                      <div className="relative mt-2">
+                        <img
+                          src={homeCarouselForm.imagePreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(setHomeCarouselForm, 'image', 'imagePreview')}
+                          className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                            <p className="mb-2 text-sm text-gray-400">Click to upload image</p>
+                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, setHomeCarouselForm, 'image', 'imagePreview')}
+                          />
+                        </label>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <Label>Active</Label>
                     <Switch
-                      checked={carouselForm.active}
-                      onCheckedChange={(checked) => setCarouselForm({ ...carouselForm, active: checked })}
+                      checked={homeCarouselForm.active}
+                      onCheckedChange={(checked) => setHomeCarouselForm({ ...homeCarouselForm, active: checked })}
                     />
                   </div>
-                  <Button onClick={handleAddCarousel} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Add Slide
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit Carousel Dialog */}
-            <Dialog open={!!editingCarousel} onOpenChange={(open) => !open && setEditingCarousel(null)}>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Edit Carousel Slide</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={carouselForm.title}
-                      onChange={(e) => setCarouselForm({ ...carouselForm, title: e.target.value })}
-                      placeholder="Enter slide title"
-                    />
-                  </div>
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      value={carouselForm.description}
-                      onChange={(e) => setCarouselForm({ ...carouselForm, description: e.target.value })}
-                      placeholder="Enter description"
-                    />
-                  </div>
-                  <div>
-                    <Label>Image URL</Label>
-                    <Input
-                      value={carouselForm.image}
-                      onChange={(e) => setCarouselForm({ ...carouselForm, image: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Active</Label>
-                    <Switch
-                      checked={carouselForm.active}
-                      onCheckedChange={(checked) => setCarouselForm({ ...carouselForm, active: checked })}
-                    />
-                  </div>
-                  <Button onClick={handleEditCarousel} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Update Slide
+                  <Button
+                    onClick={handleAddHomeCarousel}
+                    disabled={loadingBanner}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {loadingBanner ? "Uploading..." : "Add Slide"}
                   </Button>
                 </div>
               </DialogContent>
@@ -570,54 +687,48 @@ export default function CMS() {
           </div>
 
           <div className="space-y-3">
-            {carouselSlides.map((slide, index) => (
-              <div key={slide.id} className="bg-grey rounded-lg shadow-sm p-4 flex gap-4">
-                <div className="w-32 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+            {homeCarousel.map((slide, index) => (
+              <div key={slide._id} className="bg-[#2a2a2a] rounded-lg shadow-sm p-4 flex gap-4 border border-gray-700">
+                <div className="w-32 h-20 rounded-md overflow-hidden flex-shrink-0">
                   <img
-                    src={slide.image}
-                    alt={slide.title}
+                    src={slide.image.url}
+                    alt="Hero Banner"
                     className="w-full h-full object-cover"
                   />
+
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-semibold text-white-900">{slide.title}</h4>
-                      <p className="text-sm text-white-600">{slide.description}</p>
-                    </div>
+                    {/* <div>
+                      <h4 className="font-semibold text-white mb-1">{slide.title}</h4>
+                      <p className="text-sm text-gray-300">{slide.description}</p>
+                    </div> */}
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        slide.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${slide.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}
                     >
-                      {slide.active ? 'Active' : 'Inactive'}
+                      {slide.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => moveCarouselSlide(slide.id, 'up')}
+                    onClick={() => moveHomeCarouselSlide(slide._id, 'up')}
                     disabled={index === 0}
-                    className="p-1 text-white-600 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="p-1 text-gray-300 hover:bg-gray-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <MoveUp size={18} />
                   </button>
                   <button
-                    onClick={() => moveCarouselSlide(slide.id, 'down')}
-                    disabled={index === carouselSlides.length - 1}
-                    className="p-1 text-white-600 hover:bg-gray-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                    onClick={() => moveHomeCarouselSlide(slide._id, 'down')}
+                    disabled={index === homeCarousel.length - 1}
+                    className="p-1 text-gray-300 hover:bg-gray-700 rounded disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <MoveDown size={18} />
                   </button>
                   <button
-                    onClick={() => openEditCarouselDialog(slide)}
-                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCarousel(slide.id)}
-                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                    onClick={() => handleDeleteHomeCarousel(slide._id)}
+                    className="p-1 text-red-400 hover:bg-red-900 rounded"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -627,196 +738,618 @@ export default function CMS() {
           </div>
         </TabsContent>
 
-        {/* Hero Sections Tab */}
-        <TabsContent value="hero" className="space-y-4">
+
+
+
+
+        {/* About Us Tab */}
+
+        <TabsContent value="about" className="space-y-6">
+          {/* HERO TITLE CARD */}
+          <div className="bg-[#2a2a2a] rounded-lg border border-gray-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Users className="text-blue-400" size={20} />
+              <h4 className="text-lg font-semibold text-white">Hero Title</h4>
+            </div>
+
+            <Input
+              value={heroTitle}
+              onChange={(e) => setHeroTitle(e.target.value)}
+              className="bg-gray-800 border-gray-700 text-white"
+              placeholder="Enter Hero Title"
+            />
+
+            <Button
+              onClick={handleSaveHeroTitle}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Save Changes
+            </Button>
+          </div>
+
+
+
+          {/* HIGHLIGHTS CARD */}
+          <div className="bg-[#2a2a2a] rounded-lg border border-gray-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Tag className="text-blue-400" size={20} />
+              <h4 className="text-lg font-semibold text-white">Highlights</h4>
+            </div>
+
+            <div className="flex gap-2 mb-4">
+              <Input
+                value={newHighlight}
+                onChange={(e) => setNewHighlight(e.target.value)}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="Add new highlight"
+              />
+              <Button onClick={handleAddHighlight} className="bg-blue-600">
+                Add
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {about?.highlights?.map((h) => (
+                <div
+                  key={h._id}
+                  className="flex items-center justify-between bg-gray-800 p-3 rounded-md"
+                >
+                  <span className="text-gray-300">{h.text}</span>
+                  <button
+                    onClick={() => handleDeleteHighlight(h._id)}
+                    className="text-red-400 hover:text-red-600"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+
+
+          {/* VIDEOS CARD */}
+          <div className="bg-[#2a2a2a] rounded-lg border border-gray-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Film className="text-blue-400" size={20} />
+              <h4 className="text-lg font-semibold text-white">About Videos</h4>
+            </div>
+
+            <label className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700 mb-4">
+
+              {loadingVideo && (
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-lg">
+                  <span className="text-white animate-pulse">Uploading...</span>
+                </div>
+              )}
+
+              <Film className="w-8 h-8 mb-2 text-gray-400" />
+              <p className="text-sm text-gray-400">Click to upload video</p>
+
+              <input
+                type="file"
+                hidden
+                disabled={loadingVideo}
+                accept="video/*"
+                onChange={(e) => handleAddVideo(e.target.files[0])}
+              />
+            </label>
+
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {about?.videos?.map((v) => (
+                <div
+                  key={v._id}
+                  className="relative bg-gray-800 rounded-lg overflow-hidden"
+                >
+                  <video
+                    src={v.videoUrl}
+                    controls
+                    className="w-full h-48 object-cover"
+                  />
+
+                  <button
+                    onClick={() => handleDeleteVideo(v._id)}
+                    className="absolute top-2 right-2 bg-red-600 p-1 rounded-full"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+
+
+          {/* KNOW MORE CARD */}
+          <div className="bg-[#2a2a2a] rounded-lg border border-gray-700 p-6 space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <ImageIcon className="text-blue-400" size={20} />
+              <h4 className="text-lg font-semibold text-white">Know More Section</h4>
+            </div>
+
+            <Input
+              placeholder="Section Title"
+              value={knowMore.sectionTitle}
+              onChange={(e) =>
+                setKnowMore({ ...knowMore, sectionTitle: e.target.value })
+              }
+              className="bg-gray-800 border-gray-700 text-white"
+            />
+
+            {/* <Input
+              placeholder="Heading"
+              value={knowMore.heading}
+              onChange={(e) =>
+                setKnowMore({ ...knowMore, heading: e.target.value })
+              }
+              className="bg-gray-800 border-gray-700 text-white"
+            /> */}
+
+            <Input
+              placeholder="Image Heading (Text inside image)"
+              value={knowMore.imageHeading}
+              onChange={(e) =>
+                setKnowMore({ ...knowMore, imageHeading: e.target.value })
+              }
+              className="bg-gray-800 border-gray-700 text-white"
+            />
+
+            <Textarea
+              placeholder="Description"
+              rows={4}
+              value={knowMore.description}
+              onChange={(e) =>
+                setKnowMore({ ...knowMore, description: e.target.value })
+              }
+              className="bg-gray-800 border-gray-700 text-white"
+            />
+
+            {/* EXISTING IMAGE */}
+            {knowMore.imagePreview && (
+              <div className="relative w-full">
+                <img
+                  src={knowMore.imagePreview}
+                  alt="Know More Preview"
+                  className="w-full max-h-[400px] object-contain rounded-lg bg-gray-800"
+                />
+
+                <button
+                  onClick={handleDeleteKnowMoreImage}
+                  className="absolute top-2 right-2 bg-red-600 p-1 rounded-full"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            )}
+
+
+            {/* UPLOAD IMAGE */}
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
+              <Upload className="w-6 h-6 text-gray-400 mb-2" />
+              <span className="text-sm text-gray-400">Upload Image</span>
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setKnowMore({
+                      ...knowMore,
+                      imageFile: file,
+                      imagePreview: reader.result
+                    });
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+            </label>
+
+            <Button
+              onClick={handleSaveKnowMore}
+              disabled={loadingKnowMore}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {loadingKnowMore ? "Processing..." : "Save Know More"}
+            </Button>
+
+          </div>
+
+        </TabsContent>
+
+
+
+
+
+
+
+        {/* Blog Tab */}
+        <TabsContent value="blog" className="space-y-6">
+
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Manage Hero Sections</h3>
-            <Dialog open={isHeroDialogOpen} onOpenChange={setIsHeroDialogOpen}>
+            <h3 className="text-lg font-semibold">Manage Blogs</h3>
+
+            <Dialog
+              open={isBlogDialogOpen}
+              onOpenChange={(open) => {
+                setIsBlogDialogOpen(open);
+
+                if (!open) {
+                  setEditingBlog(null);
+                  resetBlogForm();
+                }
+              }}
+            >
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus size={20} className="mr-2" />
-                  Add Hero Section
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  + Add Blog
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add Hero Section</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div>
-                    <Label className="text-gray-300">Title</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.title}
-                      onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
-                      placeholder="Enter banner title"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Subtitle</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.subtitle}
-                      onChange={(e) => setBannerForm({ ...bannerForm, subtitle: e.target.value })}
-                      placeholder="Enter subtitle"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Image URL</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.image}
-                      onChange={(e) => setBannerForm({ ...bannerForm, image: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Button Text</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.buttonText}
-                      onChange={(e) => setBannerForm({ ...bannerForm, buttonText: e.target.value })}
-                      placeholder="Shop Now"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-gray-300">Button Link</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                      value={bannerForm.buttonLink}
-                      onChange={(e) => setBannerForm({ ...bannerForm, buttonLink: e.target.value })}
-                      placeholder="/shop"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-gray-300">Active</Label>
-                    <Switch
-                      checked={heroForm.active}
-                      onCheckedChange={(checked) => setHeroForm({ ...heroForm, active: checked })}
-                    />
-                  </div>
-                  <Button onClick={handleAddHero} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Add Hero Section
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
 
-            {/* Edit Hero Dialog */}
-            <Dialog open={!!editingHero} onOpenChange={(open) => !open && setEditingHero(null)}>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Edit Hero Section</DialogTitle>
+                  <DialogTitle>
+                    {editingBlog ? "Edit Blog" : "Create Blog"}
+                  </DialogTitle>
                 </DialogHeader>
+
                 <div className="space-y-4 py-4">
+
+                  <Input
+                    placeholder="Title"
+                    className="bg-gray-800"
+                    value={blogForm.title}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, title: e.target.value })
+                    }
+                  />
+
+                  <Textarea
+                    placeholder="Short Description"
+                    className="bg-gray-800"
+                    value={blogForm.description}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, description: e.target.value })
+                    }
+                  />
+
+                  <Textarea
+                    placeholder="Full Content (HTML)"
+                    className="bg-gray-800"
+                    rows={6}
+                    value={blogForm.content}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, content: e.target.value })
+                    }
+                  />
+
+                  <select
+                    className="bg-gray-800 p-2 rounded w-full"
+                    value={blogForm.category}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, category: e.target.value })
+                    }
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <Input
+                    placeholder="Tags (comma separated)"
+                    className="bg-gray-800"
+                    value={blogForm.tags}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, tags: e.target.value })
+                    }
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Read Time (minutes)"
+                    className="bg-gray-800"
+                    value={blogForm.readTime}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, readTime: e.target.value })
+                    }
+                  />
+
+                  <Input
+                    placeholder="Author"
+                    className="bg-gray-800"
+                    value={blogForm.author}
+                    onChange={(e) =>
+                      setBlogForm({ ...blogForm, author: e.target.value })
+                    }
+                  />
+
                   <div>
-                    <Label>Heading</Label>
-                    <Input
-                      value={heroForm.heading}
-                      onChange={(e) => setHeroForm({ ...heroForm, heading: e.target.value })}
-                      placeholder="Enter heading"
+                    <Label>Cover Image</Label>
+
+                    {blogForm.imagePreview && (
+                      <img
+                        src={blogForm.imagePreview}
+                        className="w-full h-60 object-cover rounded mt-2"
+                      />
+                    )}
+
+                    <input
+                      type="file"
+                      className="mt-2 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setBlogForm({
+                            ...blogForm,
+                            coverImage: file,
+                            imagePreview: reader.result
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
                     />
                   </div>
-                  <div>
-                    <Label>Subheading</Label>
-                    <Textarea
-                      value={heroForm.subheading}
-                      onChange={(e) => setHeroForm({ ...heroForm, subheading: e.target.value })}
-                      placeholder="Enter subheading"
-                    />
-                  </div>
-                  <div>
-                    <Label>Background Image URL</Label>
-                    <Input
-                      value={heroForm.backgroundImage}
-                      onChange={(e) => setHeroForm({ ...heroForm, backgroundImage: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div>
-                    <Label>CTA Button Text</Label>
-                    <Input
-                      value={heroForm.ctaText}
-                      onChange={(e) => setHeroForm({ ...heroForm, ctaText: e.target.value })}
-                      placeholder="Get Started"
-                    />
-                  </div>
-                  <div>
-                    <Label>CTA Button Link</Label>
-                    <Input
-                      value={heroForm.ctaLink}
-                      onChange={(e) => setHeroForm({ ...heroForm, ctaLink: e.target.value })}
-                      placeholder="/products"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Active</Label>
+
+
+                  <div className="flex items-center justify-between bg-gradient-to-r from-gray-800 to-gray-900 border border-gray-600 p-4 rounded-lg">
+                    <div>
+                      <p className="text-white font-semibold text-sm">Featured Blog</p>
+                      <p className="text-xs text-gray-400">
+                        Highlight this blog on homepage
+                      </p>
+                    </div>
+
                     <Switch
-                      checked={heroForm.active}
-                      onCheckedChange={(checked) => setHeroForm({ ...heroForm, active: checked })}
+                      checked={blogForm.isFeatured}
+                      onCheckedChange={(checked) =>
+                        setBlogForm({ ...blogForm, isFeatured: checked })
+                      }
+                      className="data-[state=checked]:bg-yellow-500 data-[state=unchecked]:bg-gray-600"
                     />
                   </div>
-                  <Button onClick={handleEditHero} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Update Hero Section
+
+                  <Button
+                    disabled={blogSaving}
+                    onClick={editingBlog ? handleUpdateBlog : handleCreateBlog}
+                    className="w-full bg-blue-600"
+                  >
+                    {blogSaving
+                      ? "Processing..."
+                      : editingBlog
+                        ? "Update Blog"
+                        : "Create Blog"}
                   </Button>
+
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
-            {heroSections.map((hero) => (
-              <div key={hero.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="aspect-video bg-gray-100 relative">
+          {blogLoading ? (
+            <div className="text-center py-20">Loading...</div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-6">
+              {blogs.map((blog) => (
+                <div
+                  key={blog._id}
+                  className="bg-[#2a2a2a] rounded-xl border border-gray-700 overflow-hidden"
+                >
                   <img
-                    src={hero.backgroundImage}
-                    alt={hero.heading}
-                    className="w-full h-full object-cover"
+                    src={blog.coverImage}
+                    className="h-48 w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <div className="text-center text-white p-6">
-                      <h2 className="text-3xl font-bold mb-2">{hero.heading}</h2>
-                      <p className="text-lg mb-4">{hero.subheading}</p>
-                      <span className="inline-block px-6 py-2 bg-blue-600 text-white rounded-md">
-                        {hero.ctaText}
+
+                  <div className="p-4 space-y-2">
+                    <h4 className="font-semibold">{blog.title}</h4>
+                    <p className="text-sm text-gray-400 line-clamp-2">
+                      {blog.description}
+                    </p>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-blue-400">
+                        {blog.category?.name}
                       </span>
+                      {blog.isFeatured && (
+                        <span className="text-xs bg-blue-600 px-2 py-1 rounded">
+                          ⭐ Featured
+                        </span>
+                      )}
+
+
                     </div>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        hero.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {hero.active ? 'Active' : 'Inactive'}
-                    </span>
-                    <div className="flex gap-2">
+
+                    <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => openEditHeroDialog(hero)}
+                        onClick={() => {
+                          setEditingBlog(blog);
+                          setBlogForm({
+                            ...blog,
+                            tags: blog.tags.join(", "),
+                            imagePreview: blog.coverImage
+                          });
+                          setIsBlogDialogOpen(true);
+                        }}
                       >
-                        <Edit size={16} className="mr-1" />
                         Edit
                       </Button>
+
                       <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteHero(hero.id)}
-                        className="text-red-600 hover:bg-red-50"
+                        variant="destructive"
+                        onClick={() => handleDeleteBlog(blog._id)}
                       >
-                        <Trash2 size={16} />
+                        Delete
                       </Button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
+
+
+
+
+
+        {/* Home Videos Tab - No Edit Option */}
+        <TabsContent value="homeVideos" className="space-y-6">
+
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Manage Videos</h3>
+
+            <Dialog open={isHomeVideosDialogOpen} onOpenChange={setIsHomeVideosDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  + Upload Video
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Upload Video</DialogTitle>
+                </DialogHeader>
+
+                <div className="space-y-4 py-4">
+
+                  {/* <Input
+            placeholder="Title"
+            className="bg-gray-800"
+            value={videoForm.title}
+            onChange={(e) =>
+              setVideoForm({ ...videoForm, title: e.target.value })
+            }
+          /> */}
+
+                  {/* <Textarea
+            placeholder="Description"
+            className="bg-gray-800"
+            value={videoForm.description}
+            onChange={(e) =>
+              setVideoForm({ ...videoForm, description: e.target.value })
+            }
+          /> */}
+
+                  {videoForm.videoPreview && (
+                    <video
+                      src={videoForm.videoPreview}
+                      className="w-full h-56 object-cover rounded"
+                      controls
+                    />
+                  )}
+
+                  <input
+                    className='cursor-pointer'
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setVideoForm({
+                          ...videoForm,
+                          videoFile: file,
+                          videoPreview: reader.result
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+
+                  <Button
+                    disabled={videoSaving}
+                    onClick={handleUploadVideo}
+                    className="w-full bg-blue-600"
+                  >
+                    {videoSaving ? "Uploading..." : "Upload Video"}
+                  </Button>
+
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+
+          {videoLoading ? (
+            <div className="text-center py-20">Loading...</div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              {videos.map((video) => (
+                <div
+                  key={video._id}
+                  className="bg-[#2a2a2a] rounded-xl border border-gray-700 overflow-hidden relative"
+                >
+
+                  {/* VIDEO */}
+                  <video
+                    src={video.videoUrl}
+                    className="h-48 w-full object-cover"
+                    controls
+                  />
+
+                  {/* DELETE BUTTON */}
+                  <button
+                    onClick={() => handleDeleteVideoCMS(video._id)}
+                    className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 p-2 rounded-full"
+                  >
+                    <Trash2 size={16} className="text-white" />
+                  </button>
+
+                  {/* STATUS SECTION */}
+                  <div className="p-4 flex items-center justify-between">
+
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-semibold ${video.isActive
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-600 text-white"
+                        }`}
+                    >
+                      {video.isActive ? "ACTIVE" : "INACTIVE"}
+                    </span>
+
+                    <Button
+                      size="sm"
+                      onClick={() => handleToggleVideo(video._id)}
+                      className={
+                        video.isActive
+                          ? "bg-yellow-600 hover:bg-yellow-700 text-white"
+                          : "bg-green-600 hover:bg-green-700 text-white"
+                      }
+                    >
+                      {video.isActive ? "Deactivate" : "Activate"}
+                    </Button>
+
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
       </Tabs>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={setConfirmOpen}
+        onConfirm={() => confirmAction && confirmAction()}
+        loading={confirmLoading}
+      />
+
     </div>
   );
 }

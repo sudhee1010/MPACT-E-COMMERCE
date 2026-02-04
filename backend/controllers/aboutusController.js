@@ -43,6 +43,7 @@ export const updateHeroTitle = async (req, res, next) => {
 
 
 
+
 /* ADD HIGHLIGHT */
 export const addHighlight = async (req, res) => {
   const about = await About.findOne();

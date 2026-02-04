@@ -38,6 +38,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import OrderDetails from "./pages/OrderDetails.jsx";
 import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
 import ForgotPassword from "./pages/ForgotPassword";
+import Homeads from "./components/Homeads.jsx";
 
 
 
@@ -104,6 +105,7 @@ import { Switch } from "./components/ui/Switch.jsx";
 import { Sonner } from "./components/ui/Sonner.jsx";
 import { Slider } from "./components/ui/Slider.jsx";
 import { Skeleton } from "./components/ui/Skeleton.jsx";
+import AdminDistributor from "./components/AdminDistributor.jsx";
 
 
 function App() {
@@ -112,6 +114,7 @@ function App() {
 
   const isAdminRoute = [
     "/admindashboard",
+    "/admin-distributor",
     "/orders",
     "/products",
     "/productupdates",
@@ -180,6 +183,7 @@ function App() {
           <Route path="/review" element={<Review />} />
           <Route path="/popup" element={<SuccessPopup />} />
           <Route path="/distributor" element={<DistributorEnquiry />} />
+          <Route path="/homeads" element={<Homeads />} />
 
 
 
@@ -206,6 +210,7 @@ function App() {
           <Route element={<AdminLayout />}>
           
             <Route path="/admindashboard" element={<Dashboard />} />
+            <Route path="/admin-distributor" element={<AdminDistributor />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/products" element={<Products />} />
             <Route path="/productupdates" element={<ProductUpdates />} />
