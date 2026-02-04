@@ -51,7 +51,7 @@ export function AdminLayout() {
 
   const settingsItems = [
     { label: "Personal Settings", path: "/personalsettings", icon: Users },
-    { label: "Global Settings", path: "/settings", icon: Settings },
+    // { label: "Global Settings", path: "/settings", icon: Settings },
   ];
 
 

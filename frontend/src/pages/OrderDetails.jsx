@@ -183,6 +183,21 @@ export default function OrderDetails() {
         }
     };
 
+    const getDisplayStatus = (status) => {
+  const map = {
+    initiated: "initiated",
+    placed: "processing",
+    packed: "processing",
+    shipped: "shipped",
+    delivered: "delivered",
+    cancelled: "cancelled",
+    return_requested: "return_requested",
+    returned: "returned"
+  };
+  return map[status] || status;
+};
+
+
     if (loading) {
         return (
             <div className="order-page">
@@ -316,12 +331,15 @@ export default function OrderDetails() {
                 .payment-paid { background: #22c55e; color: white; }
                 .payment-pending { background: #facc15; color: black; }
                 .payment-refunded { background: #f97316; color: white; }
+                .payment-cancelled { background: #dc2626; color: white; }
                 .order-delivered { background: #22c55e; color: white; }
                 .order-processing { background: #3b82f6; color: white; }
                 .order-shipped { background: #8b5cf6; color: white; }
                 .order-cancelled { background: #dc2626; color: white; }
                 .order-returned { background: #f97316; color: white; }
                 .order-initiated { background: #9ca3af; color: white; }
+                .order-return_requested { background: #facc15; color: black; }
+
 
                 .action-buttons {
                     display: flex;
@@ -610,7 +628,8 @@ export default function OrderDetails() {
                             <span className={`status-badge payment-${order.paymentStatus}`}>
                                 Payment: {order.paymentStatus.toUpperCase()}
                             </span>
-                            <span className={`status-badge order-${order.orderStatus}`}>
+                            {/* <span className={`status-badge order-${order.orderStatus}`}> */}
+                            <span className={`status-badge order-${getDisplayStatus(order.orderStatus)}`}>
                                 Order: {order.orderStatus.toUpperCase()}
                             </span>
                         </div>

@@ -208,6 +208,9 @@ export default function OrderSuccess() {
           <div className="success-text">Order placed successfully</div>
 
           {/* 🔥 SHOW ORDER ID */}
+          <p style={{ opacity: 0.7 }}>
+            We're confirming your payment...
+          </p>
           {orderId && (
             <p style={{ marginBottom: "20px", opacity: 0.8 }}>
               Order ID: <strong>{orderId}</strong>
