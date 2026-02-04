@@ -1,165 +1,111 @@
+import React, { useEffect, useState } from "react";
+import api from "../api/axios";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
-
-const adsData = [
-  {
-    id: 1,
-    name: "Protein Bar",
-    image: "/images/product1.png",
-  },
-  {
-    id: 2,
-    name: "Energy Drink",
-    image: "/images/img2.png",
-  },
-  {
-    id: 3,
-    name: "Muscle Fuel",
-    image: "/images/powder.jpg",
-  },
-];
-
-// ✅ SAFE vertical slots (no overlap)
-const verticalSlots = [120, 260, 400];
+import { useAuth } from "../context/AuthContext";
 
 export default function HomeAds() {
-  const [ads, setAds] = useState([]);
+  const { user, loading } = useAuth();
+  const [banner, setBanner] = useState(null);
+  const [visible, setVisible] = useState(false);
 
+  // 🔑 Detect LOGIN only (not refresh)
   useEffect(() => {
-    const initializedAds = adsData.map((ad, index) => {
-      const side = Math.random() > 0.5 ? "left" : "right";
+    if (loading) return;
 
-      return {
-        ...ad,
-        visible: true,
-        position: {
-          side,
-          bottom: verticalSlots[index], // 👈 unique slot
-          offset: 14,
-        },
-      };
-    });
+    // Not logged in → do nothing
+    if (!user) {
+      setBanner(null);
+      setVisible(false);
+      return;
+    }
 
-    setAds(initializedAds);
-  }, []);
+    // ✅ LOGIN DETECTED
+    const lastLogin = localStorage.getItem("lastLoginUser");
 
-  const closeAd = (id) => {
-    setAds((prev) =>
-      prev.map((ad) =>
-        ad.id === id ? { ...ad, visible: false } : ad
-      )
-    );
+    if (lastLogin !== user._id) {
+      // 🔄 New login session
+      sessionStorage.removeItem("bannerClosedAt");
+      localStorage.setItem("lastLoginUser", user._id);
+    }
+  }, [user, loading]);
+
+  // 🔥 Fetch banner
+  useEffect(() => {
+    if (loading || !user) return;
+
+    const fetchBanner = async () => {
+      try {
+        const res = await api.get("/api/banners");
+        const data = res.data;
+
+        if (!data?.image?.url || !data.updatedAt) return;
+
+        setBanner(data);
+
+        const bannerUpdatedAt = new Date(data.updatedAt).getTime();
+        const bannerClosedAt = Number(
+          sessionStorage.getItem("bannerClosedAt")
+        );
+
+        // ✅ Show banner if:
+        // - not closed yet
+        // - OR admin updated banner
+        if (!bannerClosedAt || bannerUpdatedAt > bannerClosedAt) {
+          setVisible(true);
+        } else {
+          setVisible(false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch banner", err);
+      }
+    };
+
+    fetchBanner();
+  }, [user, loading]);
+
+  const closeBanner = () => {
+    sessionStorage.setItem("bannerClosedAt", Date.now().toString());
+    setVisible(false);
   };
 
+  if (!banner || !visible) return null;
+
   return (
-    <>
-      {ads.map(
-        (ad) =>
-          ad.visible && (
-            <div
-              key={ad.id}
-              className="home-ad-float"
-              style={{
-                bottom: `${ad.position.bottom}px`,
-                [ad.position.side]: `${ad.position.offset}px`,
-              }}
-            >
-              {/* CLOSE */}
-              <button
-                className="home-ad-close"
-                onClick={() => closeAd(ad.id)}
-              >
-                <X size={14} />
-              </button>
+    <div className="fixed bottom-[110px] right-6 z-[950] max-w-[360px] sm:max-w-[420px]">
+      <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl border border-yellow-400/30">
 
-              {/* AD CARD */}
-              <div className="home-ad-rect">
-                <img src={ad.image} alt={ad.name} />
-                <span>{ad.name}</span>
-              </div>
-            </div>
-          )
-      )}
+        {/* Close */}
+        <button
+          onClick={closeBanner}
+          className="absolute top-2 right-2 z-20 bg-black/70 hover:bg-red-600 text-white p-1.5 rounded-full"
+        >
+          <X size={14} />
+        </button>
 
-      <style>{`
-        .home-ad-float {
-          position: fixed;
-          z-index: 999;
-          animation: fadeSlideIn 0.4s ease;
-        }
+        {/* Image */}
+        <img
+          src={banner.image.url}
+          alt={banner.title || "Advertisement"}
+          className="w-full h-[220px] object-cover"
+        />
 
-        @keyframes fadeSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .home-ad-close {
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: #111;
-          color: white;
-          border: none;
-          border-radius: 50%;
-          width: 20px;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          opacity: 0.85;
-        }
-
-        .home-ad-close:hover {
-          opacity: 1;
-        }
-
-        .home-ad-rect {
-  width: 260px;                /* ⬆️ MUCH wider */
-  min-height: 90px;            /* ⬆️ taller */
-  background: #1f1f1f;
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.45);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: transform 0.25s ease;
-}
-
-.home-ad-rect:hover {
-  transform: translateY(-6px);
-}
-
-.home-ad-rect img {
-  width: 64px;                 /* ⬆️ bigger image */
-  height: 64px;
-  object-fit: contain;
-  background: #000;
-  border-radius: 10px;
-  padding: 6px;
-}
-
-.home-ad-rect span {
-  font-size: 16px;             /* ⬆️ bigger text */
-  font-weight: 700;
-  color: #facc15;
-  line-height: 1.3;
-}
-
-        @media (max-width: 600px) {
-          .home-ad-rect {
-            width: 135px;
-          }
-        }
-      `}</style>
-    </>
+        {/* Overlay */}
+        {(banner.title || banner.subtitle) && (
+          <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-4">
+            {banner.title && (
+              <h3 className="text-white font-bold text-lg">
+                {banner.title}
+              </h3>
+            )}
+            {banner.subtitle && (
+              <p className="text-gray-200 text-sm mt-1">
+                {banner.subtitle}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
+
