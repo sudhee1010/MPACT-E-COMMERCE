@@ -13,6 +13,7 @@ import {
   BarChart3,
   Monitor,
   LogOut,
+  HelpingHandIcon,
 } from "lucide-react";
 
 export function AdminLayout() {
@@ -47,11 +48,13 @@ export function AdminLayout() {
     { label: "Distributor Enquiries", path: "/admin-distributor", icon: BarChart3 },
     { label: "CMS", path: "/cms", icon: Image },
     { label: "Ads Banner", path: "/adsbanner", icon: Monitor },
+        { label: "Help Support", path: "/help-support", icon: HelpingHandIcon },
+
   ];
 
   const settingsItems = [
     { label: "Personal Settings", path: "/personalsettings", icon: Users },
-    { label: "Global Settings", path: "/settings", icon: Settings },
+    // { label: "Global Settings", path: "/settings", icon: Settings },
   ];
 
 
