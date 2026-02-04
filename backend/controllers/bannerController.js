@@ -61,64 +61,96 @@
 //   }
 // };
 
-import Banner from "../models/Banner.js";
-import cloudinary from "../config/cloudinary.js";
+// import Banner from "../models/Banner.js";
+// import cloudinary from "../config/cloudinary.js";
 
 
-export const createBanner = async (req, res) => {
-  try {
-    const { title, subtitle, image, order, isActive } = req.body;
+// export const createBanner = async (req, res) => {
+//   try {
+//     const { title, subtitle, image, order, isActive } = req.body;
 
-    if (!image || !image.url || !image.public_id) {
-      return res.status(400).json({ message: "Banner image is required" });
-    }
+//     if (!image || !image.url || !image.public_id) {
+//       return res.status(400).json({ message: "Banner image is required" });
+//     }
 
-    const banner = await Banner.create({
-      title,
-      subtitle,
-      image,
-      order,
-      isActive,
-    });
+//     const banner = await Banner.create({
+//       title,
+//       subtitle,
+//       image,
+//       order,
+//       isActive,
+//     });
 
-    res.status(201).json(banner);
-  } catch (error) {
-    console.error("Create Banner Error:", error);
-    res.status(500).json({ message: "Failed to create banner" });
-  }
-};
+//     res.status(201).json(banner);
+//   } catch (error) {
+//     console.error("Create Banner Error:", error);
+//     res.status(500).json({ message: "Failed to create banner" });
+//   }
+// };
 
 
-export const getActiveBanners = async (req, res) => {
-  try {
-    const banners = await Banner.find({ isActive: true }).sort({ order: 1 });
-    res.status(200).json(banners);
-  } catch (error) {
-    console.error("Get Banners Error:", error);
-    res.status(500).json({ message: "Failed to fetch banners" });
-  }
-};
+// export const getActiveBanners = async (req, res) => {
+//   try {
+//     const banners = await Banner.find({ isActive: true }).sort({ order: 1 });
+//     res.status(200).json(banners);
+//   } catch (error) {
+//     console.error("Get Banners Error:", error);
+//     res.status(500).json({ message: "Failed to fetch banners" });
+//   }
+// };
 
+
+// // export const updateBanner = async (req, res) => {
+// //   try {
+// //     const banner = await Banner.findById(req.params.id);
+
+// //     if (!banner) {
+// //       return res.status(404).json({ message: "Banner not found" });
+// //     }
+
+// //     const { title, subtitle, image, order, isActive } = req.body;
+
+// //     // 🔥 Replace image if new one provided
+// //     if (image && image.public_id) {
+// //       if (banner.image?.public_id) {
+// //         await cloudinary.uploader.destroy(banner.image.public_id);
+// //       }
+// //       banner.image = image;
+// //     }
+
+// //     // Update other fields safely
+// //     banner.title = title ?? banner.title;
+// //     banner.subtitle = subtitle ?? banner.subtitle;
+// //     banner.order = order ?? banner.order;
+// //     banner.isActive = isActive ?? banner.isActive;
+
+// //     const updatedBanner = await banner.save();
+// //     res.status(200).json(updatedBanner);
+// //   } catch (error) {
+// //     console.error("Update Banner Error:", error);
+// //     res.status(500).json({ message: "Failed to update banner" });
+// //   }
+// // };
 
 // export const updateBanner = async (req, res) => {
 //   try {
 //     const banner = await Banner.findById(req.params.id);
 
-//     if (!banner) {
-//       return res.status(404).json({ message: "Banner not found" });
-//     }
+//     if (!banner) return res.status(404).json({ message: "Banner not found" });
 
-//     const { title, subtitle, image, order, isActive } = req.body;
+//     const { title, subtitle, order, isActive, image } = req.body;
 
-//     // 🔥 Replace image if new one provided
-//     if (image && image.public_id) {
+//     // Only replace image if new image object is provided
+//     if (image && image.url && image.public_id) {
+//       // Delete old Cloudinary image
 //       if (banner.image?.public_id) {
 //         await cloudinary.uploader.destroy(banner.image.public_id);
 //       }
 //       banner.image = image;
 //     }
 
-//     // Update other fields safely
+
+//     // Update other fields
 //     banner.title = title ?? banner.title;
 //     banner.subtitle = subtitle ?? banner.subtitle;
 //     banner.order = order ?? banner.order;
@@ -128,45 +160,35 @@ export const getActiveBanners = async (req, res) => {
 //     res.status(200).json(updatedBanner);
 //   } catch (error) {
 //     console.error("Update Banner Error:", error);
-//     res.status(500).json({ message: "Failed to update banner" });
+//     res.status(500).json({ message: error.message });
+
 //   }
 // };
 
-export const updateBanner = async (req, res) => {
-  try {
-    const banner = await Banner.findById(req.params.id);
-
-    if (!banner) return res.status(404).json({ message: "Banner not found" });
-
-    const { title, subtitle, order, isActive, image } = req.body;
-
-    // Only replace image if new image object is provided
-    if (image && image.url && image.public_id) {
-      // Delete old Cloudinary image
-      if (banner.image?.public_id) {
-        await cloudinary.uploader.destroy(banner.image.public_id);
-      }
-      banner.image = image;
-    }
-
-
-    // Update other fields
-    banner.title = title ?? banner.title;
-    banner.subtitle = subtitle ?? banner.subtitle;
-    banner.order = order ?? banner.order;
-    banner.isActive = isActive ?? banner.isActive;
-
-    const updatedBanner = await banner.save();
-    res.status(200).json(updatedBanner);
-  } catch (error) {
-    console.error("Update Banner Error:", error);
-    res.status(500).json({ message: error.message });
-
-  }
-};
 
 
 
+// // export const deleteBanner = async (req, res) => {
+// //   try {
+// //     const banner = await Banner.findById(req.params.id);
+
+// //     if (!banner) {
+// //       return res.status(404).json({ message: "Banner not found" });
+// //     }
+
+// //     // 🔥 Remove image from Cloudinary
+// //     if (banner.image?.public_id) {
+// //       await cloudinary.uploader.destroy(banner.image.public_id);
+// //     }
+
+// //     await banner.deleteOne();
+
+// //     res.status(200).json({ message: "Banner deleted successfully" });
+// //   } catch (error) {
+// //     console.error("Delete Banner Error:", error);
+// //     res.status(500).json({ message: "Failed to delete banner" });
+// //   }
+// // };
 
 // export const deleteBanner = async (req, res) => {
 //   try {
@@ -176,7 +198,7 @@ export const updateBanner = async (req, res) => {
 //       return res.status(404).json({ message: "Banner not found" });
 //     }
 
-//     // 🔥 Remove image from Cloudinary
+//     // Delete image from Cloudinary
 //     if (banner.image?.public_id) {
 //       await cloudinary.uploader.destroy(banner.image.public_id);
 //     }
@@ -190,24 +212,84 @@ export const updateBanner = async (req, res) => {
 //   }
 // };
 
-export const deleteBanner = async (req, res) => {
-  try {
-    const banner = await Banner.findById(req.params.id);
 
-    if (!banner) {
-      return res.status(404).json({ message: "Banner not found" });
+import Banner from "../models/Banner.js";
+import cloudinary from "../config/cloudinary.js";
+
+// CREATE OR UPDATE SINGLE BANNER
+export const createOrUpdateBanner = async (req, res) => {
+  try {
+    const title = req.body.title || "";
+    const subtitle = req.body.subtitle || "";
+
+    const existingBanner = await Banner.findOne();
+
+    // ❌ Only block if creating new banner AND no image
+    if (!existingBanner && !req.file) {
+      return res.status(400).json({ message: "Banner image is required" });
     }
 
-    // Delete image from Cloudinary
+    let image = existingBanner?.image;
+
+    // ✅ Replace image only if new one uploaded
+    if (req.file) {
+      if (existingBanner?.image?.public_id) {
+        await cloudinary.uploader.destroy(existingBanner.image.public_id);
+      }
+
+      image = {
+        url: req.file.path,
+        public_id: req.file.filename,
+      };
+    }
+
+    if (existingBanner) {
+      existingBanner.title = title;
+      existingBanner.subtitle = subtitle;
+      existingBanner.image = image;
+
+      const updated = await existingBanner.save();
+      return res.status(200).json(updated);
+    }
+
+    const banner = await Banner.create({
+      title,
+      subtitle,
+      image,
+      isActive: true,
+    });
+
+    res.status(201).json(banner);
+  } catch (error) {
+    console.error("Banner Error:", error);
+    res.status(500).json({ message: "Banner update failed" });
+  }
+};
+
+
+// GET ACTIVE BANNER (PUBLIC)
+export const getActiveBanner = async (req, res) => {
+  try {
+    const banner = await Banner.findOne({ isActive: true });
+    res.status(200).json(banner);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch banner" });
+  }
+};
+
+// DELETE BANNER (ADMIN)
+export const deleteBanner = async (req, res) => {
+  try {
+    const banner = await Banner.findOne();
+    if (!banner) return res.status(404).json({ message: "No banner found" });
+
     if (banner.image?.public_id) {
       await cloudinary.uploader.destroy(banner.image.public_id);
     }
 
     await banner.deleteOne();
-
-    res.status(200).json({ message: "Banner deleted successfully" });
+    res.status(200).json({ message: "Banner deleted" });
   } catch (error) {
-    console.error("Delete Banner Error:", error);
     res.status(500).json({ message: "Failed to delete banner" });
   }
 };

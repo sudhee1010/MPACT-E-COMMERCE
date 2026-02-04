@@ -1373,19 +1373,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, AlertTriangle, Upload, X, DollarSign, Package, Percent, Loader2, Image as ImageIcon } from 'lucide-react';
 import * as productApi from '../api/productApi';
+import api from '../api/axios.js' 
 
-const categories = [
-  'Electronics',
-  'Accessories',
-  'Clothing',
-  'Home & Garden',
-  'Sports & Outdoors',
-  'Books',
-  'Toys & Games',
-  'Health & Beauty',
-  'Automotive',
-  'Food & Beverages',
-];
 
 export function Products() {
   const [products, setProducts] = useState([]);
@@ -1395,6 +1384,7 @@ export function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false); // ✅ ADDED: Image upload state
+  const [categories, setCategories] = useState([]);
   const [pageInfo, setPageInfo] = useState({
     hasNextPage: false,
     nextCursor: null
@@ -1416,6 +1406,7 @@ export function Products() {
   // ✅ ADDED: Fetch products from API
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const fetchProducts = async (cursor = null) => {
@@ -1427,6 +1418,7 @@ export function Products() {
       };
       
       const response = await productApi.getProductsApi(params);
+      console.log("products",response)
       if (cursor) {
         setProducts(prev => [...prev, ...response.data.products]);
       } else {
@@ -1441,6 +1433,23 @@ export function Products() {
       setLoading(false);
     }
   };
+
+  // ADD THIS useEffect (after your existing useEffect for products):
+
+
+const fetchCategories = async () => {
+  try {
+    
+    const response = await api.get("/api/categories");
+    const data = response.data
+    console.log("categories",data) 
+    
+    setCategories(data);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    setError('Failed to load categories');
+  }
+};
 
   // ✅ ADDED: Load more products
   const loadMoreProducts = () => {
@@ -1472,87 +1481,80 @@ export function Products() {
     (product.category?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ✅ ADDED: Upload images to Cloudinary (simplified example)
-  // Note: In real implementation, you'd upload to your backend which then uploads to Cloudinary
-  const uploadImageToCloudinary = async (file) => {
-    // This is a simplified example
-    // In reality, you should:
-    // 1. Send file to your backend
-    // 2. Backend uploads to Cloudinary
-    // 3. Backend returns { url, public_id }
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'your_upload_preset'); // Set in Cloudinary
-    
-    try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/your_cloud_name/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-      
-      const data = await response.json();
-      return {
-        url: data.secure_url,
-        public_id: data.public_id
-      };
-    } catch (error) {
-      console.error('Error uploading to Cloudinary:', error);
-      throw error;
+
+  const uploadImageToBackend = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await api.post(
+    "/api/upload/product",
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" }
     }
-  };
+  );
+
+  return response.data.image; // { url, public_id }
+};
+
 
   // ✅ MODIFIED: Handle image upload with Cloudinary
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-    
-    try {
-      setUploadingImages(true);
-      
-      // For now, we'll simulate upload with local URLs
-      // In production, use the uploadImageToCloudinary function
-      const uploadedImages = files.map(file => ({
-        url: URL.createObjectURL(file),
-        public_id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        isTemp: true
-      }));
-      
-      setFormData({ 
-        ...formData, 
-        images: [...formData.images, ...uploadedImages] 
-      });
-    } catch (err) {
-      console.error('Error uploading images:', err);
-      setError('Failed to upload images');
-    } finally {
-      setUploadingImages(false);
-    }
-  };
+
+const handleImageUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  try {
+    setUploadingImages(true);
+
+    const uploaded = await Promise.all(
+      files.map(async (file) => {
+        const preview = URL.createObjectURL(file);
+
+        const uploadedImage = await uploadImageToBackend(file);
+
+        return {
+          url: uploadedImage.url,
+          public_id: uploadedImage.public_id,
+          preview
+        };
+      })
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...uploaded]
+    }));
+  } catch (err) {
+    console.error("Upload error:", err);
+    setError("Failed to upload images");
+  } finally {
+    setUploadingImages(false);
+  }
+};
+
 
   // ✅ ADDED: Handle image deletion
-  const handleImageDelete = async (imageIndex, productId = null) => {
-    const image = formData.images[imageIndex];
-    
-    try {
-      // If it's not a temp image and we're editing, delete from backend
-      if (!image.isTemp && image.public_id && productId && editingProduct) {
-        await productApi.deleteProductImageApi(productId, image._id);
-      }
-      
-      // Remove from local state
-      setFormData({ 
-        ...formData, 
-        images: formData.images.filter((_, i) => i !== imageIndex) 
-      });
-    } catch (err) {
-      console.error('Error deleting image:', err);
-      setError('Failed to delete image');
+ const handleImageDelete = async (index) => {
+  const image = formData.images[index];
+
+  try {
+    // Only delete from backend if it exists in Cloudinary
+    if (editingProduct && image.public_id) {
+      await productApi.deleteProductImageApi(editingProduct._id, image.public_id);
     }
-  };
+
+    // Remove locally
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  } catch (err) {
+    console.error('Error deleting image:', err);
+    setError('Failed to delete image');
+  }
+};
+
 
   // ✅ MODIFIED: Handle add product with proper image handling
   const handleAddProduct = async () => {
@@ -1569,6 +1571,7 @@ export function Products() {
       // In production, you would upload all images first, then get their URLs
       const productData = {
         ...formData,
+        images: formData.images, 
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice || formData.price),
         countInStock: parseInt(formData.countInStock || 0),
@@ -1608,6 +1611,7 @@ export function Products() {
         countInStock: parseInt(formData.countInStock),
         discountPercent: formData.discountPercent,
         isActive: formData.isActive,
+         images: formData.images
         // Don't send images in update unless they're changed
         // For image updates, use separate endpoints
       };
@@ -1691,7 +1695,7 @@ export function Products() {
       name: product.name,
       description: product.description || '',
       highlights: product.highlights || '',
-      category: product.category?._id || product.category || '',
+       category: product.category?._id || product.category || '',
       originalPrice: String(product.originalPrice || product.price),
       price: String(product.price),
       discountPercent: product.discountPercent || 0,
@@ -1900,9 +1904,14 @@ export function Products() {
                     >
                       <option value="">Select category</option>
                       {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
+                         <option key={category._id} value={category._id}>{category.name} </option>
                       ))}
                     </select>
+                     {categories.length === 0 && (
+    <p style={{ color: '#facc15', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+      No categories found. Create categories in admin panel first.
+    </p>
+  )}
                   </div>
 
                   {/* Price Fields */}
@@ -2343,7 +2352,7 @@ export function Products() {
                     >
                       <option value="">Select category</option>
                       {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
+                        <option key={category._id} value={category._id}>{category.name}</option>
                       ))}
                     </select>
                   </div>
@@ -2518,7 +2527,7 @@ export function Products() {
                               border: '1px solid #374151'
                             }}>
                               <img 
-                                src={image.url || image} 
+                                src={image.preview || image.url || image}  
                                 alt={`Preview ${index + 1}`} 
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                               />
@@ -2734,11 +2743,11 @@ export function Products() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {product.discountPercent > 0 && (
                           <span style={{ fontSize: '0.875rem', color: '#9ca3af', textDecoration: 'line-through' }}>
-                            ${product.originalPrice?.toFixed(2) || product.price.toFixed(2)}
+                            ₹{product.originalPrice?.toFixed(2) || product.price.toFixed(2)}
                           </span>
                         )}
                         <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#facc15', margin: 0 }}>
-                          ${product.price.toFixed(2)}
+                          ₹{product.price.toFixed(2)}
                         </p>
                       </div>
                       <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: '0.25rem 0 0 0' }}>

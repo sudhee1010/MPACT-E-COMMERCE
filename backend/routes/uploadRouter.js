@@ -19,6 +19,9 @@
 
 import express from "express";
 import upload from "../middlewares/uploadMiddleware.js";
+import uploadProduct from "../middlewares/uploadProduct.js";
+import { updateProductImage, deleteProductImage } from "../controllers/productController.js";
+
 import {
   uploadProductImage,
   uploadMultipleProductImages
@@ -36,6 +39,23 @@ router.post(
   upload.single("image"),
   uploadProductImage
 );
+// UPDATE a single product image
+router.put(
+  "/:productId/images/:imageId",
+  protect,
+  isAdmin,
+  uploadProduct.single("image"),
+  updateProductImage
+);
+
+// DELETE a single product image
+router.delete(
+  "/:productId/images/:imageId",
+  protect,
+  isAdmin,
+  deleteProductImage
+);
+
 
 // Multiple images
 router.post(
