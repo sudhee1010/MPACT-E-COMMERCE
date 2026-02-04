@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Package,
   AlertTriangle,
@@ -14,58 +14,133 @@ import { Label } from '../components/ui/Label';
 import { Input } from '../components/ui/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
+import api from '../services/api';
 
-const initialInventory = [
-  { id: 'INV001', productName: 'Wireless Headphones', sku: 'WH-001', warehouse: 'Main Warehouse', currentStock: 0, minStock: 50, maxStock: 500, status: 'Out of Stock', lastUpdated: '2026-01-08', unitCost: 45.99 },
-  { id: 'INV002', productName: 'Smart Watch', sku: 'SW-002', warehouse: 'Main Warehouse', currentStock: 0, minStock: 30, maxStock: 200, status: 'Out of Stock', lastUpdated: '2026-01-08', unitCost: 199.99 },
-  { id: 'INV003', productName: 'Bluetooth Speaker', sku: 'BS-003', warehouse: 'Secondary Warehouse', currentStock: 0, minStock: 20, maxStock: 150, status: 'Out of Stock', lastUpdated: '2026-01-07', unitCost: 79.99 },
-  { id: 'INV004', productName: 'Laptop Stand', sku: 'LS-004', warehouse: 'Main Warehouse', currentStock: 0, minStock: 25, maxStock: 300, status: 'Out of Stock', lastUpdated: '2026-01-07', unitCost: 29.99 },
-  { id: 'INV005', productName: 'USB-C Cable', sku: 'UC-005', warehouse: 'Secondary Warehouse', currentStock: 15, minStock: 100, maxStock: 1000, status: 'Low Stock', lastUpdated: '2026-01-06', unitCost: 9.99 },
-];
-
-const stockMovements = [
-  { id: 'MV001', productName: 'Wireless Headphones', type: 'In', quantity: 50, warehouse: 'Main Warehouse', date: '2026-01-08', reason: 'Supplier delivery' },
-  { id: 'MV002', productName: 'Smart Watch', type: 'Out', quantity: 15, warehouse: 'Main Warehouse', date: '2026-01-08', reason: 'Customer orders' },
-  { id: 'MV003', productName: 'Bluetooth Speaker', type: 'Out', quantity: 10, warehouse: 'Secondary Warehouse', date: '2026-01-07', reason: 'Customer orders' },
-  { id: 'MV004', productName: 'Laptop Stand', type: 'Adjustment', quantity: -5, warehouse: 'Main Warehouse', date: '2026-01-07', reason: 'Damaged items' },
-];
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString();
+};
 
 export function Inventory() {
-  const [inventory, setInventory] = useState(initialInventory);
-  const [movements] = useState(stockMovements);
+  const [inventory, setInventory] = useState([]);
+  const [movements, setMovements] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isAddStockOpen, setIsAddStockOpen] = useState(false);
   const [isAdjustOpen, setIsAdjustOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showMovements, setShowMovements] = useState(false);
   const [formData, setFormData] = useState({
+    productId: '',
     productName: '',
     sku: '',
     warehouse: 'Main Warehouse',
     quantity: '',
+    unitCost: '',
     type: 'In',
     reason: '',
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [inventoryRes, movementsRes, productsRes] = await Promise.all([
+          api.get('/inventory'),
+          api.get('/inventory/movements'),
+          api.get('/products?limit=1000')
+        ]);
+        setInventory(inventoryRes.data);
+        setMovements(movementsRes.data);
+        setProducts(productsRes.data.products || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const totalValue = inventory.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0);
   const lowStockCount = inventory.filter(item => item.status === 'Low Stock').length;
   const outOfStockCount = inventory.filter(item => item.status === 'Out of Stock').length;
 
-  const handleAddStock = () => {
-    alert(`Stock added: ${formData.quantity} units of ${formData.productName}`);
-    setFormData({ productName: '', sku: '', warehouse: 'Main Warehouse', quantity: '', type: 'In', reason: '' });
-    setIsAddStockOpen(false);
+  const handleAddStock = async () => {
+    try {
+      if (!formData.productId || !formData.quantity || !formData.unitCost) {
+        alert('Please fill in all required fields: Product, Quantity, and Unit Cost');
+        return;
+      }
+
+      await api.post('/inventory/add', {
+        productId: formData.productId,
+        sku: formData.sku,
+        warehouse: formData.warehouse,
+        quantity: formData.quantity,
+        unitCost: formData.unitCost,
+        reason: formData.reason || 'Stock addition',
+      });
+      
+      const [inventoryRes, movementsRes] = await Promise.all([
+        api.get('/inventory'),
+        api.get('/inventory/movements')
+      ]);
+      setInventory(inventoryRes.data);
+      setMovements(movementsRes.data);
+      
+      setFormData({ 
+        productId: '', 
+        productName: '', 
+        sku: '', 
+        warehouse: 'Main Warehouse', 
+        quantity: '', 
+        unitCost: '', 
+        type: 'In', 
+        reason: '' 
+      });
+      setIsAddStockOpen(false);
+      alert('Stock added successfully!');
+    } catch (error) {
+      console.error('Error adding stock:', error.response?.data || error);
+      alert(error.response?.data?.message || 'Failed to add stock');
+    }
   };
 
-  const handleAdjustStock = () => {
+  const handleAdjustStock = async () => {
     if (!selectedItem) return;
-    alert(`Stock adjusted for ${selectedItem.productName}`);
-    setSelectedItem(null);
-    setIsAdjustOpen(false);
+    
+    try {
+      if (!formData.quantity) {
+        alert('Please enter a quantity');
+        return;
+      }
+
+      await api.post('/inventory/adjust', {
+        inventoryId: selectedItem.id,
+        type: formData.type,
+        quantity: formData.quantity,
+        reason: formData.reason || `${formData.type} adjustment`,
+      });
+      
+      const [inventoryRes, movementsRes] = await Promise.all([
+        api.get('/inventory'),
+        api.get('/inventory/movements')
+      ]);
+      setInventory(inventoryRes.data);
+      setMovements(movementsRes.data);
+      
+      setSelectedItem(null);
+      setIsAdjustOpen(false);
+      alert('Stock adjusted successfully!');
+    } catch (error) {
+      console.error('Error adjusting stock:', error.response?.data || error);
+      alert(error.response?.data?.message || 'Failed to adjust stock');
+    }
   };
 
   const openAdjustDialog = (item) => {
     setSelectedItem(item);
     setFormData({
+      ...formData,
       productName: item.productName,
       sku: item.sku,
       warehouse: item.warehouse,
@@ -75,6 +150,14 @@ export function Inventory() {
     });
     setIsAdjustOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center text-white">Loading inventory data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -104,13 +187,26 @@ export function Inventory() {
 
               <div className="space-y-4 py-4">
                 <div>
-                  <Label className="text-gray-300">Product Name</Label>
-                  <Input
-                    value={formData.productName}
-                    onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                    placeholder="Enter product name"
-                    className="bg-[#1a1a1a] border-gray-700 text-white placeholder:text-gray-500"
-                  />
+                  <Label className="text-gray-300">Product</Label>
+                  <Select value={formData.productId} onValueChange={(value) => {
+                    const selectedProduct = products.find(p => p._id === value);
+                    setFormData({ 
+                      ...formData, 
+                      productId: value, 
+                      productName: selectedProduct ? selectedProduct.name : '' 
+                    });
+                  }}>
+                    <SelectTrigger className="bg-[#1a1a1a] border-gray-700 text-white">
+                      <SelectValue placeholder="Select a product" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-gray-700">
+                      {products.map((product) => (
+                        <SelectItem key={product._id} value={product._id} className="text-white">
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -143,6 +239,17 @@ export function Inventory() {
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                     placeholder="0"
+                    className="bg-[#1a1a1a] border-gray-700 text-white placeholder:text-gray-500"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-gray-300">Unit Cost</Label>
+                  <Input
+                    type="number"
+                    value={formData.unitCost}
+                    onChange={(e) => setFormData({ ...formData, unitCost: e.target.value })}
+                    placeholder="0.00"
                     className="bg-[#1a1a1a] border-gray-700 text-white placeholder:text-gray-500"
                   />
                 </div>
@@ -236,9 +343,8 @@ export function Inventory() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#2a2a2a] border border-yellow-400/20 rounded-lg p-6">
+        <div className="bg-[#2a2a2a] border border-yellow-400 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <Package size={20} className="text-yellow-400" />
             <TrendingUp size={16} className="text-green-400" />
@@ -250,7 +356,7 @@ export function Inventory() {
           <p className="text-sm text-green-400 mt-1">+8.2% from last month</p>
         </div>
 
-        <div className="bg-[#2a2a2a] border border-yellow-400/20 rounded-lg p-6">
+        <div className="bg-[#2a2a2a] border border-yellow-400 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <Package size={20} className="text-yellow-400" />
           </div>
@@ -259,7 +365,7 @@ export function Inventory() {
           <p className="text-sm text-gray-400 mt-1">Across 2 warehouses</p>
         </div>
 
-        <div className="bg-[#2a2a2a] border border-red-400/20 rounded-lg p-6">
+        <div className="bg-[#2a2a2a] border border-red-400 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <AlertTriangle size={20} className="text-red-400" />
             <TrendingDown size={16} className="text-red-400" />
@@ -269,7 +375,7 @@ export function Inventory() {
           <p className="text-sm text-red-400 mt-1">Requires attention</p>
         </div>
 
-        <div className="bg-[#2a2a2a] border border-red-400/20 rounded-lg p-6">
+        <div className="bg-[#2a2a2a] border border-red-400 rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <AlertTriangle size={20} className="text-red-400" />
           </div>
@@ -280,8 +386,7 @@ export function Inventory() {
       </div>
 
       {!showMovements ? (
-        /* Inventory Table */
-        <div className="bg-[#2a2a2a] border border-yellow-400/20 rounded-lg overflow-hidden">
+        <div className="bg-[#2a2a2a] border border-yellow-400 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[#1a1a1a] border-b border-gray-700">
@@ -298,10 +403,10 @@ export function Inventory() {
 
               <tbody>
                 {inventory.map((item) => (
-                  <tr key={item.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                  <tr key={item.id} className="border-b border-gray-800 hover:bg-gray-800">
                     <td className="py-3 px-4">
                       <p className="text-sm font-medium text-white">{item.productName}</p>
-                      <p className="text-xs text-gray-500">Updated: {item.lastUpdated}</p>
+                      <p className="text-xs text-gray-500">Updated: {formatDate(item.lastUpdated)}</p>
                     </td>
 
                     <td className="py-3 px-4">
@@ -335,10 +440,10 @@ export function Inventory() {
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                           item.status === 'In Stock'
-                            ? 'bg-green-900/50 text-green-400 border border-green-700'
+                            ? 'bg-green-900 text-green-400 border border-green-700'
                             : item.status === 'Low Stock'
-                            ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-700'
-                            : 'bg-red-900/50 text-red-400 border border-red-700'
+                            ? 'bg-yellow-900 text-yellow-400 border border-yellow-700'
+                            : 'bg-red-900 text-red-400 border border-red-700'
                         }`}
                       >
                         {item.status}
@@ -355,7 +460,7 @@ export function Inventory() {
                     <td className="py-3 px-4">
                       <button
                         onClick={() => openAdjustDialog(item)}
-                        className="p-2 text-yellow-400 hover:bg-yellow-400/10 rounded-md transition-colors"
+                        className="p-2 text-yellow-400 hover:bg-yellow-400 rounded-md transition-colors"
                       >
                         <Edit size={16} />
                       </button>
@@ -367,8 +472,7 @@ export function Inventory() {
           </div>
         </div>
       ) : (
-        /* Stock Movements Table */
-        <div className="bg-[#2a2a2a] border border-yellow-400/20 rounded-lg overflow-hidden">
+        <div className="bg-[#2a2a2a] border border-yellow-400 rounded-lg overflow-hidden">
           <div className="p-6 border-b border-gray-700">
             <h3 className="text-lg font-semibold text-white">Stock Movement History</h3>
           </div>
@@ -388,18 +492,18 @@ export function Inventory() {
 
               <tbody>
                 {movements.map((movement) => (
-                  <tr key={movement.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                    <td className="py-3 px-4 text-sm text-gray-400">{movement.date}</td>
+                  <tr key={movement.id} className="border-b border-gray-800 hover:bg-gray-800">
+                    <td className="py-3 px-4 text-sm text-gray-400">{formatDate(movement.date)}</td>
                     <td className="py-3 px-4 text-sm font-medium text-white">{movement.productName}</td>
 
                     <td className="py-3 px-4">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                           movement.type === 'In'
-                            ? 'bg-green-900/50 text-green-400 border border-green-700'
+                            ? 'bg-green-900 text-green-400 border border-green-700'
                             : movement.type === 'Out'
-                            ? 'bg-red-900/50 text-red-400 border border-red-700'
-                            : 'bg-blue-900/50 text-blue-400 border border-blue-700'
+                            ? 'bg-red-900 text-red-400 border border-red-700'
+                            : 'bg-blue-900 text-blue-400 border border-blue-700'
                         }`}
                       >
                         {movement.type}
