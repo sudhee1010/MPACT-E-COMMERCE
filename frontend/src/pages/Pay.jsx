@@ -422,46 +422,95 @@ const Pay = () => {
   };
 
   /* ================= RAZORPAY PAYMENT ================= */
+  // const handlePay = async () => {
+  //   try {
+  //     const { data } = await api.post("/api/payment/create-order", { orderId });
+
+  //     const options = {
+  //       key: data.key,
+  //       amount: data.amount,
+  //       currency: data.currency,
+  //       name: "MPACT",
+  //       description: "Order Payment",
+  //       order_id: data.razorpayOrderId,
+
+  //       handler: async function (response) {
+  //         await api.post("/api/payment/verify", {
+  //           razorpay_order_id: response.razorpay_order_id,
+  //           razorpay_payment_id: response.razorpay_payment_id,
+  //           razorpay_signature: response.razorpay_signature,
+  //           orderId
+  //         });
+
+  //         navigate("/order-success", { state: { orderId } });
+  //       },
+
+  //       modal: {
+  //         ondismiss: function () {
+  //           document.body.style.overflow = "auto";
+  //           setShowCancelModal(true);
+  //         }
+  //       },
+
+  //       theme: { color: "#facc15" }
+  //     };
+
+  //     const razorpay = new window.Razorpay(options);
+  //     razorpay.open();
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Payment failed");
+  //   }
+  // };
+
   const handlePay = async () => {
-    try {
-      const { data } = await api.post("/api/payment/create-order", { orderId });
+  try {
+    const { data } = await api.post("/api/payment/create-order", { orderId });
 
-      const options = {
-        key: data.key,
-        amount: data.amount,
-        currency: data.currency,
-        name: "MPACT",
-        description: "Order Payment",
-        order_id: data.razorpayOrderId,
+    const options = {
+      key: data.key,
+      amount: data.amount,
+      currency: data.currency,
+      name: "MPACT",
+      description: "Order Payment",
+      order_id: data.razorpayOrderId,
 
-        handler: async function (response) {
+      handler: async function (response) {
+        // ✅ Navigate instantly (no delay)
+        navigate("/order-success", { state: { orderId } });
+
+        // ✅ Verify in background
+        try {
           await api.post("/api/payment/verify", {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             orderId
           });
+        } catch (err) {
+          console.error("Verification failed:", err);
+        }
+      },
 
-          navigate("/order-success", { state: { orderId } });
-        },
+      modal: {
+        ondismiss: function () {
+          document.body.style.overflow = "auto";
+          setShowCancelModal(true);
+        }
+      },
 
-        modal: {
-          ondismiss: function () {
-            document.body.style.overflow = "auto";
-            setShowCancelModal(true);
-          }
-        },
+      theme: { color: "#facc15" }
+    };
 
-        theme: { color: "#facc15" }
-      };
+    const razorpay = new window.Razorpay(options);
+    razorpay.open();
 
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (err) {
-      console.error(err);
-      toast.error("Payment failed");
-    }
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error("Payment failed");
+  }
+};
+
 
   if (!orderId) return <p>No order found</p>;
   if (loading) return <p style={{ color: "white" }}>Loading...</p>;
