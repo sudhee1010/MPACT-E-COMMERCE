@@ -9,23 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { Switch } from '../components/ui/Switch';
 import api from "../api/axios";
 import toast from "react-hot-toast";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 
 
-// Initial Home Videos data
-const initialHomeVideos = [
-  {
-    id: 'V001',
-    videoFile: null,
-    videoPreview: '',
-    active: true,
-  },
-  {
-    id: 'V002',
-    videoFile: null,
-    videoPreview: '',
-    active: true,
-  },
-];
+
 
 export default function CMS() {
   const [homeCarousel, setHomeCarousel] = useState([]);
@@ -37,6 +24,10 @@ export default function CMS() {
   const [loadingVideo, setLoadingVideo] = useState(false);
   const [loadingKnowMore, setLoadingKnowMore] = useState(false);
   const [loadingBanner, setLoadingBanner] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
 
 
   const [blogs, setBlogs] = useState([]);
@@ -72,9 +63,21 @@ export default function CMS() {
     });
   };
 
+  const [videos, setVideos] = useState([]);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [videoSaving, setVideoSaving] = useState(false);
+
+  const [videoForm, setVideoForm] = useState({
+    title: "",
+    description: "",
+    videoFile: null,
+    videoPreview: ""
+  });
+
+
 
   const [editingBlog, setEditingBlog] = useState(null);
-  const [homeVideos, setHomeVideos] = useState(initialHomeVideos);
+  // const [homeVideos, setHomeVideos] = useState(initialHomeVideos);
 
   const [isHomeCarouselDialogOpen, setIsHomeCarouselDialogOpen] = useState(false);
   const [isBlogDialogOpen, setIsBlogDialogOpen] = useState(false);
@@ -102,11 +105,11 @@ export default function CMS() {
 
 
 
-  const [homeVideosForm, setHomeVideosForm] = useState({
-    videoFile: null,
-    videoPreview: '',
-    active: true,
-  });
+  // const [homeVideosForm, setHomeVideosForm] = useState({
+  //   videoFile: null,
+  //   videoPreview: '',
+  //   active: true,
+  // });
 
   // File upload handler
   const handleFileUpload = (event, setForm, formKey, previewKey) => {
@@ -132,6 +135,12 @@ export default function CMS() {
       [previewKey]: ''
     }));
   };
+
+  const openConfirm = (action) => {
+    setConfirmAction(() => action);
+    setConfirmOpen(true);
+  };
+
 
   // Home Carousel Functions
 
@@ -181,17 +190,24 @@ export default function CMS() {
 
 
 
-  const handleDeleteHomeCarousel = async (id) => {
-    if (!window.confirm("Delete this banner?")) return;
-
-    try {
-      await api.delete(`/api/hero-banners/${id}`);
-      setHomeCarousel(prev => prev.filter(b => b._id !== id));
-      toast.success("Banner deleted");
-    } catch (err) {
-      toast.error("Delete failed");
-    }
+  const handleDeleteHomeCarousel = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/hero-banners/${id}`);
+        setHomeCarousel(prev =>
+          prev.filter(b => b._id !== id)
+        );
+        toast.success("Banner deleted");
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
+    });
   };
+
 
 
   const moveHomeCarouselSlide = async (id, direction) => {
@@ -472,48 +488,105 @@ export default function CMS() {
     }
   };
 
-  const handleDeleteBlog = async (id) => {
-    if (!window.confirm("Delete this blog?")) return;
-
-    try {
-      await api.delete(`/api/blogs/${id}`);
-      toast.success("Deleted successfully");
-      fetchBlogs();
-    } catch {
-      toast.error("Delete failed");
-    }
+  const handleDeleteBlog = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/blogs/${id}`);
+        toast.success("Blog deleted successfully");
+        fetchBlogs();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
+    });
   };
+
 
 
 
 
 
   // Home Videos Functions
-  const handleAddHomeVideo = () => {
-    const newVideo = {
-      id: `V${String(homeVideos.length + 1).padStart(3, '0')}`,
-      videoFile: homeVideosForm.videoFile,
-      videoPreview: homeVideosForm.videoPreview,
-      active: homeVideosForm.active,
-    };
-    setHomeVideos([...homeVideos, newVideo]);
-    resetHomeVideosForm();
-    setIsHomeVideosDialogOpen(false);
-  };
+  useEffect(() => {
+    fetchVideos();
+  }, []);
 
-  const handleDeleteHomeVideo = (id) => {
-    if (window.confirm('Are you sure you want to delete this video?')) {
-      setHomeVideos(homeVideos.filter(v => v.id !== id));
+  const fetchVideos = async () => {
+    try {
+      setVideoLoading(true);
+      const { data } = await api.get("/api/videos");
+      setVideos(data);
+    } catch {
+      toast.error("Failed to load videos");
+    } finally {
+      setVideoLoading(false);
     }
   };
 
-  const resetHomeVideosForm = () => {
-    setHomeVideosForm({
-      videoFile: null,
-      videoPreview: '',
-      active: true,
+  const handleUploadVideo = async () => {
+    if (!videoForm.videoFile) {
+      toast.error("Please select a video");
+      return;
+    }
+
+    try {
+      setVideoSaving(true);
+
+      const formData = new FormData();
+      formData.append("title", videoForm.title);
+      formData.append("description", videoForm.description);
+      formData.append("video", videoForm.videoFile);
+
+      await api.post("/api/videos", formData);
+
+      toast.success("Video uploaded");
+      setVideoForm({
+        title: "",
+        description: "",
+        videoFile: null,
+        videoPreview: ""
+      });
+      fetchVideos();
+
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setVideoSaving(false);
+    }
+  };
+
+  const handleToggleVideo = async (id) => {
+    try {
+      await api.put(`/api/videos/${id}/toggle`);
+      fetchVideos();
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
+
+
+  const handleDeleteVideoCMS = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/videos/${id}`);
+        toast.success("Deleted successfully");
+        fetchVideos();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
     });
   };
+
+
+
+
 
   return (
     <div className="space-y-6">
@@ -1131,114 +1204,152 @@ export default function CMS() {
 
 
         {/* Home Videos Tab - No Edit Option */}
-        <TabsContent value="homeVideos" className="space-y-4">
+        <TabsContent value="homeVideos" className="space-y-6">
+
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Manage Home Videos</h3>
+            <h3 className="text-lg font-semibold">Manage Videos</h3>
+
             <Dialog open={isHomeVideosDialogOpen} onOpenChange={setIsHomeVideosDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus size={20} className="mr-2" />
-                  Add Video
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  + Upload Video
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
+
+              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Upload New Home Video</DialogTitle>
+                  <DialogTitle>Upload Video</DialogTitle>
                 </DialogHeader>
+
                 <div className="space-y-4 py-4">
-                  <div>
-                    <Label>Video File</Label>
-                    {homeVideosForm.videoPreview ? (
-                      <div className="relative mt-2">
-                        <video
-                          src={homeVideosForm.videoPreview}
-                          className="w-full h-48 object-cover rounded-lg"
-                          controls
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(setHomeVideosForm, 'videoFile', 'videoPreview')}
-                          className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-2">
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Film className="w-8 h-8 mb-2 text-gray-400" />
-                            <p className="mb-2 text-sm text-gray-400">Click to upload video</p>
-                            <p className="text-xs text-gray-500">MP4, MOV, AVI up to 100MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="video/*"
-                            onChange={(e) => handleFileUpload(e, setHomeVideosForm, 'videoFile', 'videoPreview')}
-                          />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label>Active</Label>
-                    <Switch
-                      checked={homeVideosForm.active}
-                      onCheckedChange={(checked) => setHomeVideosForm({ ...homeVideosForm, active: checked })}
+
+                  {/* <Input
+            placeholder="Title"
+            className="bg-gray-800"
+            value={videoForm.title}
+            onChange={(e) =>
+              setVideoForm({ ...videoForm, title: e.target.value })
+            }
+          /> */}
+
+                  {/* <Textarea
+            placeholder="Description"
+            className="bg-gray-800"
+            value={videoForm.description}
+            onChange={(e) =>
+              setVideoForm({ ...videoForm, description: e.target.value })
+            }
+          /> */}
+
+                  {videoForm.videoPreview && (
+                    <video
+                      src={videoForm.videoPreview}
+                      className="w-full h-56 object-cover rounded"
+                      controls
                     />
-                  </div>
-                  <Button onClick={handleAddHomeVideo} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    Upload Video
+                  )}
+
+                  <input
+                    className='cursor-pointer'
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setVideoForm({
+                          ...videoForm,
+                          videoFile: file,
+                          videoPreview: reader.result
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+
+                  <Button
+                    disabled={videoSaving}
+                    onClick={handleUploadVideo}
+                    className="w-full bg-blue-600"
+                  >
+                    {videoSaving ? "Uploading..." : "Upload Video"}
                   </Button>
+
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {homeVideos.map((video) => (
-              <div key={video.id} className="bg-[#2a2a2a] rounded-lg shadow-sm overflow-hidden border border-gray-700">
-                <div className="relative aspect-video bg-gray-900">
+
+          {videoLoading ? (
+            <div className="text-center py-20">Loading...</div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              {videos.map((video) => (
+                <div
+                  key={video._id}
+                  className="bg-[#2a2a2a] rounded-xl border border-gray-700 overflow-hidden relative"
+                >
+
+                  {/* VIDEO */}
                   <video
-                    src={video.videoPreview}
-                    className="w-full h-full object-cover"
+                    src={video.videoUrl}
+                    className="h-48 w-full object-cover"
                     controls
-                    autoPlay
-                    muted
-                    loop
                   />
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Film className="text-blue-400" size={16} />
-                      <span className="text-xs text-gray-400">Home Video</span>
-                    </div>
+
+                  {/* DELETE BUTTON */}
+                  <button
+                    onClick={() => handleDeleteVideoCMS(video._id)}
+                    className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 p-2 rounded-full"
+                  >
+                    <Trash2 size={16} className="text-white" />
+                  </button>
+
+                  {/* STATUS SECTION */}
+                  <div className="p-4 flex items-center justify-between">
+
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${video.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      className={`text-xs px-3 py-1 rounded-full font-semibold ${video.isActive
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-600 text-white"
                         }`}
                     >
-                      {video.active ? 'Active' : 'Inactive'}
+                      {video.isActive ? "ACTIVE" : "INACTIVE"}
                     </span>
-                  </div>
-                  <div className="flex gap-2 mt-3">
+
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => handleDeleteHomeVideo(video.id)}
-                      className="flex-1 text-red-400 hover:bg-red-900 border-red-600"
+                      onClick={() => handleToggleVideo(video._id)}
+                      className={
+                        video.isActive
+                          ? "bg-yellow-600 hover:bg-yellow-700 text-white"
+                          : "bg-green-600 hover:bg-green-700 text-white"
+                      }
                     >
-                      <Trash2 size={16} />
-                      Delete
+                      {video.isActive ? "Deactivate" : "Activate"}
                     </Button>
+
                   </div>
+
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
+
       </Tabs>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={setConfirmOpen}
+        onConfirm={() => confirmAction && confirmAction()}
+        loading={confirmLoading}
+      />
+
     </div>
   );
 }
