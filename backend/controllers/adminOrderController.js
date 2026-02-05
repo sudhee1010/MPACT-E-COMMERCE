@@ -2,6 +2,8 @@ import Order from "../models/Order.js";
 import sendEmail from "../utils/sendEmail.js";
 import mongoose from "mongoose";
 import Product from "../models/Product.js";
+import Inventory from "../models/Inventory.js";
+import StockMovement from "../models/StockMovement.js";
 
 
 // ✅ Admin: Get all orders
@@ -97,7 +99,24 @@ export const markOrderDelivered = async (req, res) => {
     }
 
     /* ================= REDUCE STOCK ================= */
+    // for (const item of order.orderItems) {
+    //   const product = await Product.findById(item.product).session(session);
+
+    //   if (!product) {
+    //     throw new Error("Product not found");
+    //   }
+
+    //   if (product.countInStock < item.quantity) {
+    //     throw new Error(`Insufficient stock for ${product.name}`);
+    //   }
+
+    //   product.countInStock -= item.quantity;
+    //   await product.save({ session });
+    // }
+
+    /* ================= REDUCE STOCK ================= */
     for (const item of order.orderItems) {
+
       const product = await Product.findById(item.product).session(session);
 
       if (!product) {
@@ -108,9 +127,34 @@ export const markOrderDelivered = async (req, res) => {
         throw new Error(`Insufficient stock for ${product.name}`);
       }
 
+      // ✅ Reduce product stock (your original logic)
       product.countInStock -= item.quantity;
       await product.save({ session });
+
+      // ✅ Reduce inventory stock (NEW – synced logic)
+      const inventory = await Inventory.findOne({
+        product: item.product,
+        warehouse: "Main Warehouse"
+      }).session(session);
+
+      if (inventory) {
+        if (inventory.currentStock < item.quantity) {
+          throw new Error(`Inventory mismatch for ${product.name}`);
+        }
+
+        inventory.currentStock -= item.quantity;
+        await inventory.save({ session });
+
+        await StockMovement.create([{
+          product: item.product,
+          warehouse: inventory.warehouse,
+          type: "Out",
+          quantity: -item.quantity,
+          reason: `Order Delivered #${order._id}`
+        }], { session });
+      }
     }
+
 
     /* ================= UPDATE ORDER ================= */
     order.orderStatus = "delivered";
@@ -151,9 +195,26 @@ export const approveReturn = async (req, res) => {
 
     // 🔁 Add stock back
     for (const item of order.orderItems) {
+      // await Product.findByIdAndUpdate(item.product, {
+      //   $inc: { countInStock: item.quantity }
+      // });
       await Product.findByIdAndUpdate(item.product, {
         $inc: { countInStock: item.quantity }
       });
+
+      await Inventory.findOneAndUpdate(
+        { product: item.product, warehouse: "Main Warehouse" },
+        { $inc: { currentStock: item.quantity } }
+      );
+
+      await StockMovement.create({
+        product: item.product,
+        warehouse: "Main Warehouse",
+        type: "In",
+        quantity: item.quantity,
+        reason: `Return Approved #${order._id}`
+      });
+
     }
 
     order.orderStatus = "returned";
