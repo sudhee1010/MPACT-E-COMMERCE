@@ -19,6 +19,12 @@ import api from '../services/api';
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString();
 };
+const formatINR = (amount) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 2
+  }).format(amount);
 
 export function Inventory() {
   const [inventory, setInventory] = useState([]);
@@ -29,6 +35,28 @@ export function Inventory() {
   const [isAdjustOpen, setIsAdjustOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showMovements, setShowMovements] = useState(false);
+  // 🔔 INLINE ALERT STATE
+  const [alert, setAlert] = useState({
+    open: false,
+    title: '',
+    message: '',
+    type: 'info', // success | error | warning | confirm
+    onConfirm: null
+  });
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const showAlert = ({ title, message, type = 'info', onConfirm = null }) => {
+    setAlert({ open: true, title, message, type, onConfirm });
+
+    // ✅ auto-close success modal
+    if (type === 'success') {
+      setTimeout(() => {
+        setAlert(prev => ({ ...prev, open: false }));
+      }, 2000);
+    }
+  };
+
   const [formData, setFormData] = useState({
     productId: '',
     productName: '',
@@ -59,15 +87,31 @@ export function Inventory() {
     };
     fetchData();
   }, []);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [inventory]);
+
 
   const totalValue = inventory.reduce((sum, item) => sum + (item.currentStock * item.unitCost), 0);
   const lowStockCount = inventory.filter(item => item.status === 'Low Stock').length;
   const outOfStockCount = inventory.filter(item => item.status === 'Out of Stock').length;
+  const totalPages = Math.ceil(inventory.length / ITEMS_PER_PAGE);
+
+  const paginatedInventory = inventory.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
 
   const handleAddStock = async () => {
     try {
       if (!formData.productId || !formData.quantity || !formData.unitCost) {
-        alert('Please fill in all required fields: Product, Quantity, and Unit Cost');
+        showAlert({
+          title: 'Validation Error',
+          message: 'Please fill in all required fields: Product, Quantity, and Unit Cost',
+          type: 'warning'
+        });
+
         return;
       }
 
@@ -79,38 +123,52 @@ export function Inventory() {
         unitCost: formData.unitCost,
         reason: formData.reason || 'Stock addition',
       });
-      
+
       const [inventoryRes, movementsRes] = await Promise.all([
         api.get('/inventory'),
         api.get('/inventory/movements')
       ]);
       setInventory(inventoryRes.data);
       setMovements(movementsRes.data);
-      
-      setFormData({ 
-        productId: '', 
-        productName: '', 
-        sku: '', 
-        warehouse: 'Main Warehouse', 
-        quantity: '', 
-        unitCost: '', 
-        type: 'In', 
-        reason: '' 
+
+      setFormData({
+        productId: '',
+        productName: '',
+        sku: '',
+        warehouse: 'Main Warehouse',
+        quantity: '',
+        unitCost: '',
+        type: 'In',
+        reason: ''
       });
       setIsAddStockOpen(false);
-      alert('Stock added successfully!');
+      showAlert({
+        title: 'Success',
+        message: 'Stock added successfully!',
+        type: 'success'
+      });
+
     } catch (error) {
       console.error('Error adding stock:', error.response?.data || error);
-      alert(error.response?.data?.message || 'Failed to add stock');
+      showAlert({
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to adjust stock',
+        type: 'error'
+      });
     }
   };
 
   const handleAdjustStock = async () => {
     if (!selectedItem) return;
-    
+
     try {
       if (!formData.quantity) {
-        alert('Please enter a quantity');
+        showAlert({
+          title: 'Validation Error',
+          message: 'Please enter a quantity',
+          type: 'warning'
+        });
+
         return;
       }
 
@@ -120,17 +178,22 @@ export function Inventory() {
         quantity: formData.quantity,
         reason: formData.reason || `${formData.type} adjustment`,
       });
-      
+
       const [inventoryRes, movementsRes] = await Promise.all([
         api.get('/inventory'),
         api.get('/inventory/movements')
       ]);
       setInventory(inventoryRes.data);
       setMovements(movementsRes.data);
-      
+
       setSelectedItem(null);
       setIsAdjustOpen(false);
-      alert('Stock adjusted successfully!');
+      showAlert({
+        title: 'Success',
+        message: 'Stock adjusted successfully!',
+        type: 'success'
+      });
+
     } catch (error) {
       console.error('Error adjusting stock:', error.response?.data || error);
       alert(error.response?.data?.message || 'Failed to adjust stock');
@@ -145,7 +208,7 @@ export function Inventory() {
       sku: item.sku,
       warehouse: item.warehouse,
       quantity: '',
-      type: 'Adjustment',
+      type: 'In',
       reason: '',
     });
     setIsAdjustOpen(true);
@@ -161,6 +224,47 @@ export function Inventory() {
 
   return (
     <div className="space-y-6">
+
+      {/* 🔔 GLOBAL ALERT / CONFIRM MODAL (ONLY ONCE) */}
+      <Dialog open={alert.open} onOpenChange={(open) => setAlert({ ...alert, open })}>
+        <DialogContent className="bg-[#2a2a2a] border border-yellow-400 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{alert.title}</DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-gray-300 mt-2">{alert.message}</p>
+
+          <div className="mt-6 flex justify-end gap-2">
+            {alert.type === 'confirm' ? (
+              <>
+                <Button
+                  className="bg-gray-600 text-white"
+                  onClick={() => setAlert({ ...alert, open: false })}
+                >
+                  No
+                </Button>
+
+                <Button
+                  className="bg-yellow-400 text-black"
+                  onClick={() => {
+                    alert.onConfirm?.();
+                    setAlert({ ...alert, open: false });
+                  }}
+                >
+                  Yes
+                </Button>
+              </>
+            ) : (
+              <Button
+                className="bg-yellow-400 text-black"
+                onClick={() => setAlert({ ...alert, open: false })}
+              >
+                OK
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-white">Inventory Management</h2>
         <div className="flex gap-2">
@@ -190,10 +294,10 @@ export function Inventory() {
                   <Label className="text-gray-300">Product</Label>
                   <Select value={formData.productId} onValueChange={(value) => {
                     const selectedProduct = products.find(p => p._id === value);
-                    setFormData({ 
-                      ...formData, 
-                      productId: value, 
-                      productName: selectedProduct ? selectedProduct.name : '' 
+                    setFormData({
+                      ...formData,
+                      productId: value,
+                      productName: selectedProduct ? selectedProduct.name : ''
                     });
                   }}>
                     <SelectTrigger className="bg-[#1a1a1a] border-gray-700 text-white">
@@ -271,7 +375,9 @@ export function Inventory() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isAdjustOpen} onOpenChange={(open) => !open && setIsAdjustOpen(false)}>
+          {/* <Dialog open={isAdjustOpen} onOpenChange={(open) => !open && setIsAdjustOpen(false)}> */}
+          <Dialog open={isAdjustOpen} onOpenChange={setIsAdjustOpen}>
+
             <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-white">Adjust Stock</DialogTitle>
@@ -334,9 +440,20 @@ export function Inventory() {
                   />
                 </div>
 
-                <Button onClick={handleAdjustStock} className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium">
+                <Button
+                  onClick={() =>
+                    showAlert({
+                      title: 'Confirm Stock Update',
+                      message: 'Are you sure you want to update the stock?',
+                      type: 'confirm',
+                      onConfirm: handleAdjustStock
+                    })
+                  }
+                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium"
+                >
                   Update Stock
                 </Button>
+
               </div>
             </DialogContent>
           </Dialog>
@@ -351,7 +468,7 @@ export function Inventory() {
           </div>
           <p className="text-sm text-gray-400">Total Inventory Value</p>
           <p className="text-2xl font-bold text-white mt-1">
-            ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            {formatINR(totalValue)}
           </p>
           <p className="text-sm text-green-400 mt-1">+8.2% from last month</p>
         </div>
@@ -384,6 +501,44 @@ export function Inventory() {
           <p className="text-sm text-red-400 mt-1">Urgent restock needed</p>
         </div>
       </div>
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center p-4 bg-[#1a1a1a] border-t border-gray-700">
+          <Button
+            className="bg-gray-700 text-white"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => p - 1)}
+          >
+            Previous
+          </Button>
+
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }).map((_, index) => {
+              const page = index + 1;
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 rounded ${currentPage === page
+                    ? 'bg-yellow-400 text-black'
+                    : 'bg-gray-700 text-white'
+                    }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+          </div>
+
+          <Button
+            className="bg-gray-700 text-white"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => p + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+
 
       {!showMovements ? (
         <div className="bg-[#2a2a2a] border border-yellow-400 rounded-lg overflow-hidden">
@@ -402,7 +557,8 @@ export function Inventory() {
               </thead>
 
               <tbody>
-                {inventory.map((item) => (
+                {paginatedInventory.map((item) => (
+
                   <tr key={item.id} className="border-b border-gray-800 hover:bg-gray-800">
                     <td className="py-3 px-4">
                       <p className="text-sm font-medium text-white">{item.productName}</p>
@@ -422,13 +578,12 @@ export function Inventory() {
                         <p className="text-sm font-medium text-white">{item.currentStock} units</p>
                         <div className="w-32 bg-gray-700 rounded-full h-2">
                           <div
-                            className={`h-2 rounded-full ${
-                              item.status === 'Out of Stock'
-                                ? 'bg-red-400'
-                                : item.status === 'Low Stock'
+                            className={`h-2 rounded-full ${item.status === 'Out of Stock'
+                              ? 'bg-red-400'
+                              : item.status === 'Low Stock'
                                 ? 'bg-yellow-400'
                                 : 'bg-green-400'
-                            }`}
+                              }`}
                             style={{ width: `${Math.min((item.currentStock / item.maxStock) * 100, 100)}%` }}
                           />
                         </div>
@@ -438,13 +593,12 @@ export function Inventory() {
 
                     <td className="py-3 px-4">
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          item.status === 'In Stock'
-                            ? 'bg-green-900 text-green-400 border border-green-700'
-                            : item.status === 'Low Stock'
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${item.status === 'In Stock'
+                          ? 'bg-green-900 text-green-400 border border-green-700'
+                          : item.status === 'Low Stock'
                             ? 'bg-yellow-900 text-yellow-400 border border-yellow-700'
                             : 'bg-red-900 text-red-400 border border-red-700'
-                        }`}
+                          }`}
                       >
                         {item.status}
                       </span>
@@ -452,9 +606,8 @@ export function Inventory() {
 
                     <td className="py-3 px-4">
                       <p className="text-sm font-medium text-yellow-400">
-                        ${(item.currentStock * item.unitCost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-gray-500">${item.unitCost}/unit</p>
+                        {formatINR(item.currentStock * item.unitCost)}                      </p>
+                      <p className="text-xs text-gray-500">{formatINR(item.unitCost)} / unit</p>
                     </td>
 
                     <td className="py-3 px-4">
@@ -498,13 +651,12 @@ export function Inventory() {
 
                     <td className="py-3 px-4">
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          movement.type === 'In'
-                            ? 'bg-green-900 text-green-400 border border-green-700'
-                            : movement.type === 'Out'
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${movement.type === 'In'
+                          ? 'bg-green-900 text-green-400 border border-green-700'
+                          : movement.type === 'Out'
                             ? 'bg-red-900 text-red-400 border border-red-700'
                             : 'bg-blue-900 text-blue-400 border border-blue-700'
-                        }`}
+                          }`}
                       >
                         {movement.type}
                       </span>
@@ -512,9 +664,8 @@ export function Inventory() {
 
                     <td className="py-3 px-4">
                       <span
-                        className={`text-sm font-medium ${
-                          movement.type === 'In' ? 'text-green-400' : 'text-red-400'
-                        }`}
+                        className={`text-sm font-medium ${movement.type === 'In' ? 'text-green-400' : 'text-red-400'
+                          }`}
                       >
                         {movement.type === 'In' ? '+' : ''}{movement.quantity}
                       </span>

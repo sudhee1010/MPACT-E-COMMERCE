@@ -14,8 +14,13 @@ export const getInventory = async (req, res) => {
 
     const formatted = inventory.map(item => {
       let status = "In Stock";
-      if (item.currentStock === 0) status = "Out of Stock";
-      else if (item.currentStock <= item.minStock) status = "Low Stock";
+
+      if (item.currentStock === 0) {
+        status = "Out of Stock";
+      } else if (item.currentStock > 0 && item.currentStock <= 5) {
+        status = "Low Stock";
+      }
+
 
       return {
         id: item._id,
@@ -41,45 +46,153 @@ export const getInventory = async (req, res) => {
  * POST /api/inventory/add
  * Add stock
  */
+// export const addStock = async (req, res) => {
+//   try {
+//     console.log("ADD STOCK BODY 👉", req.body);
+//     const { productId, warehouse, quantity, unitCost, sku, reason } = req.body;
+
+//     let inventory = await Inventory.findOne({ product: productId, warehouse });
+
+//     if (!inventory) {
+//       inventory = await Inventory.create({
+//         product: productId,
+//         sku,
+//         warehouse,
+//         currentStock: quantity,
+//         unitCost
+//       });
+//     } else {
+//       inventory.currentStock += Number(quantity);
+//     }
+
+//     await inventory.save();
+
+//     await StockMovement.create({
+//       product: productId,
+//       warehouse,
+//       type: "In",
+//       quantity,
+//       reason
+//     });
+
+//     res.json({ message: "Stock added successfully" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Add stock failed" });
+//   }
+// };
+
+
+
 export const addStock = async (req, res) => {
   try {
-    console.log("ADD STOCK BODY 👉", req.body);
     const { productId, warehouse, quantity, unitCost, sku, reason } = req.body;
+
+    const qty = Number(quantity);
+    const cost = Number(unitCost);
+
+    if (qty <= 0 || cost <= 0) {
+      return res.status(400).json({
+        message: "Quantity and Unit Cost must be greater than zero"
+      });
+    }
 
     let inventory = await Inventory.findOne({ product: productId, warehouse });
 
     if (!inventory) {
+      // 🆕 First time stock
       inventory = await Inventory.create({
         product: productId,
         sku,
         warehouse,
-        currentStock: quantity,
-        unitCost
+        currentStock: qty,
+        unitCost: cost
       });
     } else {
-      inventory.currentStock += Number(quantity);
+      // ✅ Existing stock → overwrite unit cost
+      inventory.currentStock += qty;
+      inventory.unitCost = cost; // 🔥 THIS IS THE FIX
+      await inventory.save();
     }
-
-    await inventory.save();
 
     await StockMovement.create({
       product: productId,
       warehouse,
       type: "In",
-      quantity,
-      reason
+      quantity: qty,
+      reason: reason || "Stock added"
     });
 
     res.json({ message: "Stock added successfully" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Add stock failed" });
   }
 };
+
+
+
 
 /**
  * POST /api/inventory/adjust
  * Adjust stock
  */
+// export const adjustStock = async (req, res) => {
+//   try {
+//     const { inventoryId, type, quantity, reason } = req.body;
+
+//     const inventory = await Inventory.findById(inventoryId);
+//     if (!inventory) {
+//       return res.status(404).json({ message: "Inventory not found" });
+//     }
+
+//     // let adjustedQty = Number(quantity);
+
+
+//     const qty = Number(quantity);
+
+//     if (qty <= 0) {
+//       return res.status(400).json({
+//         message: "Quantity must be greater than zero"
+//       });
+//     }
+
+//     if (type === "Out") {
+//       if (inventory.currentStock - qty < 0) {
+//         return res.status(400).json({
+//           message: "Stock cannot go below zero"
+//         });
+//       }
+//        inventory.currentStock -= qty;
+//       await StockMovement.create({
+//         product: inventory.product,
+//         warehouse: inventory.warehouse,
+//         type: "Out",
+//         quantity: -qty,
+//         reason
+//       });
+//     }
+
+//     else {
+//       inventory.currentStock += qty;
+//     }
+
+//     await inventory.save();
+
+//     await StockMovement.create({
+//       product: inventory.product,
+//       warehouse: inventory.warehouse,
+//       type,
+//       quantity: adjustedQty,
+//       reason
+//     });
+
+//     res.json({ message: "Stock adjusted successfully" });
+//   } catch (error) {
+//     res.status(500).json({ message: "Stock adjustment failed" });
+//   }
+// };
+
+
 export const adjustStock = async (req, res) => {
   try {
     const { inventoryId, type, quantity, reason } = req.body;
@@ -89,25 +202,40 @@ export const adjustStock = async (req, res) => {
       return res.status(404).json({ message: "Inventory not found" });
     }
 
-    let adjustedQty = Number(quantity);
+    const qty = Number(quantity);
+
+    if (qty <= 0) {
+      return res.status(400).json({
+        message: "Quantity must be greater than zero"
+      });
+    }
 
     if (type === "Out") {
-      inventory.currentStock -= adjustedQty;
-      adjustedQty = -adjustedQty;
+      if (inventory.currentStock - qty < 0) {
+        return res.status(400).json({
+          message: "Stock cannot go below zero"
+        });
+      }
+      inventory.currentStock -= qty;
+      await StockMovement.create({
+        product: inventory.product,
+        warehouse: inventory.warehouse,
+        type: "Out",
+        quantity: -qty,
+        reason
+      });
     } else {
-      inventory.currentStock += adjustedQty;
+      inventory.currentStock += qty;
+      await StockMovement.create({
+        product: inventory.product,
+        warehouse: inventory.warehouse,
+        type: "In",
+        quantity: qty,
+        reason
+      });
     }
 
     await inventory.save();
-
-    await StockMovement.create({
-      product: inventory.product,
-      warehouse: inventory.warehouse,
-      type,
-      quantity: adjustedQty,
-      reason
-    });
-
     res.json({ message: "Stock adjusted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Stock adjustment failed" });
@@ -143,7 +271,7 @@ export const getStockMovements = async (req, res) => {
 export const getLowStockItems = async (req, res) => {
   try {
     const items = await Inventory.find({
-      $expr: { $lte: ["$currentStock", "$minStock"] }
+      currentStock: { $gt: 0, $lte: 5 }
     }).populate("product", "name");
 
     const formatted = items.map(item => ({
@@ -175,5 +303,35 @@ export const getOutOfStockItems = async (req, res) => {
     res.json(formatted);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch out of stock items" });
+  }
+};
+
+/**
+ * GET /api/inventory/alerts
+ * Dashboard alerts
+ */
+export const getInventoryAlerts = async (req, res) => {
+  try {
+    const lowStock = await Inventory.find({
+      currentStock: { $gt: 0, $lte: 5 }
+    }).populate("product", "name");
+
+    const outOfStock = await Inventory.find({
+      currentStock: 0
+    }).populate("product", "name");
+
+    res.json({
+      lowStock: lowStock.map(item => ({
+        productName: item.product.name,
+        warehouse: item.warehouse,
+        currentStock: item.currentStock
+      })),
+      outOfStock: outOfStock.map(item => ({
+        productName: item.product.name,
+        warehouse: item.warehouse
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch inventory alerts" });
   }
 };
