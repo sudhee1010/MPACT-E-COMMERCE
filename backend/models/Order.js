@@ -48,7 +48,7 @@ const orderSchema = new mongoose.Schema(
 
     orderStatus: {
       type: String,
-      enum: ["initiated", "placed", "packed", "shipped", "delivered", "cancelled"],
+      enum: ["initiated", "placed", "packed", "shipped", "delivered", "cancelled", "return_requested", "returned"],
       default: "initiated"
     },
 
@@ -69,6 +69,23 @@ const orderSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+
+
+    returnReason: {
+      type: String,
+      default: null
+    },
+
+    returnApproved: {
+      type: Boolean,
+      default: false
+    },
+
+    returnRejected: {
+      type: Boolean,
+      default: false
+    },
+
 
 
     /* ================== COUPON FIELDS (ADDED) ================== */

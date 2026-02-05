@@ -21,7 +21,9 @@ export function Orders() {
       packed: "Processing",
       shipped: "Shipped",
       delivered: "Delivered",
-      cancelled: "Cancelled"
+      cancelled: "Cancelled",
+      return_requested: "Return Requested",
+      returned: "Returned"
     };
     return map[status] || status;
   };
@@ -84,7 +86,10 @@ export function Orders() {
       Pending: "initiated",
       Processing: "placed",
       Shipped: "shipped",
-      Cancelled: "cancelled"
+      Delivered: "delivered",
+      Cancelled: "cancelled",
+      Returned: "returned",
+      "Return Requested": "return_requested"
     };
     return map[status];
   };
@@ -104,31 +109,74 @@ export function Orders() {
   // };
 
 
-const updateOrderStatus = async (orderId, newStatus) => {
-  const backendStatus = denormalizeStatus(newStatus);
+  const updateOrderStatus = async (orderId, newStatus) => {
+    const backendStatus = denormalizeStatus(newStatus);
 
-  // 🔥 Optimistic UI update
-  setOrders((prev) =>
-    prev.map((o) =>
-      o._id === orderId
-        ? { ...o, orderStatus: backendStatus }
-        : o
-    )
-  );
+    try {
+      if (backendStatus === "delivered") {
+        await api.put(`/api/admin/orders/orders/${orderId}/deliver`);
+        toast.success("Order marked as Delivered");
+      } else {
+        await api.put(`/api/admin/orders/${orderId}/status`, {
+          status: backendStatus
+        });
+        toast.success(`Order marked as ${newStatus}`);
+      }
 
-  try {
-    await api.put(`/api/admin/orders/${orderId}/status`, {
-      status: backendStatus
-    });
+      fetchOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update order status");
+    }
+  };
 
-    toast.success(`Order marked as ${newStatus}`);
-  } catch (err) {
-    toast.error("Failed to update order status");
 
-    // ❌ rollback on error
-    fetchOrders();
-  }
-};
+
+  // const updateOrderStatus = async (orderId, newStatus) => {
+  //   const backendStatus = denormalizeStatus(newStatus);
+
+  //   // 🔥 Optimistic UI update
+  //   setOrders((prev) =>
+  //     prev.map((o) =>
+  //       o._id === orderId
+  //         ? { ...o, orderStatus: backendStatus }
+  //         : o
+  //     )
+  //   );
+
+  //   try {
+  //     await api.put(`/api/admin/orders/${orderId}/status`, {
+  //       status: backendStatus
+  //     });
+
+  //     toast.success(`Order marked as ${newStatus}`);
+  //   } catch (err) {
+  //     toast.error("Failed to update order status");
+
+  //     // ❌ rollback on error
+  //     fetchOrders();
+  //   }
+  // };
+
+  const approveReturn = async (orderId) => {
+    try {
+      await api.put(`/api/admin/orders/${orderId}/approve-return`);
+      toast.success("Return approved");
+      fetchOrders();
+    } catch (err) {
+      toast.error("Failed to approve return");
+    }
+  };
+
+  const rejectReturn = async (orderId) => {
+    try {
+      await api.put(`/api/admin/orders/${orderId}/reject-return`);
+      toast.success("Return rejected");
+      fetchOrders();
+    } catch (err) {
+      toast.error("Failed to reject return");
+    }
+  };
+
 
 
 
@@ -185,6 +233,9 @@ const updateOrderStatus = async (orderId, newStatus) => {
             </SelectItem>
             <SelectItem value="Cancelled" className="text-white hover:cursor-pointer">
               Cancelled
+            </SelectItem>
+            <SelectItem value="Returned" className="text-white hover:cursor-pointer">
+              Returned
             </SelectItem>
           </SelectContent>
         </Select>
@@ -332,13 +383,29 @@ const updateOrderStatus = async (orderId, newStatus) => {
 
                             <div className="border-t border-gray-700 pt-4">
                               <h4 className="font-semibold text-white mb-2">Update Status</h4>
+                              {selectedOrder?.orderStatus === "return_requested" && (
+                                <div className="flex gap-3 mt-4">
+                                  <button
+                                    onClick={() => approveReturn(selectedOrder._id)}
+                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md text-white"
+                                  >
+                                    Approve Return
+                                  </button>
+
+                                  <button
+                                    onClick={() => rejectReturn(selectedOrder._id)}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-white"
+                                  >
+                                    Reject Return
+                                  </button>
+                                </div>
+                              )}
                               <Select
                                 value={normalizeStatus(selectedOrder.orderStatus)}
                                 onValueChange={(value) =>
                                   updateOrderStatus(selectedOrder._id, value)
                                 }
                               >
-
                                 <SelectTrigger className="bg-[#1a1a1a] border-gray-700 text-white">
                                   <SelectValue />
                                 </SelectTrigger>
@@ -346,8 +413,9 @@ const updateOrderStatus = async (orderId, newStatus) => {
                                   <SelectItem value="Pending" className="text-white hover:cursor-pointer">Pending</SelectItem>
                                   <SelectItem value="Processing" className="text-white hover:cursor-pointer">Processing</SelectItem>
                                   <SelectItem value="Shipped" className="text-white hover:cursor-pointer">Shipped</SelectItem>
-                                  <SelectItem value="Delivered" className="text-white hover:cursor-pointer" disabled>Delivered</SelectItem>
+                                  <SelectItem value="Delivered" className="text-white hover:cursor-pointer">Delivered</SelectItem>
                                   <SelectItem value="Cancelled" className="text-white hover:cursor-pointer">Cancelled</SelectItem>
+                                  <SelectItem value="Returned" className="text-white hover:cursor-pointer">Returned</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>

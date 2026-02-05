@@ -33,7 +33,17 @@ export const uploadVideo = async (req, res) => {
  */
 export const getVideos = async (req, res) => {
   try {
-    const videos = await Video.find({ isActive: true })
+    let query = {};
+
+    // If admin request → show all videos
+    if (req.query.admin === "true") {
+      query = {};
+    } else {
+      // Public → only active videos
+      query = { isActive: true };
+    }
+
+    const videos = await Video.find(query)
       .sort({ order: 1, createdAt: -1 });
 
     res.json(videos);
@@ -41,6 +51,7 @@ export const getVideos = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 /**
  * @desc    Toggle video active status

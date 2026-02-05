@@ -61,6 +61,7 @@ import { CMSEnhanced } from "./components/CMSEnhanced.jsx";
 import { AdsBanner } from "./components/AdsBanner.jsx";
 import { Settings } from "./components/Settings.jsx";
 import { PersonalSettings } from "./components/PersonalSettings.jsx";
+import {AdminHelpSupport} from "./components/AdminHelpSupport.jsx"
 
 /* UI demo pages */
 import { Menubar } from "./components/ui/Menubar.jsx";
@@ -227,6 +228,7 @@ function App() {
             <Route path="/adsbanner" element={<AdsBanner />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/personalsettings" element={<PersonalSettings />} />
+             <Route path="/help-support" element={< AdminHelpSupport/>} />
           </Route>
 
           {/* UI DEMOS */}

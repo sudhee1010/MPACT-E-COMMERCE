@@ -103,6 +103,15 @@ export default function CMS() {
     active: true,
   });
 
+  // FAQ STATES
+  const [faqs, setFaqs] = useState([]);
+  const [faqForm, setFaqForm] = useState({
+    question: "",
+    answer: "",
+  });
+  const [editingFaq, setEditingFaq] = useState(null);
+  const [faqLoading, setFaqLoading] = useState(false);
+  const [faqDialogOpen, setFaqDialogOpen] = useState(false);
 
 
   // const [homeVideosForm, setHomeVideosForm] = useState({
@@ -517,7 +526,10 @@ export default function CMS() {
   const fetchVideos = async () => {
     try {
       setVideoLoading(true);
-      const { data } = await api.get("/api/videos");
+
+      // IMPORTANT: add ?admin=true
+      const { data } = await api.get("/api/videos?admin=true");
+
       setVideos(data);
     } catch {
       toast.error("Failed to load videos");
@@ -525,6 +537,7 @@ export default function CMS() {
       setVideoLoading(false);
     }
   };
+
 
   const handleUploadVideo = async () => {
     if (!videoForm.videoFile) {
@@ -584,6 +597,59 @@ export default function CMS() {
     });
   };
 
+  /* ================= FAQ FUNCTIONS ================= */
+
+  const fetchFaqs = async () => {
+    try {
+      const { data } = await api.get("/api/faqs/admin");
+      setFaqs(data);
+    } catch {
+      toast.error("Failed to load FAQs");
+    }
+  };
+
+  useEffect(() => {
+    fetchFaqs();
+  }, []);
+
+  const handleSaveFaq = async () => {
+    try {
+      setFaqLoading(true);
+
+      if (editingFaq) {
+        await api.put(`/api/faqs/${editingFaq._id}`, faqForm);
+        toast.success("FAQ updated");
+      } else {
+        await api.post("/api/faqs", faqForm);
+        toast.success("FAQ added");
+      }
+
+      setFaqForm({ category: "", question: "", answer: "" });
+      setEditingFaq(null);
+      setFaqDialogOpen(false);
+      fetchFaqs();
+    } catch {
+      toast.error("Save failed");
+    } finally {
+      setFaqLoading(false);
+    }
+  };
+
+  const handleDeleteFaq = (id) => {
+    openConfirm(async () => {
+      try {
+        setConfirmLoading(true);
+        await api.delete(`/api/faqs/${id}`);
+        toast.success("FAQ deleted");
+        fetchFaqs();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setConfirmLoading(false);
+        setConfirmOpen(false);
+      }
+    });
+  };
 
 
 
@@ -591,11 +657,12 @@ export default function CMS() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="homeCarousel" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="homeCarousel">Home Carousel</TabsTrigger>
           <TabsTrigger value="about">About Us</TabsTrigger>
           <TabsTrigger value="blog">Blog</TabsTrigger>
           <TabsTrigger value="homeVideos">Home Videos</TabsTrigger>
+          <TabsTrigger value="faq">FAQ</TabsTrigger>
         </TabsList>
 
         {/* Home Carousel Tab - No Edit Option */}
@@ -1341,7 +1408,133 @@ export default function CMS() {
           )}
         </TabsContent>
 
+      {/* ================= FAQ TAB ================= */}
+      <TabsContent value="faq" className="space-y-6">
+
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Manage FAQs</h3>
+
+          <Dialog open={faqDialogOpen} onOpenChange={setFaqDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus size={18} className="mr-2" />
+                Add FAQ
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-lg">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingFaq ? "Edit FAQ" : "Add FAQ"}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+{/* 
+                <Input
+                  placeholder="Category (e.g. PRODUCT INFORMATION)"
+                  className="bg-gray-800"
+                  value={faqForm.category}
+                  onChange={(e) =>
+                    setFaqForm({ ...faqForm, category: e.target.value })
+                  }
+                /> */}
+
+                <Input
+                  placeholder="Question"
+                  className="bg-gray-800"
+                  value={faqForm.question}
+                  onChange={(e) =>
+                    setFaqForm({ ...faqForm, question: e.target.value })
+                  }
+                />
+
+                <Textarea
+                  placeholder="Answer"
+                  rows={4}
+                  className="bg-gray-800"
+                  value={faqForm.answer}
+                  onChange={(e) =>
+                    setFaqForm({ ...faqForm, answer: e.target.value })
+                  }
+                />
+
+                <Button
+                  disabled={faqLoading}
+                  onClick={handleSaveFaq}
+                  className="w-full bg-blue-600"
+                >
+                  {faqLoading
+                    ? "Saving..."
+                    : editingFaq
+                      ? "Update FAQ"
+                      : "Add FAQ"}
+                </Button>
+
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* FAQ LIST */}
+        <div className="space-y-4">
+          {faqs.map((faq) => (
+            <div
+              key={faq._id}
+              className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-xs text-blue-400 uppercase">
+                    {faq.category}
+                  </span>
+                  <h4 className="font-semibold mt-1">
+                    {faq.question}
+                  </h4>
+                  <p className="text-sm text-gray-400 mt-2">
+                    {faq.answer}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setEditingFaq(faq);
+                      setFaqForm({
+                        category: faq.category,
+                        question: faq.question,
+                        answer: faq.answer,
+                      });
+                      setFaqDialogOpen(true);
+                    }}
+                  >
+                    <Edit size={14} />
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDeleteFaq(faq._id)}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {faqs.length === 0 && (
+            <div className="text-center text-gray-400 py-10">
+              No FAQs found
+            </div>
+          )}
+        </div>
+
+      </TabsContent>
       </Tabs>
+
+
 
       <ConfirmDialog
         open={confirmOpen}

@@ -139,3 +139,60 @@ export const markOrderDelivered = async (req, res) => {
 };
 
 
+export const approveReturn = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.orderStatus !== "return_requested") {
+      return res.status(400).json({ message: "No return request found" });
+    }
+
+    // 🔁 Add stock back
+    for (const item of order.orderItems) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { countInStock: item.quantity }
+      });
+    }
+
+    order.orderStatus = "returned";
+    order.paymentStatus = "refunded";
+    order.returnApproved = true;
+
+    await order.save();
+
+    res.json({ message: "Return approved", order });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+export const rejectReturn = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.orderStatus !== "return_requested") {
+      return res.status(400).json({ message: "No return request found" });
+    }
+
+    order.orderStatus = "delivered";
+    order.returnRejected = true;
+
+    await order.save();
+
+    res.json({ message: "Return rejected", order });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+

@@ -39,7 +39,7 @@ export default function Products() {
     Promise.all(
       categories.map((cat) =>
         api.get("/api/products", {
-          params: { 
+          params: {
             category: cat._id,
             page: 1,
             limit: 4 // Show only 4 products per category
@@ -92,6 +92,22 @@ export default function Products() {
     }
   };
 
+  // const handleAddToCart = async (productId) => {
+  //   try {
+  //     await addToCartApi(productId, 1);
+  //     await refreshCart();
+  //     setOpenSideCart(true);
+  //     toast.success("Product added to cart 🛒");
+  //   } catch (error) {
+  //     toast.error(
+  //       error.response?.data?.message || "Please login to add to cart",
+  //     );
+  //     {
+  //       setShowLoginModal(true);
+  //     }
+  //   }
+  // };
+
   const handleAddToCart = async (productId) => {
     try {
       await addToCartApi(productId, 1);
@@ -99,14 +115,28 @@ export default function Products() {
       setOpenSideCart(true);
       toast.success("Product added to cart 🛒");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Please login to add to cart",
-      );
-      {
-        setShowLoginModal(true);
+
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      // ✅ STOCK ERROR (400)
+      if (status === 400) {
+        toast.error(message || "Stock not available");
+        return; // 🚫 STOP here, DO NOT open login modal
       }
+
+      // ✅ LOGIN ERROR (401)
+      if (status === 401) {
+        toast.error("Please login to add to cart");
+        setShowLoginModal(true);
+        return;
+      }
+
+      // ✅ fallback
+      toast.error("Something went wrong");
     }
   };
+
 
   if (loading) {
     return (
@@ -582,9 +612,8 @@ export default function Products() {
                 {productsByCategory[categoryName].slice(0, 4).map((product) => (
                   <div className="product-card" key={product._id}>
                     <div
-                      className={`discount-badge ${
-                        product.discountPercent ? "show" : "hide"
-                      }`}
+                      className={`discount-badge ${product.discountPercent ? "show" : "hide"
+                        }`}
                     >
                       {product.discountPercent
                         ? `${product.discountPercent}% OFF`
@@ -593,9 +622,8 @@ export default function Products() {
 
                     {/* ❤️ WISHLIST */}
                     <button
-                      className={`favorite-btn ${
-                        wishlist.includes(product._id) ? "active" : ""
-                      }`}
+                      className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
+                        }`}
                       onClick={() => toggleWishlist(product._id)}
                     >
                       <Heart />
