@@ -83,28 +83,91 @@ export const getCart = async (req, res) => {
 
 // ✅ Add to cart
 
+// export const addToCart = async (req, res) => {
+//   try {
+//     const { productId, quantity } = req.body;
+
+//     // 🔹 Get product
+//     const product = await Product.findById(productId);
+
+//     if (!product || !product.isActive) {
+//       return res.status(404).json({ message: "Product not available" });
+//     }
+
+//     let cart = await Cart.findOne({ user: req.user._id });
+
+//     if (!cart) {
+//       cart = new Cart({ user: req.user._id, items: [] });
+//     }
+
+//     if (!quantity || quantity < 1) {
+//       return res.status(400).json({ message: "Invalid quantity" });
+//     }
+
+//     // 🔹 SAFE originalPrice fallback
+//     const originalPrice = product.originalPrice || product.price;
+
+//     const existingItem = cart.items.find(
+//       (item) => item.product.toString() === productId
+//     );
+
+//     if (existingItem) {
+//       existingItem.quantity += quantity;
+
+//       // 🔥 ALWAYS refresh prices
+//       existingItem.price = product.price;
+//       existingItem.originalPrice = originalPrice;
+
+//     } else {
+//       cart.items.push({
+//         product: productId,
+//         quantity,
+//         price: product.price,
+//         originalPrice: originalPrice
+//       });
+//     }
+
+//     cart.totalPrice = calculateTotal(cart.items);
+//     cart.appliedCoupon = null;
+
+//     await cart.save();
+
+//     // res.json(cart);
+
+//     // 🔥 RE-FETCH POPULATED CART
+//     const updatedCart = await Cart.findOne({ user: req.user._id }).populate(
+//       "items.product",
+//       "name price originalPrice discountPercent images"
+//     );
+
+//     res.json(updatedCart);
+
+//   } catch (error) {
+//     console.error("Add To Cart Error:", error);
+//     res.status(500).json({ message: "Failed to add item to cart" });
+//   }
+// };
+
+
 export const addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
 
-    // 🔹 Get product
     const product = await Product.findById(productId);
 
     if (!product || !product.isActive) {
       return res.status(404).json({ message: "Product not available" });
     }
 
-    let cart = await Cart.findOne({ user: req.user._id });
-
-    if (!cart) {
-      cart = new Cart({ user: req.user._id, items: [] });
-    }
-
     if (!quantity || quantity < 1) {
       return res.status(400).json({ message: "Invalid quantity" });
     }
 
-    // 🔹 SAFE originalPrice fallback
+    let cart = await Cart.findOne({ user: req.user._id });
+    if (!cart) {
+      cart = new Cart({ user: req.user._id, items: [] });
+    }
+
     const originalPrice = product.originalPrice || product.price;
 
     const existingItem = cart.items.find(
@@ -112,13 +175,28 @@ export const addToCart = async (req, res) => {
     );
 
     if (existingItem) {
-      existingItem.quantity += quantity;
+      const newQty = existingItem.quantity + quantity;
 
-      // 🔥 ALWAYS refresh prices
+      // ✅ STOCK CHECK ADDED
+      if (newQty > product.countInStock) {
+        return res.status(400).json({
+          message: `Only ${product.countInStock} item available in stock`
+        });
+      }
+
+      existingItem.quantity = newQty;
       existingItem.price = product.price;
       existingItem.originalPrice = originalPrice;
 
     } else {
+
+      // ✅ STOCK CHECK FOR NEW ITEM
+      if (quantity > product.countInStock) {
+        return res.status(400).json({
+          message: `Only ${product.countInStock} item available in stock`
+        });
+      }
+
       cart.items.push({
         product: productId,
         quantity,
@@ -132,12 +210,9 @@ export const addToCart = async (req, res) => {
 
     await cart.save();
 
-    // res.json(cart);
-
-    // 🔥 RE-FETCH POPULATED CART
     const updatedCart = await Cart.findOne({ user: req.user._id }).populate(
       "items.product",
-      "name price originalPrice discountPercent images"
+      "name price originalPrice discountPercent images countInStock"
     );
 
     res.json(updatedCart);
@@ -150,10 +225,17 @@ export const addToCart = async (req, res) => {
 
 
 
+
 // ✅ Update quantity
+
 // export const updateCartItem = async (req, res) => {
 //   try {
 //     const { productId, quantity } = req.body;
+
+//     const product = await Product.findById(productId);
+//     if (!product) {
+//       return res.status(404).json({ message: "Product not found" });
+//     }
 
 //     const cart = await Cart.findOne({ user: req.user._id });
 //     if (!cart) return res.status(404).json({ message: "Cart not found" });
@@ -164,25 +246,37 @@ export const addToCart = async (req, res) => {
 
 //     if (!item) return res.status(404).json({ message: "Item not found" });
 
-//     // item.quantity = quantity;
+//     // If quantity becomes 0 → remove item
 //     if (quantity < 1) {
 //       cart.items = cart.items.filter(
 //         (i) => i.product.toString() !== productId
 //       );
 //     } else {
 //       item.quantity = quantity;
+
+//       // 🔥 Refresh prices always
+//       item.price = product.price;
+//       item.originalPrice = product.originalPrice || product.price;
 //     }
 
 //     cart.totalPrice = calculateTotal(cart.items);
 //     cart.appliedCoupon = null;
+
 //     await cart.save();
 
-//     res.json(cart);
+//     // 🔥 RE-FETCH POPULATED CART
+//     const updatedCart = await Cart.findOne({ user: req.user._id }).populate(
+//       "items.product",
+//       "name price originalPrice discountPercent images"
+//     );
+
+//     res.json(updatedCart);
 //   } catch (error) {
 //     console.error("Update Cart Item Error:", error);
 //     res.status(500).json({ message: "Failed to update cart item" });
 //   }
 // };
+
 
 export const updateCartItem = async (req, res) => {
   try {
@@ -202,15 +296,20 @@ export const updateCartItem = async (req, res) => {
 
     if (!item) return res.status(404).json({ message: "Item not found" });
 
-    // If quantity becomes 0 → remove item
     if (quantity < 1) {
       cart.items = cart.items.filter(
         (i) => i.product.toString() !== productId
       );
     } else {
-      item.quantity = quantity;
 
-      // 🔥 Refresh prices always
+      // ✅ STOCK CHECK ADDED
+      if (quantity > product.countInStock) {
+        return res.status(400).json({
+          message: `Only ${product.countInStock} item available in stock`
+        });
+      }
+
+      item.quantity = quantity;
       item.price = product.price;
       item.originalPrice = product.originalPrice || product.price;
     }
@@ -220,13 +319,13 @@ export const updateCartItem = async (req, res) => {
 
     await cart.save();
 
-    // 🔥 RE-FETCH POPULATED CART
     const updatedCart = await Cart.findOne({ user: req.user._id }).populate(
       "items.product",
-      "name price originalPrice discountPercent images"
+      "name price originalPrice discountPercent images countInStock"
     );
 
     res.json(updatedCart);
+
   } catch (error) {
     console.error("Update Cart Item Error:", error);
     res.status(500).json({ message: "Failed to update cart item" });
