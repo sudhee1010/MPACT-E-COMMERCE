@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Download, TrendingUp, TrendingDown, FileText, Upload } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import axios from 'axios';
+import api from '../../src/services/api';
 
 export function Reports() {
   const [showUpload, setShowUpload] = useState(false);
@@ -21,21 +21,9 @@ export function Reports() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.error('No token found');
-          return;
-        }
-
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-
         const [summaryRes, monthlyRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/reports/summary', config),
-          axios.get('http://localhost:5000/api/reports/monthly', config)
+          api.get('/reports/summary'),
+          api.get('/reports/monthly')
         ]);
 
         setSummary(summaryRes.data);
@@ -67,20 +55,15 @@ export function Reports() {
 
     try {
       setUploading(true);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login first');
-        return;
-      }
 
+      // Create a custom config for FormData upload
       const config = {
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       };
 
-      await axios.post('http://localhost:5000/api/reports/upload', formData, config);
+      await api.post('/reports/upload', formData, config);
       alert('Report uploaded successfully');
       setSelectedFile(null);
       setShowUpload(false);
@@ -94,21 +77,10 @@ export function Reports() {
 
   const handleExport = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login first');
-        return;
-      }
-
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await api.get('/reports/export/csv', {
         responseType: 'blob',
-      };
+      });
 
-      const response = await axios.get('http://localhost:5000/api/reports/export/csv', config);
-      
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -117,7 +89,7 @@ export function Reports() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
+
       alert('CSV exported successfully');
     } catch (error) {
       console.error('Export failed:', error.response?.data || error.message);
@@ -127,13 +99,14 @@ export function Reports() {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount || 0);
   };
+
 
   // Calculate growth percentage (mock calculation - update with actual if needed)
   const calculateGrowthPercentage = (currentIndex) => {
@@ -146,10 +119,10 @@ export function Reports() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '50vh',
         color: 'white'
       }}>
@@ -221,7 +194,7 @@ export function Reports() {
           <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'white', margin: '0 0 1rem 0' }}>
             Upload Report File
           </h3>
-          <div 
+          <div
             onClick={() => fileInputRef.current?.click()}
             style={{
               border: '2px dashed #4b5563',
@@ -261,8 +234,8 @@ export function Reports() {
                 </p>
               </>
             )}
-            <input 
-              type="file" 
+            <input
+              type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
               style={{ display: 'none' }}
@@ -270,7 +243,7 @@ export function Reports() {
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', gap: '1rem' }}>
-            <button 
+            <button
               onClick={() => {
                 setShowUpload(false);
                 setSelectedFile(null);
@@ -287,7 +260,7 @@ export function Reports() {
             >
               Cancel
             </button>
-            <button 
+            <button
               onClick={handleUpload}
               disabled={!selectedFile || uploading}
               style={{
@@ -363,7 +336,8 @@ export function Reports() {
           </div>
           <p style={{ fontSize: '0.875rem', color: '#9ca3af', margin: 0 }}>Avg Order Value</p>
           <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', margin: '0.25rem 0 0 0' }}>
-            ${summary.avgOrderValue.toFixed(2)}
+            {/* ${summary.avgOrderValue.toFixed(2)} */}
+            {formatCurrency(summary.avgOrderValue)}
           </p>
           <p style={{ fontSize: '0.875rem', color: '#ef4444', margin: '0.25rem 0 0 0' }}>-3.2% this month</p>
         </div>
@@ -406,29 +380,42 @@ export function Reports() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={salesData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="month" 
+                  <XAxis
+                    dataKey="month"
                     stroke="#9ca3af"
                     fontSize={12}
                   />
-                  <YAxis 
+                  <YAxis
                     stroke="#9ca3af"
                     fontSize={12}
-                    tickFormatter={(value) => `$${value / 1000}k`}
+                    // tickFormatter={(value) => `$${value / 1000}k`}
+                    tickFormatter={(value) =>
+                      new Intl.NumberFormat('en-IN', {
+                        notation: "compact",
+                        compactDisplay: "short"
+                      }).format(value)
+                    }
                   />
-                  <Tooltip 
-                    contentStyle={{ 
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: '#111827',
                       border: '1px solid #374151',
                       borderRadius: '6px',
                       color: '#fff'
                     }}
-                    formatter={(value) => [`$${value.toLocaleString()}`, 'Sales']}
+                    // formatter={(value) => [`$${value.toLocaleString()}`, 'Sales']}
+                    formatter={(value) => [
+                      new Intl.NumberFormat('en-IN', {
+                        style: 'currency',
+                        currency: 'INR'
+                      }).format(value),
+                      'Sales'
+                    ]}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sales" 
-                    stroke="#facc15" 
+                  <Line
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="#facc15"
                     strokeWidth={2}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6 }}
@@ -449,26 +436,26 @@ export function Reports() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={salesData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="month" 
+                  <XAxis
+                    dataKey="month"
                     stroke="#9ca3af"
                     fontSize={12}
                   />
-                  <YAxis 
+                  <YAxis
                     stroke="#9ca3af"
                     fontSize={12}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
+                  <Tooltip
+                    contentStyle={{
                       backgroundColor: '#111827',
                       border: '1px solid #374151',
                       borderRadius: '6px',
                       color: '#fff'
                     }}
                   />
-                  <Bar 
-                    dataKey="orders" 
-                    fill="#fbbf24" 
+                  <Bar
+                    dataKey="orders"
+                    fill="#fbbf24"
                     radius={[6, 6, 0, 0]}
                   />
                 </BarChart>
@@ -508,13 +495,15 @@ export function Reports() {
                           {item.month}
                         </td>
                         <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '500', color: '#facc15' }}>
-                          ${(item.sales || 0).toLocaleString()}
+                          {/* ${(item.sales || 0).toLocaleString()} */}
+                          {formatCurrency(item.sales)}
                         </td>
                         <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'white' }}>
                           {item.orders || 0}
                         </td>
                         <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'white' }}>
-                          ${(item.avgOrder || (item.sales && item.orders ? (item.sales / item.orders) : 0)).toFixed(2)}
+                          {/* ${(item.avgOrder || (item.sales && item.orders ? (item.sales / item.orders) : 0)).toFixed(2)} */}
+                          {formatCurrency(item.avgOrder || (item.sales && item.orders ? (item.sales / item.orders) : 0))}
                         </td>
                         <td style={{ padding: '0.75rem 1rem' }}>
                           {growth !== null && (

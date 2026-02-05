@@ -1069,7 +1069,7 @@ const ProductPage = () => {
   const [showTopRated, setShowTopRated] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const { refreshCart, setOpenSideCart } = useCart();
-   const { user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
   // const user = JSON.parse(localStorage.getItem("user"));
@@ -1145,44 +1145,72 @@ const ProductPage = () => {
     if (product?._id) fetchReviews();
   }, [product]);
 
-  const handleAddToCart = async () => {
+  // const handleAddToCart = async () => {
+  //   try {
+  //     await addToCartApi(product._id, qty);
+  //     await refreshCart();
+  //     setOpenSideCart(true);
+  //     toast.success("Product added to cart 🛒");
+  //   } catch (error) {
+  //     toast.error( "Please login to add to cart");
+  //     {
+  //       setShowLoginModal(true);
+  //     }
+  //   }
+  // };
+
+  const handleAddToCart = async (productId) => {
     try {
-      await addToCartApi(product._id, qty);
+      await addToCartApi(productId, 1);
       await refreshCart();
       setOpenSideCart(true);
       toast.success("Product added to cart 🛒");
     } catch (error) {
-      toast.error( "Please login to add to cart");
-      {
-        setShowLoginModal(true);
+      const message = error.response?.data?.message;
+
+      // ✅ If stock error → just show toast
+      if (message && message.toLowerCase().includes("stock")) {
+        toast.error(message);
+        return; // ❗ DO NOT open login modal
       }
+
+      // ✅ If unauthorized → show login modal
+      if (error.response?.status === 401) {
+        toast.error("Please login to add to cart");
+        setShowLoginModal(true);
+        return;
+      }
+
+      // fallback
+      toast.error(message || "Something went wrong");
     }
   };
 
-const handleBuyNow = () => {
-   console.log("BUY NOW CLICKED AUTH USER:", user);
+
+  const handleBuyNow = () => {
+    console.log("BUY NOW CLICKED AUTH USER:", user);
 
     // ⛔ Wait until auth is resolved
-  if (loading) return;
+    if (loading) return;
 
-  if (!user || !user._id) {
-    setShowLoginModal(true);
-    return;
-  }
+    if (!user || !user._id) {
+      setShowLoginModal(true);
+      return;
+    }
 
-  navigate("/checkout", {
-    state: {
-      directBuy: true,
-      product: {
-        _id: product._id,
-        name: product.name,
-        price: product.price,
-        image: product.images?.[0]?.url,
-        qty: qty,
+    navigate("/checkout", {
+      state: {
+        directBuy: true,
+        product: {
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          image: product.images?.[0]?.url,
+          qty: qty,
+        },
       },
-    },
-  });
-};
+    });
+  };
 
 
   const submitReviewHandler = async () => {
@@ -1470,66 +1498,66 @@ const handleBuyNow = () => {
     },
 
     /* ================= MODAL ================= */
-modalOverlay: {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0, 0, 0, 0.85)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 9999,
-  padding: "16px",
-},
+    modalOverlay: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0, 0, 0, 0.85)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: "16px",
+    },
 
-loginModal: {
-  background: "#151515",
-  border: "2px solid #ffeb00",
-  borderRadius: 20,
-  padding: 32,
-  width: "90%",
-  maxWidth: 420,
-  textAlign: "center",
-  animation: "popIn 0.3s ease",
-},
+    loginModal: {
+      background: "#151515",
+      border: "2px solid #ffeb00",
+      borderRadius: 20,
+      padding: 32,
+      width: "90%",
+      maxWidth: 420,
+      textAlign: "center",
+      animation: "popIn 0.3s ease",
+    },
 
-loginTitle: {
-  color: "#ffeb00",
-  fontFamily: "'Jersey 25', cursive",
-  fontSize: 32,
-  marginBottom: 12,
-},
+    loginTitle: {
+      color: "#ffeb00",
+      fontFamily: "'Jersey 25', cursive",
+      fontSize: 32,
+      marginBottom: 12,
+    },
 
-loginText: {
-  color: "#ffffff",
-  fontSize: 14,
-  marginBottom: 24,
-},
+    loginText: {
+      color: "#ffffff",
+      fontSize: 14,
+      marginBottom: 24,
+    },
 
-modalActions: {
-  display: "flex",
-  gap: 12,
-},
+    modalActions: {
+      display: "flex",
+      gap: 12,
+    },
 
-modalButton: {
-  flex: 1,
-  height: 48,
-  fontSize: 16,
-  fontWeight: 700,
-  borderRadius: 10,
-  cursor: "pointer",
-  border: "2px solid #ffeb00",
-  fontFamily: "'Jersey 25', sans-serif",
-},
+    modalButton: {
+      flex: 1,
+      height: 48,
+      fontSize: 16,
+      fontWeight: 700,
+      borderRadius: 10,
+      cursor: "pointer",
+      border: "2px solid #ffeb00",
+      fontFamily: "'Jersey 25', sans-serif",
+    },
 
-loginButton: {
-  background: "#ffeb00",
-  color: "#000",
-},
+    loginButton: {
+      background: "#ffeb00",
+      color: "#000",
+    },
 
-cancelButton: {
-  background: "transparent",
-  color: "#fff",
-},
+    cancelButton: {
+      background: "transparent",
+      color: "#fff",
+    },
 
 
     /* ================= REVIEWS SECTION ================= */
@@ -1604,8 +1632,8 @@ cancelButton: {
       border: "2px solid #ffe600",
       padding: "clamp(20px, 4vw, 50px)",
       boxSizing: "border-box",
-      display: "flex",          
-      flexDirection: "column",  
+      display: "flex",
+      flexDirection: "column",
       minHeight: 0,
       maxHeight: "calc(100vh - 32px)",
       overflowY: "auto",
@@ -1935,7 +1963,7 @@ cancelButton: {
       fontWeight: 700,
       color: "#00ff88",
     },
-    
+
   };
 
   if (loading) {
@@ -1972,7 +2000,7 @@ cancelButton: {
 
   return (
     <>
-    <Navbar />
+      <Navbar />
       {/* <ToastContainer position="top-center" autoClose={3000} /> */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
@@ -2182,7 +2210,15 @@ cancelButton: {
                 <div style={styles.quantityValue}>{qty}</div>
 
                 <button
-                  onClick={() => setQty(qty + 1)}
+                  // onClick={() => setQty(qty + 1)}
+                  onClick={() => {
+                    if (qty < product.countInStock) {
+                      setQty(qty + 1);
+                    } else {
+                      toast.error(`Only ${product.countInStock} item available`);
+                    }
+                  }}
+
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "#ffe600";
                     e.currentTarget.style.color = "#000";
@@ -2472,30 +2508,30 @@ cancelButton: {
           </div>
         </section>
 
-      {showLoginModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.loginModal}>
-            <h2 style={styles.loginTitle}>Login Required</h2>
-            <p style={styles.loginText}>Please login to continue.</p>
+        {showLoginModal && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.loginModal}>
+              <h2 style={styles.loginTitle}>Login Required</h2>
+              <p style={styles.loginText}>Please login to continue.</p>
 
-            <div style={styles.modalActions}>
-              <button
-                style={{ ...styles.modalButton, ...styles.loginButton }}
-                onClick={() => navigate("/login")}
-              >
-                LOGIN
-              </button>
+              <div style={styles.modalActions}>
+                <button
+                  style={{ ...styles.modalButton, ...styles.loginButton }}
+                  onClick={() => navigate("/login")}
+                >
+                  LOGIN
+                </button>
 
-              <button
-                style={{ ...styles.modalButton, ...styles.cancelButton }}
-                onClick={() => setShowLoginModal(false)}
-              >
-                CANCEL
-              </button>
+                <button
+                  style={{ ...styles.modalButton, ...styles.cancelButton }}
+                  onClick={() => setShowLoginModal(false)}
+                >
+                  CANCEL
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
         <Footer />
       </div>
