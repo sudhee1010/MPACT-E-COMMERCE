@@ -24,7 +24,8 @@ export const getInventory = async (req, res) => {
 
       return {
         id: item._id,
-        productName: item.product.name,
+        // productName: item.product.name,
+        productName: item.product?.name || "Unknown Product",
         sku: item.sku,
         warehouse: item.warehouse,
         currentStock: item.currentStock,
@@ -82,7 +83,6 @@ export const getInventory = async (req, res) => {
 // };
 
 
-
 export const addStock = async (req, res) => {
   try {
     const { productId, warehouse, quantity, unitCost, sku, reason } = req.body;
@@ -99,7 +99,6 @@ export const addStock = async (req, res) => {
     let inventory = await Inventory.findOne({ product: productId, warehouse });
 
     if (!inventory) {
-      // 🆕 First time stock
       inventory = await Inventory.create({
         product: productId,
         sku,
@@ -108,9 +107,8 @@ export const addStock = async (req, res) => {
         unitCost: cost
       });
     } else {
-      // ✅ Existing stock → overwrite unit cost
       inventory.currentStock += qty;
-      inventory.unitCost = cost; // 🔥 THIS IS THE FIX
+      inventory.unitCost = cost;
       await inventory.save();
     }
 
@@ -123,6 +121,7 @@ export const addStock = async (req, res) => {
     });
 
     res.json({ message: "Stock added successfully" });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Add stock failed" });
@@ -253,7 +252,7 @@ export const getStockMovements = async (req, res) => {
 
     const formatted = movements.map(m => ({
       id: m._id,
-      productName: m.product.name,
+      productName: m.product ? m.product.name : "Deleted Product",
       type: m.type,
       quantity: m.quantity,
       warehouse: m.warehouse,
@@ -263,6 +262,7 @@ export const getStockMovements = async (req, res) => {
 
     res.json(formatted);
   } catch (error) {
+    console.error("Stock movement fetch error:", error);
     res.status(500).json({ message: "Failed to fetch stock movements" });
   }
 };
@@ -275,7 +275,7 @@ export const getLowStockItems = async (req, res) => {
     }).populate("product", "name");
 
     const formatted = items.map(item => ({
-      productName: item.product.name,
+      productName: item.product?.name || "Unknown Product",
       warehouse: item.warehouse,
       currentStock: item.currentStock,
       minStock: item.minStock
@@ -294,7 +294,7 @@ export const getOutOfStockItems = async (req, res) => {
       .populate("product", "name");
 
     const formatted = items.map(item => ({
-      productName: item.product.name,
+      productName: item.product?.name || "Unknown Product",
       warehouse: item.warehouse,
       currentStock: item.currentStock,
       minStock: item.minStock
@@ -322,12 +322,12 @@ export const getInventoryAlerts = async (req, res) => {
 
     res.json({
       lowStock: lowStock.map(item => ({
-        productName: item.product.name,
+        productName: item.product?.name || "Unknown Product",
         warehouse: item.warehouse,
         currentStock: item.currentStock
       })),
       outOfStock: outOfStock.map(item => ({
-        productName: item.product.name,
+        productName: item.product?.name || "Unknown Product",
         warehouse: item.warehouse
       }))
     });
