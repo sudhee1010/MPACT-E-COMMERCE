@@ -41,19 +41,28 @@ export function Dashboard() {
     };
     return map[status] || status;
   };
+  const [inventoryAlerts, setInventoryAlerts] = useState({
+    lowStock: [],
+    outOfStock: []
+  });
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [dashboardRes, analyticsRes, ordersRes] = await Promise.all([
+        const [dashboardRes, analyticsRes, ordersRes, inventoryAlertsRes] = await Promise.all([
           api.get('/api/admin/dashboard'),
           api.get('/api/admin/analytics/monthly'),
-          api.get('/api/admin/orders/recent')
+          api.get('/api/admin/orders/recent'),
+          api.get('/api/inventory/alerts')
         ]);
 
         setStats(dashboardRes.data || initialStats);
         setSalesData(analyticsRes.data || initialSales);
 
+        setInventoryAlerts(inventoryAlertsRes.data || {
+          lowStock: [],
+          outOfStock: []
+        })
         const mappedOrders = (ordersRes.data || []).map(o => ({
           id: `#${o._id.slice(-6)}`,
           customer: o.user?.name || o.user?.email || '—',
@@ -72,6 +81,15 @@ export function Dashboard() {
 
     fetchAll();
   }, []);
+
+  useEffect(() => {
+    if (inventoryAlerts.outOfStock.length > 0) {
+      console.warn('Out of stock items detected');
+    } else if (inventoryAlerts.lowStock.length > 0) {
+      console.warn('Low stock items detected');
+    }
+  }, [inventoryAlerts]);
+
 
   const statsData = [
     { title: 'Total Revenue', value: currency(stats.totalRevenue || 0), change: '', trend: 'up', icon: RupeeIcon, color: 'bg-blue-500' },
@@ -103,6 +121,51 @@ export function Dashboard() {
           );
         })}
       </div>
+
+
+      {/* Inventory Alerts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Low Stock */}
+        <div className="bg-[#2a2a2a] border border-yellow-400/40 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-yellow-400 mb-3">
+            Low Stock Alerts ({inventoryAlerts.lowStock.length})
+          </h3>
+
+          {inventoryAlerts.lowStock.length === 0 ? (
+            <p className="text-sm text-gray-400">All products sufficiently stocked 🎉</p>
+          ) : (
+            <ul className="space-y-2">
+              {inventoryAlerts.lowStock.map((item, index) => (
+                <li key={index} className="text-sm text-white flex justify-between">
+                  <span>{item.productName}</span>
+                  <span className="text-yellow-400">{item.currentStock} left</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Out of Stock */}
+        <div className="bg-[#2a2a2a] border border-red-400/40 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-red-400 mb-3">
+            Out of Stock ({inventoryAlerts.outOfStock.length})
+          </h3>
+
+          {inventoryAlerts.outOfStock.length === 0 ? (
+            <p className="text-sm text-gray-400">No urgent restock needed 👍</p>
+          ) : (
+            <ul className="space-y-2">
+              {inventoryAlerts.outOfStock.map((item, index) => (
+                <li key={index} className="text-sm text-white">
+                  {item.productName}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -170,15 +233,14 @@ export function Dashboard() {
                   <td className="py-3 px-4 text-sm font-medium text-yellow-400">{order.amount}</td>
                   <td className="py-3 px-4">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        order.status === 'Completed'
-                          ? 'bg-green-900/50 text-green-400 border border-green-700'
-                          : order.status === 'Processing'
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${order.status === 'Completed'
+                        ? 'bg-green-900/50 text-green-400 border border-green-700'
+                        : order.status === 'Processing'
                           ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-700'
                           : order.status === 'Shipped'
-                          ? 'bg-blue-900/50 text-blue-400 border border-blue-700'
-                          : 'bg-orange-900/50 text-orange-400 border border-orange-700'
-                      }`}
+                            ? 'bg-blue-900/50 text-blue-400 border border-blue-700'
+                            : 'bg-orange-900/50 text-orange-400 border border-orange-700'
+                        }`}
                     >
                       {order.status}
                     </span>
