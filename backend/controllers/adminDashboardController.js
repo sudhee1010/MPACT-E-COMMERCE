@@ -9,7 +9,10 @@ export const getDashboardStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ role: "customer" });
     const totalProducts = await Product.countDocuments({ isActive: true });
-    const totalOrders = await Order.countDocuments();
+    // const totalOrders = await Order.countDocuments();
+    const totalOrders = await Order.countDocuments({
+      orderStatus: "delivered"
+    });
 
     const revenue = await Order.aggregate([
       { $match: { orderStatus: "delivered" } },
@@ -37,24 +40,42 @@ export const getDashboardStats = async (req, res) => {
  */
 export const getMonthlyAnalytics = async (req, res) => {
   try {
+    // const data = await Order.aggregate([
+    //   {
+    //     $group: {
+    //       _id: { $month: "$createdAt" },
+    //       sales: { $sum: "$totalAmount" },
+    //       orders: { $sum: 1 }
+    //     }
+    //   },
+    //   { $sort: { _id: 1 } }
+    // ]);
     const data = await Order.aggregate([
+      { $match: { orderStatus: "delivered" } },
       {
         $group: {
-          _id: { $month: "$createdAt" },
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" }
+          },
           sales: { $sum: "$totalAmount" },
           orders: { $sum: 1 }
         }
       },
-      { $sort: { _id: 1 } }
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
     ]);
 
+
     const months = [
-      "Jan","Feb","Mar","Apr","May","Jun",
-      "Jul","Aug","Sep","Oct","Nov","Dec"
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
 
     const formatted = data.map(item => ({
-      month: months[item._id - 1],
+      // month: months[item._id - 1],
+      month: `${months[item._id.month - 1]} ${item._id.year}`,
       sales: item.sales,
       orders: item.orders
     }));
