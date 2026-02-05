@@ -64,6 +64,73 @@ export const getProducts = async (req, res) => {
   }
 };
 
+/* ================= GET ALL PRODUCTS (Admin) ================= */
+export const getAllProducts = async (req, res) => {
+  try {
+    const {
+      keyword,
+      category,
+      minPrice,
+      maxPrice,
+      rating,
+      limit = 10,
+      cursor,
+      showInactive = false  // Admin can optionally filter
+    } = req.query;
+
+    // Admin can see all products (both active and inactive)
+    const filter = {};
+
+    // Optional: Filter by active status if requested
+    if (showInactive === 'false' || showInactive === false) {
+      filter.isActive = true;
+    }
+
+    if (keyword) {
+      filter.name = { $regex: keyword, $options: "i" };
+    }
+
+    if (category) filter.category = category;
+
+    if (rating) {
+      filter.rating = { $gte: Number(rating) };
+    }
+
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    if (cursor) {
+      filter.createdAt = { $lt: new Date(cursor) };
+    }
+
+    const pageSize = Number(limit) + 1;
+
+    const products = await Product.find(filter)
+      .populate("category", "name")
+      .sort({ createdAt: -1 })
+      .limit(pageSize);
+
+    const hasNextPage = products.length > limit;
+    if (hasNextPage) products.pop();
+
+    const nextCursor = hasNextPage
+      ? products[products.length - 1].createdAt
+      : null;
+
+    res.json({
+      products,
+      pageInfo: {
+        hasNextPage,
+        nextCursor
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 
 
@@ -157,16 +224,13 @@ export const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
-    if (!product || !product.isActive) {
+    if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
     // ✅ If category is updated, validate it
     if (req.body.category) {
-      const categoryExists = await Category.findOne({
-        _id: req.body.category,
-        isActive: true
-      });
+      const categoryExists = await Category.findById( req.body.category, );
 
       if (!categoryExists) {
         return res.status(400).json({ message: "Invalid category" });
@@ -205,18 +269,17 @@ export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
-    if (!product || !product.isActive) {
+    if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+   
+    // Delete images from Cloudinary
+    for (const img of product.images) {
+      await cloudinary.uploader.destroy(img.public_id);
+    } 
 
-    // ✅ Soft delete
-    // product.isActive = false;
-    // await product.save();
-
-    await Product.findByIdAndUpdate(req.params.id, {
-      isActive: false
-    });
-
+    await Product.findByIdAndDelete(req.params.id);
+    
 
     res.json({ message: "Product removed successfully" });
   } catch (error) {
@@ -231,7 +294,7 @@ export const deleteProductImage = async (req, res) => {
     const { productId, imageId } = req.params;
 
     const product = await Product.findById(productId);
-    if (!product || !product.isActive) {
+    if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
