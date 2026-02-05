@@ -38,7 +38,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import OrderDetails from "./pages/OrderDetails.jsx";
 import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
 import ForgotPassword from "./pages/ForgotPassword";
-import Homeads from "./components/Homeads.jsx";
+import HomeAds from "./components/Homeads.jsx";
 
 
 
@@ -184,7 +184,7 @@ function App() {
           <Route path="/review" element={<Review />} />
           <Route path="/popup" element={<SuccessPopup />} />
           <Route path="/distributor" element={<DistributorEnquiry />} />
-          <Route path="/homeads" element={<Homeads />} />
+          <Route path="/homeads" element={<HomeAds />} />
 
 
 
