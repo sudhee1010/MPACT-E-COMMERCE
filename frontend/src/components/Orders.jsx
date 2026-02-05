@@ -237,6 +237,9 @@ export function Orders() {
             <SelectItem value="Returned" className="text-white hover:cursor-pointer">
               Returned
             </SelectItem>
+              <SelectItem value="Return Requested" className="text-white hover:cursor-pointer">
+              Return requested
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
