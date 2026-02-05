@@ -272,15 +272,14 @@ export const deleteProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+   
+    // Delete images from Cloudinary
+    for (const img of product.images) {
+      await cloudinary.uploader.destroy(img.public_id);
+    } 
 
-    // ✅ Soft delete
-    // product.isActive = false;
-    // await product.save();
-
-    await Product.findByIdAndUpdate(req.params.id, {
-      isActive: false
-    });
-
+    await Product.findByIdAndDelete(req.params.id);
+    
 
     res.json({ message: "Product removed successfully" });
   } catch (error) {

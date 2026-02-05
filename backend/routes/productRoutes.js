@@ -32,17 +32,17 @@ const router = express.Router();
 router.get("/admin/all", protect, isAdmin, getAllProducts);  // Admin view - all products
 
 router.get("/", getProducts);
-router.get("/:id", getProductById);
+router.delete("/:productId/image/:imageId",protect,isAdmin,deleteProductImage);
 
+router.put("/:productId/image/:imageId", protect, isAdmin, upload.single("image"),updateProductImage);
 
 router.post("/", protect, isAdmin, createProduct);
 router.put("/:id", protect, isAdmin, updateProduct);
 router.delete("/:id", protect, isAdmin, deleteProduct);
 
-router.delete("/:productId/image/:imageId",protect,isAdmin,deleteProductImage);
+router.get("/:id", getProductById);
 
 
-router.put("/:productId/image/:imageId", protect, isAdmin, upload.single("image"),updateProductImage);
 
 
 export default router;
