@@ -15,6 +15,7 @@
 import express from "express";
 import {
   getProducts,
+  getAllProducts, 
   getProductById,
   createProduct,
   updateProduct,
@@ -27,8 +28,12 @@ import { isAdmin } from "../middlewares/adminMiddleware.js";
 
 const router = express.Router();
 
+// Admin routes
+router.get("/admin/all", protect, isAdmin, getAllProducts);  // Admin view - all products
+
 router.get("/", getProducts);
 router.get("/:id", getProductById);
+
 
 router.post("/", protect, isAdmin, createProduct);
 router.put("/:id", protect, isAdmin, updateProduct);

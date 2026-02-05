@@ -5,6 +5,11 @@ export const getProductsApi = (params = {}) => {
   return api.get("/products", { params });
 };
 
+/* ================= GET ALL PRODUCTS (Admin) ================= */
+export const getAllProductsApi = (params = {}) => {
+  return api.get("/products/admin/all", { params });  // Admin endpoint
+};
+
 /* ================= GET SINGLE PRODUCT ================= */
 export const getProductByIdApi = (id) => {
   return api.get(`/products/${id}`);
@@ -25,12 +30,12 @@ export const deleteProductApi = (id) => {
 
 /* ================= IMAGE ================= */
 export const deleteProductImageApi = (productId, imageId) => {
-  return api.delete(`/products/${productId}/images/${imageId}`);
+  return api.delete(`/products/${productId}/image/${imageId}`);
 };
 
 export const updateProductImageApi = (productId, imageId, formData) => {
   return api.put(
-    `/products/${productId}/images/${imageId}`,
+    `/products/${productId}/image/${imageId}`,
     formData,
     { headers: { "Content-Type": "multipart/form-data" } }
   );

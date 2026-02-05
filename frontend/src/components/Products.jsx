@@ -1369,7 +1369,6 @@
 //     </div>
 //   );
 // }
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, AlertTriangle, Upload, X, DollarSign, Package, Percent, Loader2, Image as ImageIcon } from 'lucide-react';
 import * as productApi from '../api/productApi';
@@ -1414,25 +1413,53 @@ export function Products() {
       setLoading(true);
       const params = {
         limit: 10,
-        ...(cursor && { cursor })
+        ...(cursor && { cursor }),
+         showInactive: true  // Request inactive products too
       };
       
-      const response = await productApi.getProductsApi(params);
-      console.log("products",response)
-      if (cursor) {
-        setProducts(prev => [...prev, ...response.data.products]);
-      } else {
-        setProducts(response.data.products);
-      }
-      setPageInfo(response.data.pageInfo);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch products');
-      console.error('Error fetching products:', err);
-    } finally {
-      setLoading(false);
+      const response = await productApi.getAllProductsApi(params);
+     //console.log("products",response)
+
+       // ⭐ FIX: Normalize highlights to ALWAYS be an array
+    const normalized = response.data.products.map(p => ({
+      ...p,
+      highlights: Array.isArray(p.highlights)
+        ? p.highlights
+        : (p.highlights || "")
+            .split(",")
+            .map(h => h.trim())
+            .filter(h => h.length > 0)
+    }));
+
+  //     if (cursor) {
+  //       setProducts(prev => [...prev, ...response.data.products]);
+  //     } else {
+  //       setProducts(response.data.products);
+  //     }
+  //     setPageInfo(response.data.pageInfo);
+  //     setError(null);
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || 'Failed to fetch products');
+  //     console.error('Error fetching products:', err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  if (cursor) {
+      setProducts(prev => [...prev, ...normalized]);
+    } else {
+      setProducts(normalized);
     }
-  };
+
+    setPageInfo(response.data.pageInfo);
+    setError(null);
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to fetch products");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ADD THIS useEffect (after your existing useEffect for products):
 
@@ -1480,6 +1507,9 @@ const fetchCategories = async () => {
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (product.category?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+ 
+
 
 
   const uploadImageToBackend = async (file) => {
@@ -1541,7 +1571,7 @@ const handleImageUpload = async (e) => {
   try {
     // Only delete from backend if it exists in Cloudinary
     if (editingProduct && image.public_id) {
-      await productApi.deleteProductImageApi(editingProduct._id, image.public_id);
+      await productApi.deleteProductImageApi(editingProduct._id, image._id);
     }
 
     // Remove locally
@@ -1571,22 +1601,36 @@ const handleImageUpload = async (e) => {
       // In production, you would upload all images first, then get their URLs
       const productData = {
         ...formData,
-        images: formData.images, 
+        //images: formData.images, 
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice || formData.price),
         countInStock: parseInt(formData.countInStock || 0),
         category: formData.category,
         images: validImages, // Send only uploaded images
         discountPercent: formData.discountPercent,
-        isActive: formData.isActive
+        isActive: formData.isActive,
+        //highlights: formData.highlights,
+        highlights: formData.highlights
+  .split(",")
+  .map(h => h.trim())
+  .filter(h => h.length > 0),
+
       };
 
       // Remove temporary fields
       delete productData.isTemp;
 
       const response = await productApi.createProductApi(productData);
+
+      // Manually attach category object (backend returns only ID)
+const categoryObj = categories.find(c => c._id === productData.category);
+
+const fixedProduct = {
+  ...response.data,
+  category: categoryObj || response.data.category
+};
       
-      setProducts(prev => [response.data, ...prev]);
+      setProducts(prev => [fixedProduct, ...prev]);
       resetForm();
       setIsAddOpen(false);
       setError(null);
@@ -1604,7 +1648,13 @@ const handleImageUpload = async (e) => {
       const productData = {
         name: formData.name,
         description: formData.description,
-        highlights: formData.highlights,
+        highlights: Array.isArray(formData.highlights)
+        ? formData.highlights
+        : formData.highlights
+        .split(",")
+        .map(h => h.trim())
+        .filter(h => h.length > 0),
+
         category: formData.category,
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice),
@@ -1621,9 +1671,18 @@ const handleImageUpload = async (e) => {
         productData
       );
 
-      setProducts(prev => 
-        prev.map(p => p._id === editingProduct._id ? response.data : p)
-      );
+      
+    // ⭐ FIX: restore complete category object
+    const categoryObj = categories.find(c => c._id === productData.category);
+
+    const fixedProduct = {
+      ...response.data,
+      category: categoryObj || response.data.category
+    };
+
+        setProducts(prev =>
+      prev.map(p => p._id === editingProduct._id ? fixedProduct : p)
+    );
       
       resetForm();
       setEditingProduct(null);
@@ -1649,30 +1708,37 @@ const handleImageUpload = async (e) => {
   };
 
   // ✅ MODIFIED: Toggle active status
+
   const toggleActiveStatus = async (id) => {
-    try {
-      const product = products.find(p => p._id === id);
-      if (!product) return;
-      
-      const updatedProduct = {
-        ...product,
-        isActive: !product.isActive
-      };
+  try {
+    const product = products.find(p => p._id === id);
+    if (!product) return;
 
-      const response = await productApi.updateProductApi(
-        id,
-        { isActive: updatedProduct.isActive }
-      );
+    const newStatus = !product.isActive;
 
-      setProducts(prev => 
-        prev.map(p => p._id === id ? response.data : p)
-      );
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update status');
-      console.error('Error updating status:', err);
-    }
-  };
+    const response = await productApi.updateProductApi(id, {
+      isActive: newStatus
+    });
+
+    // ⭐ FIX: Restore category object
+    const categoryObj = categories.find(c => c._id === product.category._id);
+
+    const fixedProduct = {
+      ...response.data,
+      category: categoryObj || response.data.category
+    };
+
+    setProducts(prev =>
+      prev.map(p => p._id === id ? fixedProduct : p)
+    );
+
+    setError(null);
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to update status");
+    console.error("Error updating status:", err);
+  }
+};
+
 
   const resetForm = () => {
     setFormData({
@@ -1694,7 +1760,7 @@ const handleImageUpload = async (e) => {
     setFormData({
       name: product.name,
       description: product.description || '',
-      highlights: product.highlights || '',
+      highlights: product.highlights?.join(", ") || '',
        category: product.category?._id || product.category || '',
       originalPrice: String(product.originalPrice || product.price),
       price: String(product.price),
@@ -1852,11 +1918,36 @@ const handleImageUpload = async (e) => {
             >
               <div style={{
                 padding: '1.5rem 1.5rem 0.5rem 1.5rem',
-                borderBottom: '1px solid #374151'
+                borderBottom: '1px solid #374151',
+                 position: 'relative'
               }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'white', margin: 0 }}>
                   Add New Product
                 </h3>
+                
+  {/* Close Button */}
+  <button
+    onClick={() => {
+      setIsAddOpen(false);
+      resetForm();
+    }}
+    disabled={uploadingImages}
+    style={{
+      position: 'absolute',
+      top: '1rem',
+      right: '1rem',
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      border: '1px solid #4b5563',
+      padding: '0.35rem',
+      borderRadius: '9999px',
+      cursor: uploadingImages ? 'not-allowed' : 'pointer',
+      opacity: uploadingImages ? 0.5 : 1,
+      color: '#d1d5db'
+    }}
+  >
+    <X size={18} />
+  </button>
+
               </div>
               <div style={{ padding: '1rem 1.5rem 1.5rem 1.5rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -2058,7 +2149,7 @@ const handleImageUpload = async (e) => {
                   {/* Highlights */}
                   <div>
                     <label style={{ display: 'block', color: '#d1d5db', marginBottom: '0.25rem', fontSize: '0.875rem' }}>
-                      Highlights (comma-separated)
+                      Highlights (square bracket-separated)
                     </label>
                     <textarea
                       value={formData.highlights}
@@ -2302,11 +2393,30 @@ const handleImageUpload = async (e) => {
             }}>
               <div style={{
                 padding: '1.5rem 1.5rem 0.5rem 1.5rem',
-                borderBottom: '1px solid #374151'
+                borderBottom: '1px solid #374151',
+                position: 'relative',
               }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'white', margin: 0 }}>
                   Edit Product: {editingProduct.name}
                 </h3>
+                
+  {/* Close Button */}
+  <button
+    onClick={() => setEditingProduct(null)}
+    style={{
+      position: 'absolute',
+      top: '1rem',
+      right: '1rem',
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      border: '1px solid #4b5563',
+      padding: '0.35rem',
+      borderRadius: '9999px',
+      cursor: 'pointer',
+      color: '#d1d5db'
+    }}
+  >
+    <X size={18} />
+  </button>
               </div>
               <div style={{ padding: '1rem 1.5rem 1.5rem 1.5rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
