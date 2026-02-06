@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 router.post("/register-user", registerUser);
-router.post("/register-admin",protect, isAdmin, registerAdmin);
+router.post("/register-admin", registerAdmin);
 router.post("/login", loginUser);
 router.post("/send-otp", sendOTP);
 router.post("/verify-otp", verifyOTP);

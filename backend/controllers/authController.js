@@ -81,7 +81,7 @@ export const registerUser = async (req, res) => {
 =========================== */
 export const registerAdmin = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     const exists = await User.findOne({ email });
     if (exists) {
@@ -94,6 +94,7 @@ export const registerAdmin = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      phone,
       isEmailVerified: true,
       role: "admin",
     });
@@ -123,6 +124,9 @@ export const registerAdmin = async (req, res) => {
 /* ===========================
    EMAIL LOGIN
 =========================== */
+
+
+
 // export const loginUser = async (req, res) => {
 //   try {
 //     const { email, password } = req.body;
@@ -141,7 +145,20 @@ export const registerAdmin = async (req, res) => {
 //       return res.status(401).json({ message: "Invalid credentials" });
 //     }
 
-//     res.json({ token: generateToken(user._id),user });
+//     const token = generateToken(user._id);
+
+//     // ✅ SET COOKIE
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//       sameSite: "strict",
+//       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+//     });
+
+//     res.json({
+//       message: "Login successful",
+//       user,
+//     });
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
@@ -156,6 +173,15 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // 🚫 BLOCK BANNED USER
+    if (user.isBanned) {
+      return res.status(403).json({
+        message: "Your account has been banned",
+        reason: user.banReason || "No reason provided",
+      });
+    }
+
+    // ❌ EMAIL NOT VERIFIED
     if (!user.isEmailVerified) {
       return res.status(403).json({ message: "Email not verified" });
     }
@@ -176,12 +202,19 @@ export const loginUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+    // ✅ SEND SAFE USER DATA ONLY
     res.json({
       message: "Login successful",
-      user,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isBanned: user.isBanned,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Login failed" });
   }
 };
 
@@ -476,8 +509,7 @@ export const googleLogin = async (req, res) => {
 
 export const getMyProfile = async (req, res) => {
   try {
-    const user = req.user;
-
+    const user = req.user;    
     res.json({
       _id: user._id,
       name: user.name,
