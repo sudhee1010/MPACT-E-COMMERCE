@@ -1109,8 +1109,8 @@ import WhatsAppFloat from '../components/WhatsAppFloat';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
-import HomeAds from '../components/Homeads';
-
+// import HomeAds from '../components/Homeads';
+import HomeAds from './HomeAds';
 
 
 
