@@ -6,7 +6,6 @@ import sendEmail from "../utils/sendEmail.js";
 import { verifyGoogleToken } from "../utils/googleVerify.js";
 import cloudinary from "../config/cloudinary.js";
 
-
 /* ===========================
    EMAIL REGISTER LOGIN
 =========================== */
@@ -49,7 +48,6 @@ import cloudinary from "../config/cloudinary.js";
 //   }
 // };
 
-
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -78,11 +76,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
-
-
-
-
 /* ===========================
    EMAIL REGISTER ADMIN
 =========================== */
@@ -103,7 +96,7 @@ export const registerAdmin = async (req, res) => {
       password: hashedPassword,
       phone,
       isEmailVerified: true,
-      role: "admin"
+      role: "admin",
     });
 
     // res.status(201).json({
@@ -123,9 +116,6 @@ export const registerAdmin = async (req, res) => {
       message: "Admin registered",
       user,
     });
-
-
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -174,7 +164,6 @@ export const registerAdmin = async (req, res) => {
 //   }
 // };
 
-
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -207,9 +196,10 @@ export const loginUser = async (req, res) => {
     // ✅ SET COOKIE
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      // secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     // ✅ SEND SAFE USER DATA ONLY
@@ -227,8 +217,6 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Login failed" });
   }
 };
-
-
 
 /* ===========================
    SEND EMAIL OTP
@@ -251,7 +239,7 @@ export const sendOTP = async (req, res) => {
     await sendEmail({
       to: email,
       subject: "Your OTP Code",
-      text: `Your OTP is ${otp}. It is valid for 10 minutes.`
+      text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
     });
 
     res.json({ message: "OTP sent successfully" });
@@ -300,12 +288,10 @@ export const sendOTP = async (req, res) => {
 //       user,
 //     });
 
-
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
 // };
-
 
 export const verifyOTP = async (req, res) => {
   try {
@@ -313,11 +299,7 @@ export const verifyOTP = async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    if (
-      !user ||
-      user.otp !== otp.toString() ||
-      user.otpExpiry < Date.now()
-    ) {
+    if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
@@ -344,8 +326,6 @@ export const verifyOTP = async (req, res) => {
   }
 };
 
-
-
 /* ===========================
    FORGOT PASSWORD
 =========================== */
@@ -366,7 +346,7 @@ export const forgotPassword = async (req, res) => {
     await sendEmail({
       to: email,
       subject: "Password Reset OTP",
-      text: `Your password reset OTP is ${otp}`
+      text: `Your password reset OTP is ${otp}`,
     });
 
     res.json({ message: "OTP sent to email" });
@@ -384,11 +364,7 @@ export const resetPassword = async (req, res) => {
 
     const user = await User.findOne({ email }).select("+password");
 
-    if (
-      !user ||
-      user.otp !== otp.toString() ||
-      user.otpExpiry < Date.now()
-    ) {
+    if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
@@ -419,7 +395,7 @@ export const sendPhoneOTP = async (req, res) => {
         phone,
         otp: otp.toString(),
         otpExpiry: Date.now() + 10 * 60 * 1000,
-        isPhoneVerified: false
+        isPhoneVerified: false,
       });
     } else {
       user.otp = otp.toString();
@@ -441,11 +417,7 @@ export const verifyPhoneOTP = async (req, res) => {
 
     const user = await User.findOne({ phone });
 
-    if (
-      !user ||
-      user.otp !== otp.toString() ||
-      user.otpExpiry < Date.now()
-    ) {
+    if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
@@ -459,15 +431,12 @@ export const verifyPhoneOTP = async (req, res) => {
 
     res.json({
       message: "Phone login successful",
-      token: generateToken(user._id)
+      token: generateToken(user._id),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
-
 
 export const googleLogin = async (req, res) => {
   try {
@@ -487,7 +456,7 @@ export const googleLogin = async (req, res) => {
       user = await User.create({
         name,
         email,
-        isEmailVerified: true
+        isEmailVerified: true,
       });
     }
 
@@ -504,7 +473,6 @@ export const googleLogin = async (req, res) => {
       message: "Google login successful",
       user,
     });
-
   } catch (error) {
     res.status(401).json({ message: "Invalid Google token" });
   }
@@ -539,7 +507,6 @@ export const googleLogin = async (req, res) => {
 //   }
 // };
 
-
 export const getMyProfile = async (req, res) => {
   try {
     const user = req.user;    
@@ -560,19 +527,17 @@ export const getMyProfile = async (req, res) => {
   }
 };
 
-
 //LOGOUT USER
 export const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     sameSite: "strict",
     // secure: true,
-    secure: process.env.NODE_ENV === "production"
+    secure: process.env.NODE_ENV === "production",
   });
 
   res.json({ message: "Logged out successfully" });
 };
-
 
 /* ===========================
    UPDATE PASSWORD (LOGGED USER)
@@ -619,7 +584,6 @@ export const deleteMe = async (req, res) => {
   }
 };
 
-
 // UPDATE CUSTOMER PROFILE
 export const updateCustomerProfile = async (req, res) => {
   try {
@@ -644,15 +608,13 @@ export const updateCustomerProfile = async (req, res) => {
         email: updatedUser.email,
         phone: updatedUser.phone,
         address: updatedUser.address,
-        createdAt: updatedUser.createdAt
-      }
+        createdAt: updatedUser.createdAt,
+      },
     });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 export const uploadProfileImage = async (req, res) => {
   try {
@@ -674,7 +636,7 @@ export const uploadProfileImage = async (req, res) => {
     // Save new image
     user.profileImage = {
       url: req.file.path,
-      public_id: req.file.filename
+      public_id: req.file.filename,
     };
 
     await user.save();
@@ -688,8 +650,8 @@ export const uploadProfileImage = async (req, res) => {
         phone: user.phone,
         address: user.address,
         profileImage: user.profileImage,
-        createdAt: user.createdAt
-      }
+        createdAt: user.createdAt,
+      },
     });
   } catch (error) {
     console.error(error);

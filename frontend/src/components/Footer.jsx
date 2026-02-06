@@ -271,13 +271,13 @@ export default function Footer() {
           <div className="footer-logo">MPACT</div>
           <div>COPYRIGHT © MPACT 2025 – ALL RIGHTS RESERVED</div>
           <div className="footer-icons">
-            <span>
+            {/* <span>
               <Instagram size={16} strokeWidth={1.8} />
             </span>
             <span><SiTiktok size={16} /></span>
             <span>
               <Youtube size={16} strokeWidth={1.8} />
-            </span>
+            </span> */}
 
           </div>
         </div>

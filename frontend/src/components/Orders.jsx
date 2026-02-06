@@ -196,6 +196,24 @@ export function Orders() {
 
   return (
     <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map((status) => {
+          // const count = orders.filter((o) => o.status === status).length;
+          const count = orders.filter(
+            (o) => normalizeStatus(o.orderStatus) === status
+          ).length;
+
+
+          return (
+            <div key={status} className="bg-[#2a2a2a] border border-yellow-400/20 rounded-lg p-4">
+              <p className="text-sm text-gray-400">{status}</p>
+              <p className="text-2xl font-bold text-white mt-1">{count}</p>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
@@ -293,13 +311,13 @@ export function Orders() {
                         </button>
                       </DialogTrigger>
 
-                      <DialogContent className="max-w-lg bg-[#2a2a2a] border-gray-700 text-white">
+                      <DialogContent className="max-w-lg bg-[#2a2a2a] border-gray-700 text-white max-h-[90vh] flex flex-col">
                         <DialogHeader>
                           <DialogTitle className="text-white">Order Details</DialogTitle>
                         </DialogHeader>
 
                         {selectedOrder && (
-                          <div className="space-y-4 py-4">
+                          <div className="space-y-4 py-4 overflow-y-auto flex-1 scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <p className="text-sm text-gray-400">Order ID</p>
@@ -432,24 +450,6 @@ export function Orders() {
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map((status) => {
-          // const count = orders.filter((o) => o.status === status).length;
-          const count = orders.filter(
-            (o) => normalizeStatus(o.orderStatus) === status
-          ).length;
-
-
-          return (
-            <div key={status} className="bg-[#2a2a2a] border border-yellow-400/20 rounded-lg p-4">
-              <p className="text-sm text-gray-400">{status}</p>
-              <p className="text-2xl font-bold text-white mt-1">{count}</p>
-            </div>
-          );
-        })}
       </div>
     </div>
   );

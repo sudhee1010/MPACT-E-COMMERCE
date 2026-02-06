@@ -170,16 +170,8 @@ export function AdminLayout() {
 
             {/* Logout Button - Fixed at bottom */}
             <div className="border-t border-gray-800 p-4">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 h-12"
-              >
-                <LogOut size={20} />
-                <span>Logout</span>
-              </button>
-              
               {/* Admin Info */}
-              <div className="mt-4 px-4 text-center">
+              <div className="px-4 text-center">
                 <div className="text-sm text-gray-400">
                   Admin User
                 </div>
@@ -212,6 +204,14 @@ export function AdminLayout() {
               >
                 <Home size={18} />
                 <span>View Store</span>
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-all duration-200 header-button"
+              >
+                <LogOut size={18} />
+                <span>Logout</span>
               </button>
               
               {/* Admin Profile Icon */}

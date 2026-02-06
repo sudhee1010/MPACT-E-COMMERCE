@@ -165,7 +165,7 @@ export default function VideoShowcaseSection() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/videos");
+        const res = await axios.get("https://mpact-e-backend.onrender.com/api/videos");
         setVideos(res.data || []);
       } catch (err) {
         console.error("Failed to load videos");

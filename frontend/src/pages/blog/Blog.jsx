@@ -565,7 +565,7 @@ const MPACTBlog = () => {
                           src={article.coverImage}
                           alt={article.title}
                           // src={article.coverImage?.[0]?.url}
-                          // src={`http://localhost:5000/${article.coverImage}`}
+                          // src={`https://mpact-e-backend.onrender.com/${article.coverImage}`}
 
                           // alt={article.title}
                           className="featured-image"
@@ -635,7 +635,7 @@ const MPACTBlog = () => {
                     >
                       <div style={{ position: "relative" }}>
                         <img
-                          // src={`http://localhost:5000/${article.coverImage}`}
+                          // src={`https://mpact-e-backend.onrender.com/${article.coverImage}`}
                             src={article.coverImage}
   alt={article.title}
                           // alt={article.title}
