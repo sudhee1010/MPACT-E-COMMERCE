@@ -37,8 +37,17 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const token=req.cookies.token
   
+  function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
+const token = getCookie("token");
+console.log(token);
+
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
