@@ -319,7 +319,7 @@ export default function Navbar() {
           </Link>
 
           {/* <Link to="/profile" onClick={handleProfileClick}>PROFILE</Link> */}
-          <Link
+          {/* <Link
             to="/profile"
             onClick={(e) => {
               e.preventDefault();        // 🔥 STOP AUTO NAVIGATION
@@ -327,7 +327,7 @@ export default function Navbar() {
             }}
           >
             PROFILE
-          </Link>
+          </Link> */}
           <Link to="/distributor">DISTRIBUTOR</Link>
 
 
@@ -338,11 +338,15 @@ export default function Navbar() {
           {/* <Link to="/seeMore">
             <img src="/icons/search.png" alt="Search" />
           </Link> */}
-          {!user && (
-            <Link to="/signup">
-              <img src="/icons/avatar.png" alt="User" />
-            </Link>
-          )}
+          <Link
+          to="/profile"
+          onClick={(e) => {
+            e.preventDefault();        // 🔥 STOP AUTO NAVIGATION
+            handleProfileClick();     // 🔥 NOW RUN OUR LOGIC
+          }}
+        >
+            <img src="/icons/avatar.png" alt="User" />
+          </Link>
 
 
           {/* <Link to="/signup">
