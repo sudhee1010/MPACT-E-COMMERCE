@@ -44,7 +44,7 @@ connectDB();
 // app.use(cors());
 app.use(
   cors({
-    origin: "http://localhost:3000", 
+    origin: "https://mpact-e-commerce.onrender.com", 
     credentials: true,    
   })
 );
