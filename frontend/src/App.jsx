@@ -133,6 +133,7 @@ function App() {
     "/adsbanner",
     "/settings",
     "/personalsettings",
+    "/help-support",
   ].some((path) => location.pathname.startsWith(path));
 
   return (

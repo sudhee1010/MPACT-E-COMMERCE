@@ -274,7 +274,7 @@ export function Categories() {
         }
       `}</style>
 
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 p-6 overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -303,7 +303,7 @@ export function Categories() {
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md">
+              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                 <DialogHeader>
                   <DialogTitle>Add New Category</DialogTitle>
                   <DialogDescription className="text-gray-400">
@@ -423,7 +423,7 @@ export function Categories() {
             }
           }}
         >
-          <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md">
+          <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
             <DialogHeader>
               <DialogTitle>Edit Category</DialogTitle>
               <DialogDescription className="text-gray-400">
@@ -522,7 +522,7 @@ export function Categories() {
 
         {/* DELETE CONFIRMATION DIALOG */}
         <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
-          <DialogContent className="bg-[#2a2a2a] border-red-500/30 text-white max-w-md">
+          <DialogContent className="bg-[#2a2a2a] border-red-500/30 text-white max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-red-400">
                 <AlertCircle size={20} />

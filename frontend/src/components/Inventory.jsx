@@ -223,7 +223,7 @@ export function Inventory() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
 
       {/* 🔔 GLOBAL ALERT / CONFIRM MODAL (ONLY ONCE) */}
       <Dialog open={alert.open} onOpenChange={(open) => setAlert({ ...alert, open })}>
@@ -284,7 +284,7 @@ export function Inventory() {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md">
+            <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
               <DialogHeader>
                 <DialogTitle className="text-white">Add Stock</DialogTitle>
               </DialogHeader>
@@ -378,7 +378,7 @@ export function Inventory() {
           {/* <Dialog open={isAdjustOpen} onOpenChange={(open) => !open && setIsAdjustOpen(false)}> */}
           <Dialog open={isAdjustOpen} onOpenChange={setIsAdjustOpen}>
 
-            <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md">
+            <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
               <DialogHeader>
                 <DialogTitle className="text-white">Adjust Stock</DialogTitle>
               </DialogHeader>
