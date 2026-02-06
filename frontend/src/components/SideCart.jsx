@@ -1,385 +1,3 @@
-// import { useState, useEffect } from "react";
-// import { Link } from "react-router-dom";
-// import {
-//   getCartApi,
-//   updateCartItemApi,
-//   removeCartItemApi,
-// } from "../api/cartApi";
-// import { useCart } from "../context/CartContext";
-// // import toast from "react-hot-toast";
-
-// export default function SideCart() {
-//   // const [cartItems, setCartItems] = useState([]);
-//   const {
-//     cartItems,
-//     setCartItems,
-//     refreshCart,
-//     openSideCart,
-//     setOpenSideCart,
-//     cartMeta
-//   } = useCart();
-
-//   // const packingCharge = 20;
-
-//   // const increaseQty = async (productId, currentQty) => {
-//   //   try {
-//   //     const res = await updateCartItemApi(productId, currentQty + 1);
-//   //      console.log("UPDATE RESPONSE:", res.data); 
-
-//   //     // 🔥 DIRECTLY UPDATE STATE FROM RESPONSE
-//   //     setCartItems(res.data.items);
-
-//   //   } catch (err) {
-//   //     console.log("Increase qty error:", err);
-//   //   }
-//   // };
-
-//   const increaseQty = async (productId, currentQty, stock) => {
-//     if (currentQty >= stock) return; // 🔥 stop over stock
-
-//     try {
-//       // 🔥 Optimistically update UI first
-//       setCartItems(prev =>
-//         prev.map(item =>
-//           item.product._id === productId
-//             ? { ...item, quantity: item.quantity + 1 }
-//             : item
-//         )
-//       );
-
-//       // Then update backend
-//       await updateCartItemApi(productId, currentQty + 1);
-//       refreshCart();
-
-//     } catch (err) {
-//       console.log("Increase qty error:", err);
-//       fetchCart(); // rollback if error
-//     }
-//   };
-
-//   // const decreaseQty = async (productId, currentQty) => {
-//   //   try {
-//   //     const res = await updateCartItemApi(productId, currentQty - 1);
-//   //      console.log("UPDATE RESPONSE:", res.data); 
-
-//   //     // 🔥 DIRECTLY UPDATE STATE FROM RESPONSE
-//   //     setCartItems(res.data.items);
-
-//   //   } catch (err) {
-//   //     console.log("Decrease qty error:", err);
-//   //   }
-//   // };
-
-//   const decreaseQty = async (productId, currentQty) => {
-//     try {
-//       if (currentQty <= 1) {
-//         const res = await removeCartItemApi(productId);
-//         setCartItems(res.data.items);
-//         refreshCart();
-//         return;
-//       }
-
-//       // 🔥 Optimistically update UI
-//       setCartItems(prev =>
-//         prev.map(item =>
-//           item.product._id === productId
-//             ? { ...item, quantity: item.quantity - 1 }
-//             : item
-//         )
-//       );
-
-//       await updateCartItemApi(productId, currentQty - 1);
-//       refreshCart();
-
-//     } catch (err) {
-//       console.log("Decrease qty error:", err);
-//       fetchCart(); // rollback
-//     }
-//   };
-
-//   const removeItem = async (productId) => {
-//     try {
-//       const res = await removeCartItemApi(productId);
-
-//       // 🔥 UPDATE STATE DIRECTLY
-//       setCartItems(res.data.items);
-//       refreshCart();
-
-//     } catch (err) {
-//       console.log("Remove item error:", err);
-//     }
-//   };
-
-//   // Total MRP
-//   const totalMRP = cartItems.reduce(
-//     (sum, item) => sum + item.originalPrice * item.quantity,
-//     0
-//   );
-
-//   // Total Selling Price
-//   const totalPrice = cartItems.reduce(
-//     (sum, item) => sum + item.price * item.quantity,
-//     0
-//   );
-
-//   // Discount
-//   const discount = totalMRP - totalPrice;
-
-//   // Final Amount
-//   // const finalAmount = totalPrice + packingCharge;
-//   // const finalAmount = totalPrice;
-
-//   // useEffect(() => {
-//   //   if (open) {
-//   //     fetchCart();
-//   //   }
-//   // }, [open]);
-
-//   useEffect(() => {
-//     if (openSideCart) {
-//       refreshCart();
-//     }
-//   }, [openSideCart]);
-
-//   useEffect(() => {
-//     if (!cartItems.length) {
-//       setOpenSideCart(false);
-//     }
-
-//     //  if (cartItems.length===0) {
-//     //   toast.error("Your cart is empty");
-//     //  }else{
-//     //   setOpenSideCart(true);
-//     // }
-//   }, [cartItems]);
-
-//   const fetchCart = async () => {
-//     try {
-//       const res = await getCartApi();
-//       setCartItems(res.data.items || []);
-//     } catch (error) {
-//       console.log("Fetch side cart error:", error);
-//     }
-//   };
-
-//   return (
-//     <>
-//       <style>{`
-//         .overlay {
-//           position: fixed;
-//           top: 70px; /* Adjust to match your navbar height */
-//           left: 0;
-//           right: 0;
-//           bottom: 0;
-//           background: rgba(0,0,0,.6);
-//           z-index: 998; /* Below navbar but above page content */
-//           display: ${openSideCart ? "block" : "none"};
-//         }
-
-//         .sidecart {
-//           position: fixed;
-//           top: 92px; /* Same as navbar height */
-//           right: 0;
-//           width: 520px;
-//           height: calc(97.5vh - 70px); /* Subtract navbar height */
-//           background: #2a2a2a;
-//           transform: translateX(${openSideCart ? "0" : "100%"});
-//           transition: .35s;
-//           z-index: 999; /* Above overlay */
-//           display: flex;
-//           flex-direction: column;
-//         }
-
-//         .header {
-//           background: #ffeb00;
-//           color: #000;
-//           padding: 18px 22px;
-//           display: flex;
-//           justify-content: space-between;
-//           font-weight: 900;
-//         }
-
-//         .body {
-//           padding: 24px;
-//           flex: 1;
-//           overflow-y: auto;
-//         }
-
-//         .item {
-//           border: 2px solid #ffeb00;
-//           border-radius: 12px;
-//           padding: 18px;
-//           display: flex;
-//           gap: 16px;
-//           position: relative;
-//         }
-
-//         .item img {
-//           width: 90px;
-//           height: 120px;
-//           object-fit: cover;
-//           border-radius: 10px;
-//         }
-
-//         .spec {
-//           border: 1px solid #ffeb00;
-//           padding: 3px 7px;
-//           font-size: 10px;
-//           border-radius: 4px;
-//           color: #ffeb00;
-//           margin-right: 5px;
-//         }
-
-//         .qty {
-//           display: flex;
-//           border: 1px solid #ffeb00;
-//           width: fit-content;
-//           margin-top: 10px;
-//         }
-
-//         .qty button {
-//           width: 30px;
-//           background: none;
-//           color: #fff;
-//           border: none;
-//           cursor: pointer;
-//         }
-
-//         .remove {
-//           position: absolute;
-//           right: 16px;
-//           bottom: 16px;
-//           color: red;
-//           cursor: pointer;
-//         }
-
-//         .priceBox {
-//           border-top: 2px solid #ffeb00;
-//           padding: 20px;
-//         }
-
-//         .row {
-//           display: flex;
-//           justify-content: space-between;
-//           margin-bottom: 8px;
-//         }
-
-//         .green {
-//           color: #00c853;
-//           font-weight: bold;
-//         }
-
-//         .footer {
-//           padding: 18px;
-//         }
-
-//         .footer a {
-//           display: block;
-//           background: #ffeb00;
-//           color: #000;
-//           padding: 16px;
-//           text-align: center;
-//           font-weight: 900;
-//           text-decoration: none;
-//         }
-//       `}</style>
-
-//       <div className="overlay" onClick={() => setOpenSideCart(false)} />
-
-//       <div className="sidecart">
-//         <div className="header">
-//           <span>🛒 MY CART ({cartItems.length})</span>
-//           <span style={{ cursor: "pointer" }} onClick={() => setOpenSideCart(false)}>✕</span>
-//         </div>
-
-//         <div className="body">
-//           {cartItems.length === 0 && <p>Your cart is empty</p>}
-
-//           {cartItems.map(item => (
-//             <div className="item" key={item.product._id}>
-//               {/* <img src={item.product.images[0].url || "/placeholder.png"} alt="" /> */}
-//               <img
-//                 src={item.product.images?.[0]?.url || "/images/Product1.png"}
-//                 alt={item.product.name}
-//               />
-
-//               <div>
-//                 <h4>{item.product.name}</h4>
-
-//                 {/* <div>
-//                   {item.highlights?.map((s, i) => (
-//                     <span className="spec" key={i}>{s}</span>
-//                   ))}
-//                 </div> */}
-
-//                 <p>
-//                   {/* ₹{item.price} <del>₹{item.orginalPrice}</del> */}
-//                   ₹{item.price} <del>₹{item.originalPrice}</del>
-//                 </p>
-
-//                 <div className="qty">
-//                   <button onClick={() => decreaseQty(item.product._id, item.quantity)}>-</button>
-//                   <span>{item.quantity}</span>
-//                   <button onClick={() => increaseQty(item.product._id, item.quantity, item.product.countInStock)}>+</button>
-//                 </div>
-//               </div>
-
-//               <span className="remove" onClick={() => removeItem(item.product._id)}>
-//                 Remove
-//               </span>
-//             </div>
-//           ))}
-//         </div>
-
-//         {cartItems.length > 0 && (
-//           <>
-//             <div className="priceBox">
-//               <div className="row">
-//                 <span>Price</span>
-//                 <span>₹{totalMRP}</span>
-//               </div>
-
-//               <div className="row green">
-//                 <span>Discount</span>
-//                 <span>-₹{discount}</span>
-//               </div>
-
-//               {/* <div className="row">
-//                 <span>Packing</span>
-//                 <span>₹{packingCharge}</span>
-//               </div> */}
-
-//               <div className="row">
-//                 <span>Tax</span>
-//                 <span>₹{cartMeta.taxAmount.toFixed(2)}</span>
-//               </div>
-
-//               <div className="row green">
-//                 <span>Total</span>
-//                 <span>₹{cartMeta.totalWithTax.toFixed(2)}</span>
-//               </div>
-
-//               {/* <div className="row green">
-//                 <span>Total</span>
-//                 <span>₹{finalAmount}</span>
-//               </div> */}
-//             </div>
-
-//             <div className="footer">
-//               <Link to="/cart" onClick={() => setOpenSideCart(false)}>
-//                 PLACE ORDER
-//               </Link>
-//             </div>
-//           </>
-//         )}
-//       </div>
-//     </>
-//   );
-// }
-
-
-
-
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { updateCartItemApi, removeCartItemApi } from "../api/cartApi";
@@ -396,9 +14,14 @@ export default function SideCart() {
   } = useCart();
 
   const increaseQty = async (productId, currentQty, stock) => {
-    if (currentQty >= stock) return;
+    // Prevent increasing quantity beyond available stock
+    if (currentQty >= stock) {
+      console.log(`Cannot add more. Only ${stock} items available in stock.`);
+      return;
+    }
 
     try {
+      // Optimistic UI update
       setCartItems((prev) =>
         prev.map((item) =>
           item.product._id === productId
@@ -407,10 +30,20 @@ export default function SideCart() {
         ),
       );
 
+      // Call API to update backend
       await updateCartItemApi(productId, currentQty + 1);
-      refreshCart();
+      refreshCart(); // Refresh cart to sync with backend
     } catch (err) {
       console.log("Increase qty error:", err);
+      
+      // If error contains stock-related message
+      if (err.response?.data?.message?.includes("stock") || 
+          err.response?.data?.error?.includes("stock")) {
+        console.log("Stock limitation error:", err.response?.data);
+      }
+      
+      // Refresh cart to revert optimistic update on error
+      refreshCart();
     }
   };
 
@@ -435,6 +68,7 @@ export default function SideCart() {
       refreshCart();
     } catch (err) {
       console.log("Decrease qty error:", err);
+      refreshCart(); // rollback on error
     }
   };
 
@@ -446,6 +80,13 @@ export default function SideCart() {
     } catch (err) {
       console.log("Remove item error:", err);
     }
+  };
+
+  // Helper to disable + button when at max stock
+  const isMaxStock = (productId, currentQty) => {
+    const item = cartItems.find(item => item.product._id === productId);
+    if (!item) return false;
+    return currentQty >= item.product.countInStock;
   };
 
   const totalMRP = cartItems.reduce(
@@ -611,12 +252,19 @@ export default function SideCart() {
           margin-left: 8px;
         }
 
+        .stock-warning {
+          font-size: 12px;
+          color: #ff6b6b;
+          margin-top: 4px;
+        }
+
         .qty {
           display: flex;
           border: 1px solid #ffeb00;
           width: fit-content;
           border-radius: 4px;
           overflow: hidden;
+          margin-top: 8px;
         }
 
         .qty button {
@@ -630,8 +278,14 @@ export default function SideCart() {
           transition: background 0.2s;
         }
 
-        .qty button:hover {
+        .qty button:hover:not(:disabled) {
           background: rgba(255, 235, 0, 0.2);
+        }
+
+        .qty button:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+          color: #888;
         }
 
         .qty span {
@@ -707,37 +361,35 @@ export default function SideCart() {
           background: #ffed33;
         }
 
-  @media (max-width: 768px) 
+        // @media (max-width: 768px) {
+        //   .sidecart {
+        //     top: 0;
+        //     bottom: 0;
+        //     width: 100%;
+        //     height: 100vh;
+        //   }
 
-  .sidecart {
-    top: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100vh;
-  }
+        //   .header {
+        //     position: sticky;
+        //     top: 0;
+        //     height: 60px;
+        //     padding: 0 16px;
+        //     display: flex;
+        //     align-items: center;
+        //     justify-content: space-between;
+        //     z-index: 1001;
+        //   }
 
-  .header {
-    position: sticky;
-    top: 0;
-    height: 60px;
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 1001;
-  }
+        //   .close-btn {
+        //     width: 40px;
+        //     height: 40px;
+        //     font-size: 24px;
+        //   }
 
-  .close-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-  }
-
-  .body {
-    padding-top: 16px; /* NO offset needed now */
-  }
-}
-
+        //   .body {
+        //     padding-top: 16px;
+        //   }
+        // }
 
         @media (max-width: 480px) {
           .header {
@@ -765,6 +417,10 @@ export default function SideCart() {
 
           .item-details p {
             font-size: 13px;
+          }
+
+          .stock-warning {
+            font-size: 11px;
           }
 
           .qty button {
@@ -811,6 +467,36 @@ export default function SideCart() {
           }
         }
 
+         @media (max-width: 768px) 
+
+  .sidecart {
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    height: 60px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1001;
+  }
+
+  .close-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+
+  .body {
+    padding-top: 16px; /* NO offset needed now */
+  }
+}
       `}</style>
 
       <div className="overlay" onClick={() => setOpenSideCart(false)} />
@@ -846,6 +532,13 @@ export default function SideCart() {
                   ₹{item.price} <del>₹{item.originalPrice}</del>
                 </p>
 
+                {/* Stock warning message */}
+                {item.quantity >= item.product.countInStock && (
+                  <div className="stock-warning">
+                    Max stock reached ({item.product.countInStock} available)
+                  </div>
+                )}
+
                 <div className="qty">
                   <button
                     onClick={() => decreaseQty(item.product._id, item.quantity)}
@@ -862,6 +555,7 @@ export default function SideCart() {
                         item.product.countInStock,
                       )
                     }
+                    disabled={item.quantity >= item.product.countInStock}
                     aria-label="Increase quantity"
                   >
                     +

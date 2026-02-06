@@ -2103,7 +2103,7 @@ const fixedProduct = {
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Enter product description"
+                      placeholder="Enter product description [SUGGESTED 40 WORDS]"
                       rows="3"
                       style={{
                         width: '100%',
@@ -2127,7 +2127,7 @@ const fixedProduct = {
                     <textarea
                       value={formData.highlights}
                       onChange={(e) => setFormData({ ...formData, highlights: e.target.value })}
-                      placeholder="Feature 1, Feature 2, Feature 3"
+                      placeholder="Feature 1, Feature 2, Feature 3 [SUGGESTED 4 FEATURES]"
                       rows="2"
                       style={{
                         width: '100%',

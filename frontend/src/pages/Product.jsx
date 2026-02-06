@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
@@ -209,13 +208,13 @@ export default function Products() {
 /* ================= PRODUCT CARD ================= */
 .product-card {
   width: 291.51px;
-  height: 635.17px;
+  height: 600px;
   background: #151515;
   border: 1.34px solid #ffeb00;
   display: flex;
   flex-direction: column;
   position: relative;
-  border-radius: 20px;
+  border-radius: 8px;
   overflow: hidden;
   transition: box-shadow 0.3s ease;
 }
@@ -383,7 +382,7 @@ export default function Products() {
   font-size: 15px;
   font-family: "Jersey 25", cursive;
   font-weight: 800;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.25s ease;
 }
@@ -413,7 +412,7 @@ export default function Products() {
   background: #2a2a2a;
   color: #9ca3af;
   border: 2px solid #555;
-  border-radius: 8px;
+  border-radius: 4px;
   font-family: "Jersey 25", cursive;
   font-size: 15px;
   font-weight: 800;
@@ -445,7 +444,7 @@ export default function Products() {
   font-weight: 800;
   font-family: "Jersey 25", cursive;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: all 0.25s ease;
 }
 
