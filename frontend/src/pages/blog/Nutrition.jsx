@@ -575,7 +575,7 @@ const BlogArticlePage = () => {
           {/* Featured Image */}
           <div className="hero-image-container">
             <img 
-             // src={`http://localhost:5000/${blog.coverImage}`}
+             // src={`https://mpact-e-backend.onrender.com/${blog.coverImage}`}
                src={blog.coverImage}
               alt={blog.title}
               className="hero-image"
@@ -626,7 +626,7 @@ const BlogArticlePage = () => {
                   >
                     <div className="related-image-box">
                       <img
-                       // src={`http://localhost:5000/${item.coverImage}`}
+                       // src={`https://mpact-e-backend.onrender.com/${item.coverImage}`}
                        src={item.coverImage}
                         alt={item.title}
                         className="related-img"
