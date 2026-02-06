@@ -37,8 +37,8 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const token=req.cookies.token
   
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -64,7 +64,11 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get("/api/auth/profile");
+        const res = await axios.get("https://mpact-e-backend.onrender.com/api/auth/profile",{
+          headers:{
+            Authorization:`Bearer ${token}`
+          }
+        });
         setUser(res.data);
         setFormData({
           name: res.data.name || "",
