@@ -1,4 +1,5 @@
 import Blog from "../models/Blog.js";
+import BlogCategory from "../models/BlogCategory.js";
 import slugify from "slugify";
 
 /* CREATE BLOG (ADMIN) */
@@ -43,10 +44,19 @@ export const getBlogs = async (req, res) => {
 
   // Search
   if (search) {
+      
+    // First, find categories that match the search term
+    const matchingCategories = await BlogCategory.find({
+      name: { $regex: search, $options: "i" }
+    });
+    
+    const categoryIds = matchingCategories.map(cat => cat._id);
+
     query.$or = [
       { title: { $regex: search, $options: "i" } },
       { description: { $regex: search, $options: "i" } },
       { tags: { $regex: search, $options: "i" } },
+      { category: { $in: categoryIds } },
     ];
   }
 
