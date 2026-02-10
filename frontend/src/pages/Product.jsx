@@ -948,6 +948,8 @@ export default function Products() {
           )}
 
           <Footer />
+           </>
+      )}
         </>
       );
 }
