@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Instagram, Youtube } from "lucide-react";
-import { SiTiktok } from "react-icons/si";
+import { Instagram, Twitter, Youtube } from "lucide-react";
+import { SiFacebook, SiTiktok } from "react-icons/si";
 
 export default function Footer() {
   return (
@@ -243,25 +243,50 @@ export default function Footer() {
               </div>
 
               <div className="social-icon">
-                <SiTiktok size={26} />
+                <SiFacebook size={26} />
               </div>
 
               <div className="social-icon">
-                <Youtube size={26} strokeWidth={1.8} />
+                <Twitter size={26} strokeWidth={1.8} />
               </div>
             </div>
 
 
             {/* SUBSCRIBE */}
-            <div className="footer-subscribe">
-              <h3>ENTER YOUR MAIL</h3>
-              <p>
-                Get Exclusive Early Access and Stay Informed About Product
-                Updates, Events, and More!
-              </p>
-              <input type="email" placeholder="your@email.com" />
-              <button>SUBSCRIBE</button>
-            </div>
+            <div style={{
+  backgroundColor: "#3a3a3a",
+  padding: "50px 40px",
+  color: "#ffffff"
+}}>
+  <h2 style={{
+    color: "#ffeb3b",
+    fontSize: "26px",
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: "1px",
+    marginBottom: "12px"
+  }}>
+    Pure Protein. Real Results.
+  </h2>
+
+  <p style={{
+    fontSize: "15px",
+    color: "#dcdcdc",
+    maxWidth: "520px",
+    lineHeight: "1.7"
+  }}>
+    Premium whey proteins, mass gainers, and fitness supplements
+    crafted to support muscle growth, recovery, and peak performance.
+  </p>
+
+  <div style={{
+    width: "350px",
+    height: "3px",
+    backgroundColor: "#ffeb3b",
+    marginTop: "22px"
+  }}></div>
+</div>
+
           </div>
         </div>
 

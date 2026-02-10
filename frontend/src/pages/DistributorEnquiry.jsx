@@ -391,7 +391,7 @@ const DistributorEnquiry = () => {
   return (
     <div className="page">
       <div className="content">
-        <h1>DISTRIBUTOR / BULK ENQUIRY</h1>
+        <h1 className="text-3xl font-bold">DISTRIBUTOR / BULK ENQUIRY</h1>
         <p className="subtitle">
           Fill in the details below and our team will contact you shortly
         </p>
