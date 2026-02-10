@@ -489,85 +489,79 @@ export default function Products() {
   background: #ffeb00;
   color: #000;
   transform: translatex(4px);
-}
-  /* ================= LUXURY LOADER ================= */
+}/* ================= PREMIUM LOADER ================= */
 .loader-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at center, #1a1a1a, #000);
-  backdrop-filter: blur(8px);
+  background: radial-gradient(circle at center, #111 0%, #000 70%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
 }
 
-.luxury-loader {
+.premium-loader {
   position: relative;
   text-align: center;
-  color: #ffeb00;
 }
 
-/* Rotating ring */
-.ring {
-  width: 120px;
-  height: 120px;
-  border: 3px solid transparent;
-  border-top: 3px solid #ffeb00;
-  border-right: 3px solid #ffeb00;
-  border-radius: 50%;
+/* Pulsing rings */
+.pulse-ring {
   position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  animation: spin 1.5s linear infinite;
-  filter: drop-shadow(0 0 10px #ffeb00);
+  width: 160px;
+  height: 160px;
+  border: 2px solid #ffeb00;
+  border-radius: 50%;
+  animation: pulse 2s infinite ease-out;
+  opacity: 0.6;
 }
 
-/* Center icon glow */
-.icon-wrapper {
+.pulse-ring.delay {
+  animation-delay: 1s;
+}
+
+/* Center icon */
+.center-icon {
+  position: relative;
   color: #ffeb00;
-  animation: floatPulse 1.6s infinite ease-in-out;
-  filter: drop-shadow(0 0 18px #ffeb00);
+  z-index: 2;
+  animation: float 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 15px #ffeb00);
 }
 
-/* Shimmer text */
-.shimmer-text {
+/* Animated text */
+.loading-text {
   margin-top: 40px;
   font-family: "Jersey 25", cursive;
-  font-size: 26px;
-  letter-spacing: 2px;
-  background: linear-gradient(
-    90deg,
-    #ffeb00 25%,
-    #ffffff 50%,
-    #ffeb00 75%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 2s linear infinite;
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: #ffeb00;
+  animation: glowText 1.5s ease-in-out infinite alternate;
 }
 
 /* Animations */
-@keyframes spin {
+@keyframes pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
   100% {
-    transform: translateX(-50%) rotate(360deg);
+    transform: scale(1.8);
+    opacity: 0;
   }
 }
 
-@keyframes floatPulse {
-  0%, 100% {
-    transform: translateY(0px) scale(1);
-  }
-  50% {
-    transform: translateY(-8px) scale(1.15);
-  }
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
 }
 
-@keyframes shimmer {
-  100% {
-    background-position: 200% center;
+@keyframes glowText {
+  from {
+    text-shadow: 0 0 5px #ffeb00;
+  }
+  to {
+    text-shadow: 0 0 20px #ffeb00;
   }
 }
 /* ================= ERROR BOX ================= */
@@ -792,14 +786,16 @@ export default function Products() {
 `}</style>
       {loading && (
         <div className="loader-overlay">
-          <div className="luxury-loader">
-            <div className="ring"></div>
+          <div className="premium-loader">
 
-            <div className="icon-wrapper">
-              <Package size={60} />
+            <div className="pulse-ring"></div>
+            <div className="pulse-ring delay"></div>
+
+            <div className="center-icon">
+              <Package size={55} />
             </div>
 
-            <h2 className="shimmer-text">Loading products...</h2>
+            <h2 className="loading-text">Loading products...</h2>
           </div>
         </div>
       )}
@@ -949,5 +945,7 @@ export default function Products() {
 
           <Footer />
         </>
-      );
+      )}
+    </>
+  );
 }
