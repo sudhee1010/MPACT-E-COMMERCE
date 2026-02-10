@@ -10,9 +10,12 @@ import { useCart } from "../context/CartContext";
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState([]);
   const { refreshCart, setOpenSideCart } = useCart();
+  const [loading, setLoading] = useState(true);
+
 
   /* ================= FETCH WISHLIST ================= */
   useEffect(() => {
+    setLoading(true);
     api
       .get("/api/wishlist")
       .then((res) => {
@@ -20,11 +23,14 @@ export default function WishlistPage() {
       })
       .catch((err) => {
         if (err.response?.status === 401) {
-          // user not logged in → wishlist empty
           setWishlist([]);
         }
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
+
 
   /* ================= MOVE WISHLIST → CART ================= */
   // const moveToCart = async (productId) => {
@@ -762,6 +768,88 @@ export default function WishlistPage() {
   background: #2a2a2a;
   color: #9ca3af;
 }
+/* ================= LUXURY LOADER ================= */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #1a1a1a, #000);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Main container */
+.luxury-loader {
+  position: relative;
+  text-align: center;
+  color: #ffeb00;
+}
+
+/* Rotating Ring */
+.ring {
+  width: 120px;
+  height: 120px;
+  border: 3px solid transparent;
+  border-top: 3px solid #ffeb00;
+  border-right: 3px solid #ffeb00;
+  border-radius: 50%;
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: spin 1.5s linear infinite;
+  filter: drop-shadow(0 0 10px #ffeb00);
+}
+
+/* Heart Glow */
+.heart-wrapper {
+  color: #ffeb00;
+  animation: heartbeat 1.4s infinite ease-in-out;
+  filter: drop-shadow(0 0 15px #ffeb00);
+}
+
+/* Shimmer Text */
+.shimmer-text {
+  margin-top: 40px;
+  font-family: "Jersey 25", cursive;
+  font-size: 26px;
+  letter-spacing: 2px;
+  background: linear-gradient(
+    90deg,
+    #ffeb00 25%,
+    #ffffff 50%,
+    #ffeb00 75%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Animations */
+@keyframes spin {
+  100% {
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    background-position: 200% center;
+  }
+}
+
 
 
 /* ================= MOBILE ================= */
@@ -898,6 +986,21 @@ export default function WishlistPage() {
           </div>
         </main>
       </div>
+      {loading && (
+        <div className="loader-overlay">
+          <div className="luxury-loader">
+            <div className="ring"></div>
+
+            <div className="heart-wrapper">
+              <Heart size={60} />
+            </div>
+
+            <h2 className="shimmer-text">Loading your wishlist...</h2>
+          </div>
+        </div>
+      )}
+
+
     </>
   );
 }
