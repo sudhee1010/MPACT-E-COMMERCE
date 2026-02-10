@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Heart } from "lucide-react";
+// import { Heart } from "lucide-react";
+import { Heart, Package } from "lucide-react";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -137,21 +138,57 @@ export default function Products() {
   };
 
 
+  // if (loading) {
+  //   return (
+  //     <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
+  //       Loading products...
+  //     </p>
+  //   );
+  // }
+
   if (loading) {
     return (
-      <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
-        Loading products...
-      </p>
+      <div className="loader-overlay">
+        <div className="luxury-loader">
+          <div className="ring"></div>
+
+          <div className="icon-wrapper">
+            <Package size={60} />
+          </div>
+
+          <h2 className="shimmer-text">Loading products...</h2>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <p style={{ textAlign: "center", marginTop: 100, color: "red" }}>
-        {error}
-      </p>
+      <div className="loader-overlay">
+        <div className="error-box">
+          <div className="error-icon">⚠</div>
+          <h2>Unable to Load Products</h2>
+          <p>{error}</p>
+
+          <button
+            className="retry-btn"
+            onClick={() => window.location.reload()}
+          >
+            RETRY
+          </button>
+        </div>
+      </div>
     );
   }
+
+
+  // if (error) {
+  //   return (
+  //     <p style={{ textAlign: "center", marginTop: 100, color: "red" }}>
+  //       {error}
+  //     </p>
+  //   );
+  // }
   return (
     <>
       <style>{`
@@ -453,6 +490,161 @@ export default function Products() {
   color: #000;
   transform: translatex(4px);
 }
+  /* ================= LUXURY LOADER ================= */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, #1a1a1a, #000);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.luxury-loader {
+  position: relative;
+  text-align: center;
+  color: #ffeb00;
+}
+
+/* Rotating ring */
+.ring {
+  width: 120px;
+  height: 120px;
+  border: 3px solid transparent;
+  border-top: 3px solid #ffeb00;
+  border-right: 3px solid #ffeb00;
+  border-radius: 50%;
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: spin 1.5s linear infinite;
+  filter: drop-shadow(0 0 10px #ffeb00);
+}
+
+/* Center icon glow */
+.icon-wrapper {
+  color: #ffeb00;
+  animation: floatPulse 1.6s infinite ease-in-out;
+  filter: drop-shadow(0 0 18px #ffeb00);
+}
+
+/* Shimmer text */
+.shimmer-text {
+  margin-top: 40px;
+  font-family: "Jersey 25", cursive;
+  font-size: 26px;
+  letter-spacing: 2px;
+  background: linear-gradient(
+    90deg,
+    #ffeb00 25%,
+    #ffffff 50%,
+    #ffeb00 75%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Animations */
+@keyframes spin {
+  100% {
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+
+@keyframes floatPulse {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.15);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    background-position: 200% center;
+  }
+}
+/* ================= ERROR BOX ================= */
+.error-box {
+  background: #151515;
+  border: 2px solid #ffeb00;
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  width: 90%;
+  max-width: 420px;
+  animation: popIn 0.3s ease;
+  box-shadow: 0 0 25px rgba(255, 235, 0, 0.15);
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #ffeb00;
+  animation: shake 0.6s ease;
+}
+
+.error-box h2 {
+  font-family: "Jersey 25", cursive;
+  font-size: 28px;
+  color: #ffeb00;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.error-box p {
+  font-size: 14px;
+  color: #ffffff;
+  margin-bottom: 24px;
+  opacity: 0.85;
+}
+
+/* Retry Button */
+.retry-btn {
+  height: 46px;
+  width: 100%;
+  background: transparent;
+  border: 2px solid #ffeb00;
+  color: #ffeb00;
+  font-family: "Jersey 25", cursive;
+  font-size: 15px;
+  font-weight: 800;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: #ffeb00;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 1024px) {
