@@ -146,40 +146,40 @@ export default function Products() {
   //   );
   // }
 
-  if (loading) {
-    return (
-      <div className="loader-overlay">
-        <div className="luxury-loader">
-          <div className="ring"></div>
+  // if (loading) {
+  //   return (
+  //     <div className="loader-overlay">
+  //       <div className="luxury-loader">
+  //         <div className="ring"></div>
 
-          <div className="icon-wrapper">
-            <Package size={60} />
-          </div>
+  //         <div className="icon-wrapper">
+  //           <Package size={60} />
+  //         </div>
 
-          <h2 className="shimmer-text">Loading products...</h2>
-        </div>
-      </div>
-    );
-  }
+  //         <h2 className="shimmer-text">Loading products...</h2>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  if (error) {
-    return (
-      <div className="loader-overlay">
-        <div className="error-box">
-          <div className="error-icon">⚠</div>
-          <h2>Unable to Load Products</h2>
-          <p>{error}</p>
+  // if (error) {
+  //   return (
+  //     <div className="loader-overlay">
+  //       <div className="error-box">
+  //         <div className="error-icon">⚠</div>
+  //         <h2>Unable to Load Products</h2>
+  //         <p>{error}</p>
 
-          <button
-            className="retry-btn"
-            onClick={() => window.location.reload()}
-          >
-            RETRY
-          </button>
-        </div>
-      </div>
-    );
-  }
+  //         <button
+  //           className="retry-btn"
+  //           onClick={() => window.location.reload()}
+  //         >
+  //           RETRY
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
 
   // if (error) {
@@ -790,132 +790,164 @@ export default function Products() {
   }
 }
 `}</style>
+      {loading && (
+        <div className="loader-overlay">
+          <div className="luxury-loader">
+            <div className="ring"></div>
 
-      <div className="page-wrapper">
-        <div className="products-page">
-          <h1 className="page-title">FIND OUR PRODUCTS</h1>
-
-          {Object.keys(productsByCategory).map((categoryName) => (
-            <div className="section" key={categoryName}>
-              <h2 className="section-title">{categoryName}</h2>
-
-              <div className="product-grid">
-                {productsByCategory[categoryName].slice(0, 4).map((product) => (
-                  <div className="product-card" key={product._id}>
-                    <div
-                      className={`discount-badge ${product.discountPercent ? "show" : "hide"
-                        }`}
-                    >
-                      {product.discountPercent
-                        ? `${product.discountPercent}% OFF`
-                        : ""}
-                    </div>
-
-                    {/* ❤️ WISHLIST */}
-                    <button
-                      className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
-                        }`}
-                      onClick={() => toggleWishlist(product._id)}
-                    >
-                      <Heart />
-                    </button>
-
-                    <div className="product-image-container">
-                      <img
-                        src={product.images?.[0]?.url || "/images/Product1.png"}
-                        alt={product.name}
-                      />
-                    </div>
-
-                    <div className="product-title">{product.name}</div>
-
-                    <div className="specs">
-                      {product.highlights?.map((spec, i) => (
-                        <span className="spec" key={i}>
-                          {spec}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="rating">
-                      {"★".repeat(Math.round(product.rating || 0))}
-                      {"☆".repeat(5 - Math.round(product.rating || 0))}
-                    </div>
-                    <div className="reviews">({product.numReviews || 0})</div>
-                    {product.originalPrice && (
-                      <div className="price-box">
-                        <span className="old-price">
-                          ₹{product.originalPrice}
-                        </span>
-                      </div>
-                    )}
-                    <div className="price">₹{product.price}</div>
-
-                    <div className="action-buttons">
-                      {product.countInStock > 0 ? (
-                        <>
-                          <button
-                            className="add-to-cart-btn"
-                            onClick={() => handleAddToCart(product._id)}
-                          >
-                            🛒 Add to Cart
-                          </button>
-
-                          <Link
-                            to={`/productspec/${product._id}`}
-                            className="action-link"
-                          >
-                            <button className="buy-btn">BUY NOW</button>
-                          </Link>
-                        </>
-                      ) : (
-                        <button
-                          className="add-to-cart-btn-disabled"
-                          disabled
-                          style={{ width: "100%" }}
-                        >
-                          OUT OF STOCK
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* SEE MORE */}
-              <div className="see-more">
-                <Link to={`/seemore?category=${categoryName}`}>
-                  <button>SEE MORE →</button>
-                </Link>
-              </div>
+            <div className="icon-wrapper">
+              <Package size={60} />
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* 🔐 LOGIN MODAL */}
-      {showLoginModal && (
-        <div className="modal-overlay">
-          <div className="login-modal">
-            <h2>Login Required</h2>
-            <p>Please login to continue.</p>
-
-            <div className="modal-actions">
-              <Link to="/login" className="action-link">
-                <button className="buy-btn">LOGIN</button>
-              </Link>
-
-              <button
-                className="add-to-cart-btn"
-                onClick={() => setShowLoginModal(false)}
-              >
-                CANCEL
-              </button>
-            </div>
+            <h2 className="shimmer-text">Loading products...</h2>
           </div>
         </div>
       )}
 
-      <Footer />
-    </>
-  );
+      {!loading && error && (
+        <div className="loader-overlay">
+          <div className="error-box">
+            <div className="error-icon">⚠</div>
+            <h2>Unable to Load Products</h2>
+            <p>{error}</p>
+            <button
+              className="retry-btn"
+              onClick={() => window.location.reload()}
+            >
+              RETRY
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+
+          <div className="page-wrapper">
+            <div className="products-page">
+              <h1 className="page-title">FIND OUR PRODUCTS</h1>
+
+              {Object.keys(productsByCategory).map((categoryName) => (
+                <div className="section" key={categoryName}>
+                  <h2 className="section-title">{categoryName}</h2>
+
+                  <div className="product-grid">
+                    {productsByCategory[categoryName].slice(0, 4).map((product) => (
+                      <div className="product-card" key={product._id}>
+                        <div
+                          className={`discount-badge ${product.discountPercent ? "show" : "hide"
+                            }`}
+                        >
+                          {product.discountPercent
+                            ? `${product.discountPercent}% OFF`
+                            : ""}
+                        </div>
+
+                        {/* ❤️ WISHLIST */}
+                        <button
+                          className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
+                            }`}
+                          onClick={() => toggleWishlist(product._id)}
+                        >
+                          <Heart />
+                        </button>
+
+                        <div className="product-image-container">
+                          <img
+                            src={product.images?.[0]?.url || "/images/Product1.png"}
+                            alt={product.name}
+                          />
+                        </div>
+
+                        <div className="product-title">{product.name}</div>
+
+                        <div className="specs">
+                          {product.highlights?.map((spec, i) => (
+                            <span className="spec" key={i}>
+                              {spec}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="rating">
+                          {"★".repeat(Math.round(product.rating || 0))}
+                          {"☆".repeat(5 - Math.round(product.rating || 0))}
+                        </div>
+                        <div className="reviews">({product.numReviews || 0})</div>
+                        {product.originalPrice && (
+                          <div className="price-box">
+                            <span className="old-price">
+                              ₹{product.originalPrice}
+                            </span>
+                          </div>
+                        )}
+                        <div className="price">₹{product.price}</div>
+
+                        <div className="action-buttons">
+                          {product.countInStock > 0 ? (
+                            <>
+                              <button
+                                className="add-to-cart-btn"
+                                onClick={() => handleAddToCart(product._id)}
+                              >
+                                🛒 Add to Cart
+                              </button>
+
+                              <Link
+                                to={`/productspec/${product._id}`}
+                                className="action-link"
+                              >
+                                <button className="buy-btn">BUY NOW</button>
+                              </Link>
+                            </>
+                          ) : (
+                            <button
+                              className="add-to-cart-btn-disabled"
+                              disabled
+                              style={{ width: "100%" }}
+                            >
+                              OUT OF STOCK
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* SEE MORE */}
+                  <div className="see-more">
+                    <Link to={`/seemore?category=${categoryName}`}>
+                      <button>SEE MORE →</button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 🔐 LOGIN MODAL */}
+          {showLoginModal && (
+            <div className="modal-overlay">
+              <div className="login-modal">
+                <h2>Login Required</h2>
+                <p>Please login to continue.</p>
+
+                <div className="modal-actions">
+                  <Link to="/login" className="action-link">
+                    <button className="buy-btn">LOGIN</button>
+                  </Link>
+
+                  <button
+                    className="add-to-cart-btn"
+                    onClick={() => setShowLoginModal(false)}
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <Footer />
+        </>
+      );
 }
