@@ -30,57 +30,54 @@ const MPACTBlog = () => {
     fetchCategories();
   }, []);
 
-  // Fetch blogs
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        setLoading(true);
+  // Fetch blogs function
+  const fetchBlogs = async () => {
+    try {
+      setLoading(true);
 
-        // Build query params
-        let queryParams = {};
+      // Build query params
+      let queryParams = {};
 
-        if (activeFilter !== "All") {
-          // Find category slug
-          const categoryRes = await api.get("/blog-categories");
-          const selectedCategory = categoryRes.data.find(
-            (cat) => cat.name === activeFilter,
-          );
-          if (selectedCategory) {
-            queryParams.category = selectedCategory._id;
-          }
+      if (activeFilter !== "All") {
+        // Find category slug
+        const categoryRes = await api.get("/blog-categories");
+        const selectedCategory = categoryRes.data.find(
+          (cat) => cat.name === activeFilter,
+        );
+        if (selectedCategory) {
+          queryParams.category = selectedCategory._id;
         }
-
-        if (searchQuery) {
-          queryParams.search = searchQuery;
-        }
-
-        // Fetch all blogs
-        const blogsRes = await api.get("/blogs", { params: queryParams });
-
-        // Fetch featured blogs
-        // const featuredRes = await api.get("/blogs/featured");
-
-        // setFeaturedArticles(featuredRes.data);
-        // setLatestArticles(blogsRes.data.filter((blog) => !blog.isFeatured));
-        
-        // Split blogs into featured and latest based on isFeatured
-        const featured = blogsRes.data.filter((blog) => blog.isFeatured);
-        const latest = blogsRes.data.filter((blog) => !blog.isFeatured);
-        
-        setFeaturedArticles(featured);
-        setLatestArticles(latest);
-        //setFilteredBlogs(blogsRes.data);
-
-
-      } catch (error) {
-        console.error("Error fetching blogs:", error);
-        toast.error("Failed to load blogs");
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchBlogs();
+      if (searchQuery.trim()) {
+        queryParams.search = searchQuery.trim();
+      }
+
+      // Fetch all blogs
+      const blogsRes = await api.get("/blogs", { params: queryParams });
+      
+      // Split blogs into featured and latest based on isFeatured
+      const featured = blogsRes.data.filter((blog) => blog.isFeatured);
+      const latest = blogsRes.data.filter((blog) => !blog.isFeatured);
+      
+      setFeaturedArticles(featured);
+      setLatestArticles(latest);
+
+    } catch (error) {
+      console.error("Error fetching blogs:", error);
+      toast.error("Failed to load blogs");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch blogs with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchBlogs();
+    }, searchQuery ? 500 : 0);
+
+    return () => clearTimeout(timeoutId);
   }, [activeFilter, searchQuery]);
 
   const navigateToArticle = (slug) => {
