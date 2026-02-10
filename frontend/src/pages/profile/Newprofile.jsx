@@ -465,27 +465,7 @@ export default function ProfilePage() {
           transform: translateY(-1px);
         }
 
-        /* Dashboard specific button style */
-        .tab-btn.dashboard {
-          background-color: #fdc647;
-          color: black;
-          border: 2px solid #f6c85c51;
-        }
-
-        .tab-btn.dashboard:hover {
-          background-color: #fde047;
-          color: black;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
         
-        }
-
-        .tab-btn.dashboard.active {
-          background-color: #7c3aed;
-          color: white;
-          border-color: #7c3aed;
-          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
 
         /* Form Sections */
         .form-section {
@@ -1560,11 +1540,12 @@ export default function ProfilePage() {
                 <Edit size={20} />
                 {isEditing ? "Save Profile" : "Edit Profile"}
               </button>
+              
               {/* Dashboard Button - Only show for admin */}
           {isAdmin && (
             <button
               onClick={handleDashboardClick}
-              className={`tab-btn dashboard ${activeTab === "dashboard" ? "active" : "inactive"}`}
+              className={`edit-btn ${activeTab === "dashboard" ? "active" : "inactive"}`}
             >
               <LayoutDashboard size={20} />
               Dashboard
