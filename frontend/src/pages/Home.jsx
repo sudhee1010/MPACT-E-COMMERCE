@@ -1991,7 +1991,7 @@ const MPACTLandingPage = () => {
 
                       {product.countInStock > 0 ? (
                         <button
-                          onClick={() => handleBuyNow(product)}
+                          onClick={() => navigate(`/productspec/${product._id}`)}
                           style={{
                             width: "100%",
                             backgroundColor: "#facc15",
@@ -1999,13 +1999,15 @@ const MPACTLandingPage = () => {
                             fontWeight: 900,
                             padding: "0.5rem",
                             borderRadius: "0.25rem",
-                            border: "none",
+                            border: "2px solid #facc15",
                             cursor: "pointer",
                             transition: "all 0.3s",
                             fontSize: "0.75rem"
                           }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = "gold"}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = "#facc15"}
                         >
-                          PLACE ORDER
+                          BUY NOW
                         </button>
                       ) : (
                         <button
