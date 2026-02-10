@@ -51,8 +51,8 @@ useEffect(() => {
 
 
 useEffect(() => {
-  console.log("USER:", user);
-  console.log("CART:", cartItems);
+  // console.log("USER:", user);
+  // console.log("CART:", cartItems);
 }, [user, cartItems]);
 
 
