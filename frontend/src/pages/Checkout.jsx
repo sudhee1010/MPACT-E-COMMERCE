@@ -279,9 +279,10 @@ const Checkout = () => {
           align-items: center;
           justify-content: center;
           gap: 14px;
-          padding: 16px 0;
+          padding: 16px 12px;
           border-bottom: 1px solid #facc15;
           background: #2f2f2f;
+          flex-wrap: wrap;
         }
 
         .step {
@@ -290,6 +291,7 @@ const Checkout = () => {
           gap: 8px;
           font-size: 14px;
           color: #9ca3af;
+          white-space: nowrap;
         }
 
         .circle {
@@ -300,6 +302,7 @@ const Checkout = () => {
           align-items: center;
           justify-content: center;
           font-weight: bold;
+          flex-shrink: 0;
         }
 
         .green { background: #22c55e; color: white; }
@@ -324,6 +327,8 @@ const Checkout = () => {
           text-align: left;
           font-family:'Jersey 25', sans-serif;
           font-weight: 100;
+          font-size: 32px;
+          line-height: 1.2;
         }
 
         .subtitle {
@@ -332,6 +337,8 @@ const Checkout = () => {
           color: #cbd5f5;
           margin-bottom: 24px;
           text-align: left;
+          font-size: 14px;
+          line-height: 1.5;
         }
 
         .card {
@@ -343,7 +350,11 @@ const Checkout = () => {
           padding: 28px;
         }
 
-        .label { color: #facc15; margin-bottom: 8px; }
+        .label { 
+          color: #facc15; 
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
 
         .section-title {
           display: flex;
@@ -352,9 +363,14 @@ const Checkout = () => {
           color: #facc15;
           font-weight: bold;
           margin: 22px 0 12px;
+          font-size: 14px;
         }
 
-        label { display: block; margin-bottom: 6px; }
+        label { 
+          display: block; 
+          margin-bottom: 6px;
+          font-size: 14px;
+        }
 
         input {
           width: 100%;
@@ -365,6 +381,7 @@ const Checkout = () => {
           color: white;
           margin-bottom: 14px;
           font-size: 14px;
+          min-height: 48px;
         }
 
         .row {
@@ -382,6 +399,11 @@ const Checkout = () => {
           color: white;
           font-weight: bold;
           cursor: pointer;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
         }
 
         .row button.active {
@@ -407,6 +429,7 @@ const Checkout = () => {
           color: white;
           font-weight: bold;
           cursor: pointer;
+          font-size: 14px;
         }
 
         .primary {
@@ -420,16 +443,238 @@ const Checkout = () => {
           cursor: pointer;
         }
 
-         .error {
+        .error {
           color: #ef4444;
           font-size: 12px;
           margin-top: -10px;
           display: block;
           margin-bottom: 10px;
+        }
 
-        @media (max-width: 900px) {
-          .grid2, .grid3 { grid-template-columns: 1fr; }
-          .actions { grid-template-columns: 1fr; }
+        /* Tablet Breakpoint - 768px and below */
+        @media (max-width: 768px) {
+          .content {
+            padding: 28px 12px;
+          }
+
+          h1 {
+            font-size: 26px;
+          }
+
+          .subtitle {
+            font-size: 13px;
+            margin-bottom: 20px;
+          }
+
+          .card {
+            padding: 20px;
+            border-radius: 10px;
+          }
+
+          .checkout-steps {
+            gap: 10px;
+            padding: 12px 8px;
+          }
+
+          .step {
+            font-size: 12px;
+            gap: 6px;
+          }
+
+          .circle {
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+          }
+
+          .line {
+            width: 32px;
+          }
+
+          input {
+            padding: 12px 14px;
+            font-size: 13px;
+            margin-bottom: 12px;
+          }
+
+          .row {
+            gap: 16px;
+            margin-bottom: 14px;
+          }
+
+          .row button {
+            height: 44px;
+            font-size: 13px;
+          }
+
+          .grid2 { grid-template-columns: 1fr; }
+          .grid3 { grid-template-columns: 1fr 1fr; }
+          
+          .actions { 
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 20px;
+          }
+
+          .outline, .primary {
+            height: 48px;
+            font-size: 14px;
+          }
+
+          .primary {
+            font-size: 16px;
+          }
+
+          .label {
+            font-size: 13px;
+          }
+
+          label {
+            font-size: 13px;
+          }
+
+          .section-title {
+            font-size: 13px;
+            margin: 16px 0 10px;
+          }
+        }
+
+        /* Mobile Breakpoint - 480px and below */
+        @media (max-width: 480px) {
+          .content {
+            padding: 20px 10px;
+          }
+
+          h1 {
+            font-size: 22px;
+            margin-bottom: 6px;
+          }
+
+          .subtitle {
+            font-size: 12px;
+            margin-bottom: 16px;
+          }
+
+          .card {
+            padding: 16px;
+            gap: 12px;
+          }
+
+          .checkout-steps {
+            gap: 6px;
+            padding: 10px 6px;
+          }
+
+          .step {
+            font-size: 11px;
+            gap: 4px;
+          }
+
+          .circle {
+            width: 22px;
+            height: 22px;
+            font-size: 10px;
+          }
+
+          .line {
+            width: 24px;
+            height: 1.5px;
+          }
+
+          input {
+            padding: 11px 12px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            min-height: 44px;
+          }
+
+          .row {
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-direction: column;
+          }
+
+          .row button {
+            height: 42px;
+            font-size: 12px;
+          }
+
+          .grid2 { gap: 12px; }
+          .grid3 { grid-template-columns: 1fr; gap: 12px; }
+          
+          .actions { 
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 16px;
+          }
+
+          .outline, .primary {
+            height: 44px;
+            font-size: 13px;
+          }
+
+          .primary {
+            font-size: 14px;
+          }
+
+          .label {
+            font-size: 12px;
+            margin-bottom: 6px;
+          }
+
+          label {
+            font-size: 12px;
+            margin-bottom: 5px;
+          }
+
+          .section-title {
+            font-size: 12px;
+            margin: 14px 0 8px;
+            gap: 6px;
+          }
+
+          .error {
+            font-size: 11px;
+            margin-top: -8px;
+            margin-bottom: 8px;
+          }
+        }
+
+        /* Extra small devices - 360px and below */
+        @media (max-width: 360px) {
+          .content {
+            padding: 16px 8px;
+          }
+
+          h1 {
+            font-size: 20px;
+          }
+
+          .subtitle {
+            font-size: 11px;
+          }
+
+          .card {
+            padding: 14px;
+          }
+
+          .checkout-steps {
+            gap: 4px;
+            padding: 8px 4px;
+          }
+
+          .step {
+            font-size: 10px;
+          }
+
+          .line {
+            width: 20px;
+          }
+
+          .row button {
+            height: 40px;
+            font-size: 11px;
+          }
         }
       `}</style>
     </div>
