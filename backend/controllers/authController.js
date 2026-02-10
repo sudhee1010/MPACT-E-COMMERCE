@@ -196,10 +196,10 @@ export const loginUser = async (req, res) => {
     // ✅ SET COOKIE
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      // sameSite: "none",
-      // secure: true,
+      // secure: process.env.NODE_ENV === "production",
+      // sameSite: "strict",
+      sameSite: "none",
+      secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -313,8 +313,10 @@ export const verifyOTP = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      // secure: process.env.NODE_ENV === "production",
+      // sameSite: "strict",
+      sameSite: "none",
+      secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -510,7 +512,7 @@ export const googleLogin = async (req, res) => {
 
 export const getMyProfile = async (req, res) => {
   try {
-    const user = req.user;    
+    const user = req.user;
     res.json({
       _id: user._id,
       name: user.name,
@@ -532,9 +534,10 @@ export const getMyProfile = async (req, res) => {
 export const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    sameSite: "strict",
-    // secure: true,
-    secure: process.env.NODE_ENV === "production",
+    // sameSite: "strict",
+    // secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
+    secure: true,
   });
 
   res.json({ message: "Logged out successfully" });
@@ -576,7 +579,9 @@ export const deleteMe = async (req, res) => {
 
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "strict",
+      // sameSite: "strict",
+      sameSite: "none",
+      secure: true,
     });
 
     res.json({ message: "Account deleted successfully" });
