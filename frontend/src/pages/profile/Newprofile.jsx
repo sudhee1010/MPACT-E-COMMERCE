@@ -8,6 +8,7 @@ import {
   Camera,
   Eye,
   EyeOff,
+  LayoutDashboard, // Add Dashboard icon
 } from "lucide-react";
 import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +39,6 @@ export default function ProfilePage() {
   const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
   
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -148,6 +148,11 @@ export default function ProfilePage() {
     }
   };
 
+  // Handle Dashboard navigation
+  const handleDashboardClick = () => {
+    navigate("/admindashboard");
+  };
+
   if (loading) {
     return (
       <div style={{ color: "white", textAlign: "center", marginTop: "5rem" }}>
@@ -157,6 +162,9 @@ export default function ProfilePage() {
   }
 
   if (!user) return null;
+
+  // Check if user is admin (assuming user.role exists in your user object)
+  const isAdmin = user.role === "admin" || user.role === "ADMIN";
 
   return (
     <>
@@ -455,6 +463,28 @@ export default function ProfilePage() {
           color: #fde047;
           border-color: rgba(250, 204, 21, 0.5);
           transform: translateY(-1px);
+        }
+
+        /* Dashboard specific button style */
+        .tab-btn.dashboard {
+          background-color: #fdc647;
+          color: black;
+          border: 2px solid #f6c85c51;
+        }
+
+        .tab-btn.dashboard:hover {
+          background-color: #fde047;
+          color: black;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+        
+        }
+
+        .tab-btn.dashboard.active {
+          background-color: #7c3aed;
+          color: white;
+          border-color: #7c3aed;
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
         }
 
         /* Form Sections */
@@ -1493,6 +1523,7 @@ export default function ProfilePage() {
                   <p className="profile-member">
                     Member since {new Date(user.createdAt).toLocaleDateString()}
                   </p>
+                  
                 </div>
               </div>
 
@@ -1529,6 +1560,16 @@ export default function ProfilePage() {
                 <Edit size={20} />
                 {isEditing ? "Save Profile" : "Edit Profile"}
               </button>
+              {/* Dashboard Button - Only show for admin */}
+          {isAdmin && (
+            <button
+              onClick={handleDashboardClick}
+              className={`tab-btn dashboard ${activeTab === "dashboard" ? "active" : "inactive"}`}
+            >
+              <LayoutDashboard size={20} />
+              Dashboard
+            </button>
+          )}
             </div>
           </div>
 
@@ -1564,13 +1605,15 @@ export default function ProfilePage() {
               Wishlist
             </button>
 
+
             <button
               onClick={() => setActiveTab("settings")}
               className={`tab-btn ${activeTab === "settings" ? "active" : "inactive"}`}
-            >
+              >
               <Settings size={20} />
               Settings
             </button>
+          
           </div>
 
           {/* Personal Information */}
