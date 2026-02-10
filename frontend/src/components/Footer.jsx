@@ -212,6 +212,67 @@ export default function Footer() {
         gap: 10px;
       }
     }
+
+    /* PHONE: tighten spacing & scale down elements for small screens */
+    @media (max-width: 600px) {
+      .footer-wrapper {
+        padding: 0 20px;
+      }
+
+      .footer-hash {
+        font-size: 36px;
+      }
+
+      .footer-main {
+        gap: 20px;
+      }
+
+      .footer-links {
+        grid-template-columns: 1fr;
+        gap: 8px 0;
+        font-size: 14px;
+        justify-items: center;
+      }
+
+      .social-icon {
+        width: 56px;
+        height: 56px;
+      }
+
+      .footer-subscribe {
+        padding: 28px 18px;
+        align-items: center;
+      }
+
+      .footer-subscribe h2 {
+        font-size: 20px;
+        text-align: center;
+      }
+
+      .subscribe-divider {
+        max-width: 260px;
+      }
+
+      .footer-bottom {
+        padding: 18px 20px;
+      }
+    }
+
+    /* SMALLER PHONES */
+    @media (max-width: 420px) {
+      .footer-hash {
+        font-size: 30px;
+      }
+
+      .social-icon {
+        width: 48px;
+        height: 48px;
+      }
+
+      .footer-links {
+        font-size: 13px;
+      }
+    }
   `}</style>
 
         <div className="footer-wrapper">
