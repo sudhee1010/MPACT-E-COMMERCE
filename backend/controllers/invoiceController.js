@@ -33,6 +33,8 @@
 // };
 
 import puppeteer from "puppeteer";
+import Order from "../models/Order.js";
+import { invoiceTemplate } from "../utils/invoiceTemplate.js";
 
 export const downloadInvoice = async (req, res) => {
   try {
