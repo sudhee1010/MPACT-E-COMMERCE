@@ -312,7 +312,9 @@ export default function AdminReviews() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const { data } = await api.get("/api/products");
+        // const { data } = await api.get("/api/products");
+        const { data } = await api.get("/api/products?limit=1000");
+
         setProducts(data.products || []);
       } catch {
         toast.error("Failed to load products");

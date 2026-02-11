@@ -139,74 +139,95 @@ export const deleteReview = async (req, res) => {
 // ADMIN: Get reviews with search + filter + pagination
 export const getReviewsByProductForAdmin = async (req, res) => {
   try {
-    const pageSize = 5;
-    const page = Number(req.query.page) || 1;
-    const keyword = req.query.keyword || "";
-    const status = req.query.status || "all";
+    const { keyword, status, page = 1, limit = 10 } = req.query;
 
-    const product = await Product.findOne({
-      name: { $regex: keyword, $options: "i" },
-    });
+    const pageNumber = Number(page);
+    const pageSize = Number(limit);
 
-    if (!product) {
-      return res.json({
-        reviews: [],
-        page: 1,
-        pages: 1,
-        analytics: {
-          total: 0,
-          approved: 0,
-          pending: 0,
-          average: 0,
-          distribution: [0, 0, 0, 0, 0],
-        },
-      });
+    /* ================= FILTER ================= */
+    let filter = {};
+
+    // Filter by productId (IMPORTANT)
+    if (keyword) {
+      filter.product = keyword;
     }
 
-    let filter = { product: product._id };
-    if (status === "approved") filter.isApproved = true;
-    if (status === "pending") filter.isApproved = false;
+    // Filter by approval status
+    if (status === "approved") {
+      filter.isApproved = true;
+    }
 
-    const allReviews = await Review.find({ product: product._id });
+    if (status === "pending") {
+      filter.isApproved = false;
+    }
 
-    const total = allReviews.length;
-    const approved = allReviews.filter(r => r.isApproved).length;
-    const pending = total - approved;
-
-    const approvedReviews = allReviews.filter(r => r.isApproved);
-    const average =
-      approvedReviews.length > 0
-        ? approvedReviews.reduce((acc, r) => acc + r.rating, 0) /
-          approvedReviews.length
-        : 0;
-
-    const distribution = [0, 0, 0, 0, 0];
-    allReviews.forEach(r => {
-      distribution[r.rating - 1]++;
-    });
-
-    const count = await Review.countDocuments(filter);
+    /* ================= FETCH REVIEWS ================= */
+    const totalFiltered = await Review.countDocuments(filter);
 
     const reviews = await Review.find(filter)
       .populate("user", "name")
       .populate("product", "name")
-      .limit(pageSize)
-      .skip(pageSize * (page - 1))
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((pageNumber - 1) * pageSize)
+      .limit(pageSize);
+
+    const pages = Math.ceil(totalFiltered / pageSize);
+
+    /* ================= ANALYTICS (NOT FILTERED BY STATUS) ================= */
+
+    let analyticsFilter = {};
+
+    if (keyword) {
+      analyticsFilter.product = keyword;
+    }
+
+    const total = await Review.countDocuments(analyticsFilter);
+
+    const approved = await Review.countDocuments({
+      ...analyticsFilter,
+      isApproved: true,
+    });
+
+    const pending = await Review.countDocuments({
+      ...analyticsFilter,
+      isApproved: false,
+    });
+
+    const ratingData = await Review.find(analyticsFilter).select("rating");
+
+    const average =
+      ratingData.length > 0
+        ? (
+            ratingData.reduce((acc, r) => acc + r.rating, 0) /
+            ratingData.length
+          ).toFixed(1)
+        : 0;
+
+    // Rating distribution (1★ to 5★)
+    const distribution = [0, 0, 0, 0, 0];
+
+    ratingData.forEach((r) => {
+      if (r.rating >= 1 && r.rating <= 5) {
+        distribution[r.rating - 1]++;
+      }
+    });
+
+    /* ================= RESPONSE ================= */
 
     res.json({
       reviews,
-      page,
-      pages: Math.ceil(count / pageSize),
+      page: pageNumber,
+      pages,
       analytics: {
         total,
         approved,
         pending,
-        average: average.toFixed(1),
+        average,
         distribution,
       },
     });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch reviews" });
+  } catch (error) {
+    console.error("Admin review fetch error:", error);
+    res.status(500).json({ message: error.message });
   }
 };
