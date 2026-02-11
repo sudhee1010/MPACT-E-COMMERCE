@@ -136,6 +136,7 @@ function App() {
     "/settings",
     "/personalsettings",
     "/help-support",
+     "/reviews",
   ].some((path) => location.pathname.startsWith(path));
 
   return (
