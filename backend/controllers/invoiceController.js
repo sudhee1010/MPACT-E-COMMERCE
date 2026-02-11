@@ -32,11 +32,7 @@
 //   res.send(pdf);
 // };
 
-
-import puppeteer from "puppeteer-core";
-import chromium from "chrome-aws-lambda";
-import Order from "../models/Order.js";
-import { invoiceTemplate } from "../utils/invoiceTemplate.js";
+import puppeteer from "puppeteer";
 
 export const downloadInvoice = async (req, res) => {
   try {
@@ -47,10 +43,8 @@ export const downloadInvoice = async (req, res) => {
     }
 
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
@@ -78,4 +72,3 @@ export const downloadInvoice = async (req, res) => {
     res.status(500).json({ message: "Failed to generate invoice" });
   }
 };
-
