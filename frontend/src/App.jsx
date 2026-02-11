@@ -108,7 +108,7 @@ import { Sonner } from "./components/ui/Sonner.jsx";
 import { Slider } from "./components/ui/Slider.jsx";
 import { Skeleton } from "./components/ui/Skeleton.jsx";
 import AdminDistributor from "./components/AdminDistributor.jsx";
-import { Reviews } from "./pages/admin/Reviews";
+import { Reviews } from "./components/Reviews.jsx";
 
 
 
