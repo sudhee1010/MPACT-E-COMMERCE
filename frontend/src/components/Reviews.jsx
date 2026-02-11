@@ -302,252 +302,180 @@
 // }
 
 
-import mongoose from "mongoose";
-import Review from "../models/Review.js";
-import Order from "../models/Order.js";
-import Product from "../models/Product.js";
+import { useEffect, useState } from "react";
+import api from "../api/axios";
+import toast from "react-hot-toast";
+import { Trash2, CheckCircle, XCircle, ChevronDown } from "lucide-react";
 
-/* ================= ADD REVIEW ================= */
+export default function AdminReviews() {
+  const [reviews, setReviews] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [keyword, setKeyword] = useState("");
+  const [status, setStatus] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-export const addReview = async (req, res) => {
-  try {
-    const { rating, comment } = req.body;
-    const productId = req.params.productId;
+  const [modalType, setModalType] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
-    // Check purchase
-    const hasPurchased = await Order.findOne({
-      user: req.user._id,
-      "orderItems.product": productId,
-      orderStatus: { $in: ["delivered", "confirmed"] },
-    });
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data } = await api.get("/api/products?limit=1000");
+      setProducts(data.products || []);
+    };
+    fetchProducts();
+  }, []);
 
-    if (!hasPurchased) {
-      return res.status(400).json({
-        message: "You can review only purchased products",
-      });
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get(
+        `/api/reviews/admin/all?keyword=${keyword}&status=${status}&page=${page}`
+      );
+      setReviews(data.reviews || []);
+      setPages(data.pages || 1);
+    } catch {
+      toast.error("Failed to fetch reviews");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Prevent duplicate review
-    const alreadyReviewed = await Review.findOne({
-      user: req.user._id,
-      product: productId,
-    });
+  useEffect(() => {
+    fetchReviews();
+  }, [keyword, status, page]);
 
-    if (alreadyReviewed) {
-      return res.status(400).json({
-        message: "You have already reviewed this product",
-      });
+  const handleConfirm = async () => {
+    try {
+      if (modalType === "approve")
+        await api.put(`/api/reviews/${selectedId}/approve`);
+
+      if (modalType === "reject")
+        await api.put(`/api/reviews/${selectedId}/reject`);
+
+      if (modalType === "delete")
+        await api.delete(`/api/reviews/${selectedId}`);
+
+      setModalType(null);
+      fetchReviews();
+    } catch {
+      toast.error("Action failed");
     }
+  };
 
-    const images = req.files
-      ? req.files.map((file) => ({
-          url: file.path,
-          public_id: file.filename,
-        }))
-      : [];
+  return (
+    <div className="min-h-screen bg-[#1e1e1e] text-white p-10">
+      <h2 className="text-2xl font-bold mb-8">Manage Reviews</h2>
 
-    const review = await Review.create({
-      user: req.user._id,
-      product: productId,
-      rating,
-      comment,
-      images,
-    });
+      {/* FILTERS */}
+      <div className="flex gap-6 mb-8">
+        <select
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          className="bg-[#2b2b2b] border border-yellow-400 px-4 py-2 rounded-lg"
+        >
+          <option value="">All Products</option>
+          {products.map((p) => (
+            <option key={p._id} value={p._id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
 
-    res.status(201).json(review);
-  } catch (err) {
-    console.error("Add review error:", err);
-    res.status(500).json({ message: "Failed to add review" });
-  }
-};
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="bg-[#2b2b2b] border border-yellow-400 px-4 py-2 rounded-lg"
+        >
+          <option value="all">All</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
 
-/* ================= GET APPROVED REVIEWS ================= */
+      {/* TABLE */}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <table className="w-full bg-[#2b2b2b] rounded-xl">
+          <thead className="bg-[#3a3a2a] text-yellow-400">
+            <tr>
+              <th className="p-4">Product</th>
+              <th className="p-4">User</th>
+              <th className="p-4">Rating</th>
+              <th className="p-4">Comment</th>
+              <th className="p-4">Status</th>
+              <th className="p-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reviews.map((r) => (
+              <tr key={r._id} className="border-t border-gray-700">
+                <td className="p-4">{r.product?.name}</td>
+                <td className="p-4">{r.user?.name}</td>
+                <td className="p-4">{"★".repeat(r.rating)}</td>
+                <td className="p-4 max-w-xs break-words">{r.comment}</td>
+                <td className="p-4">
+                  {r.isApproved ? "Approved" : "Pending"}
+                </td>
+                <td className="p-4 flex gap-3">
+                  {!r.isApproved && (
+                    <>
+                      <CheckCircle
+                        className="text-green-400 cursor-pointer"
+                        onClick={() => {
+                          setSelectedId(r._id);
+                          setModalType("approve");
+                        }}
+                      />
+                      <XCircle
+                        className="text-yellow-400 cursor-pointer"
+                        onClick={() => {
+                          setSelectedId(r._id);
+                          setModalType("reject");
+                        }}
+                      />
+                    </>
+                  )}
+                  <Trash2
+                    className="text-red-500 cursor-pointer"
+                    onClick={() => {
+                      setSelectedId(r._id);
+                      setModalType("delete");
+                    }}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
-export const getProductReviews = async (req, res) => {
-  try {
-    const reviews = await Review.find({
-      product: req.params.productId,
-      isApproved: true,
-    }).populate("user", "name");
-
-    res.json(reviews);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* ================= APPROVE REVIEW ================= */
-
-export const approveReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    review.isApproved = true;
-    await review.save();
-
-    await recalculateProductRating(review.product);
-
-    res.json({ message: "Review approved successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* ================= REJECT REVIEW ================= */
-
-export const rejectReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    review.isApproved = false;
-    await review.save();
-
-    await recalculateProductRating(review.product);
-
-    res.json({ message: "Review rejected successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* ================= DELETE REVIEW ================= */
-
-export const deleteReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    const productId = review.product;
-
-    await review.deleteOne();
-
-    await recalculateProductRating(productId);
-
-    res.json({ message: "Review deleted successfully" });
-  } catch (error) {
-    console.error("Delete review error:", error);
-    res.status(500).json({ message: "Failed to delete review" });
-  }
-};
-
-/* ================= ADMIN FETCH ================= */
-
-export const getReviewsByProductForAdmin = async (req, res) => {
-  try {
-    const { keyword, status, page = 1, limit = 10 } = req.query;
-
-    const pageNumber = Number(page);
-    const pageSize = Number(limit);
-
-    let filter = {};
-
-    // SAFE PRODUCT FILTER
-    if (keyword && mongoose.Types.ObjectId.isValid(keyword)) {
-      filter.product = keyword;
-    }
-
-    // STATUS FILTER
-    if (status === "approved") filter.isApproved = true;
-    if (status === "pending") filter.isApproved = false;
-
-    const totalFiltered = await Review.countDocuments(filter);
-
-    const reviews = await Review.find(filter)
-      .populate("user", "name")
-      .populate("product", "name")
-      .sort({ createdAt: -1 })
-      .skip((pageNumber - 1) * pageSize)
-      .limit(pageSize);
-
-    const pages = Math.ceil(totalFiltered / pageSize);
-
-    /* ===== ANALYTICS ===== */
-
-    let analyticsFilter = {};
-
-    if (keyword && mongoose.Types.ObjectId.isValid(keyword)) {
-      analyticsFilter.product = keyword;
-    }
-
-    const total = await Review.countDocuments(analyticsFilter);
-
-    const approved = await Review.countDocuments({
-      ...analyticsFilter,
-      isApproved: true,
-    });
-
-    const pending = await Review.countDocuments({
-      ...analyticsFilter,
-      isApproved: false,
-    });
-
-    const ratingData = await Review.find(analyticsFilter).select("rating");
-
-    const average =
-      ratingData.length > 0
-        ? (
-            ratingData.reduce((acc, r) => acc + r.rating, 0) /
-            ratingData.length
-          ).toFixed(1)
-        : 0;
-
-    const distribution = [0, 0, 0, 0, 0];
-
-    ratingData.forEach((r) => {
-      if (r.rating >= 1 && r.rating <= 5) {
-        distribution[r.rating - 1]++;
-      }
-    });
-
-    res.json({
-      reviews,
-      page: pageNumber,
-      pages,
-      analytics: {
-        total,
-        approved,
-        pending,
-        average,
-        distribution,
-      },
-    });
-  } catch (error) {
-    console.error("Admin review fetch error:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* ================= HELPER FUNCTION ================= */
-
-const recalculateProductRating = async (productId) => {
-  const reviews = await Review.find({
-    product: productId,
-    isApproved: true,
-  });
-
-  const product = await Product.findById(productId);
-
-  if (!product) return;
-
-  if (reviews.length === 0) {
-    product.numReviews = 0;
-    product.rating = 0;
-  } else {
-    product.numReviews = reviews.length;
-    product.rating =
-      reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
-  }
-
-  await product.save();
-};
+      {/* MODAL */}
+      {modalType && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center">
+          <div className="bg-[#2b2b2b] p-6 rounded-xl w-96 border border-yellow-400">
+            <h3 className="mb-4 capitalize text-yellow-400">
+              Confirm {modalType}
+            </h3>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setModalType(null)}
+                className="px-4 py-2 border border-gray-500 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="px-4 py-2 bg-yellow-500 text-black rounded"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
