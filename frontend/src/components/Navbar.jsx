@@ -444,7 +444,7 @@ export default function Navbar() {
         <Link to="/product" onClick={() => setMenuOpen(false)}>PRODUCTS</Link>
         <Link to="/about" onClick={() => setMenuOpen(false)}>ABOUT US</Link>
         <Link to="/blog" onClick={() => setMenuOpen(false)}>BLOG</Link>
-        <Link to="/profile" onClick={() => setMenuOpen(false)}>PROFILE</Link>
+        <Link to="/wishlist" onClick={() => setMenuOpen(false)}>WISHLIST</Link>
         <Link to="/distributor" onClick={() => setMenuOpen(false)}>DISTRIBUTOR</Link>
 
       </div>

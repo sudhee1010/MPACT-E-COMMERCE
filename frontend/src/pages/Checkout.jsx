@@ -272,6 +272,8 @@ const Checkout = () => {
           background: #3a3a3a;
           min-height: 100vh;
           color: white;
+          width: 100%;
+          overflow-x: hidden;
         }
 
         .checkout-steps {
@@ -318,36 +320,42 @@ const Checkout = () => {
           flex-direction: column;
           align-items: center;
           padding: 40px 16px;
+          width: 100%;
+          box-sizing: border-box;
+        }
         }
 
         h1 {
           width: 900px;
-          max-width: 100%;
+          max-width: calc(100% - 0px);
           margin-bottom: 8px;
           text-align: left;
           font-family:'Jersey 25', sans-serif;
           font-weight: 100;
           font-size: 32px;
           line-height: 1.2;
+          box-sizing: border-box;
         }
 
         .subtitle {
           width: 900px;
-          max-width: 100%;
+          max-width: calc(100% - 0px);
           color: #cbd5f5;
           margin-bottom: 24px;
           text-align: left;
           font-size: 14px;
           line-height: 1.5;
+          box-sizing: border-box;
         }
 
         .card {
           width: 900px;
-          max-width: 100%;
+          max-width: calc(100% - 0px);
           background: #1f1f1f;
           border: 2px solid #facc15;
           border-radius: 12px;
           padding: 28px;
+          box-sizing: border-box;
         }
 
         .label { 
@@ -455,6 +463,7 @@ const Checkout = () => {
         @media (max-width: 768px) {
           .content {
             padding: 28px 12px;
+            width: 100%;
           }
 
           h1 {
@@ -469,6 +478,7 @@ const Checkout = () => {
           .card {
             padding: 20px;
             border-radius: 10px;
+            width: 100%;
           }
 
           .checkout-steps {
@@ -543,6 +553,7 @@ const Checkout = () => {
         @media (max-width: 480px) {
           .content {
             padding: 20px 10px;
+            width: 100%;
           }
 
           h1 {
@@ -558,6 +569,7 @@ const Checkout = () => {
           .card {
             padding: 16px;
             gap: 12px;
+            width: 100%;
           }
 
           .checkout-steps {
@@ -644,6 +656,7 @@ const Checkout = () => {
         @media (max-width: 360px) {
           .content {
             padding: 16px 8px;
+            width: 100%;
           }
 
           h1 {
@@ -656,6 +669,7 @@ const Checkout = () => {
 
           .card {
             padding: 14px;
+            width: 100%;
           }
 
           .checkout-steps {
