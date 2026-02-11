@@ -367,7 +367,6 @@ export const deleteReview = async (req, res) => {
 };
 
 /* ================= ADMIN FETCH ================= */
-
 export const getReviewsByProductForAdmin = async (req, res) => {
   try {
     const { keyword, status, page = 1, limit = 10 } = req.query;
@@ -377,7 +376,7 @@ export const getReviewsByProductForAdmin = async (req, res) => {
 
     let filter = {};
 
-    if (keyword) {
+    if (keyword && mongoose.Types.ObjectId.isValid(keyword)) {
       filter.product = keyword;
     }
 
@@ -395,17 +394,17 @@ export const getReviewsByProductForAdmin = async (req, res) => {
 
     const pages = Math.ceil(totalFiltered / pageSize);
 
-    /* ===== ANALYTICS ===== */
+    let analyticsFilter = {};
 
-    let analyticsFilter = keyword ? { product: keyword } : {};
+    if (keyword && mongoose.Types.ObjectId.isValid(keyword)) {
+      analyticsFilter.product = keyword;
+    }
 
     const total = await Review.countDocuments(analyticsFilter);
-
     const approved = await Review.countDocuments({
       ...analyticsFilter,
       isApproved: true,
     });
-
     const pending = await Review.countDocuments({
       ...analyticsFilter,
       isApproved: false,
@@ -424,9 +423,7 @@ export const getReviewsByProductForAdmin = async (req, res) => {
     const distribution = [0, 0, 0, 0, 0];
 
     ratingData.forEach((r) => {
-      if (r.rating >= 1 && r.rating <= 5) {
-        distribution[r.rating - 1]++;
-      }
+      distribution[r.rating - 1]++;
     });
 
     res.json({
@@ -442,31 +439,7 @@ export const getReviewsByProductForAdmin = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.error("Admin review fetch error:", error);
     res.status(500).json({ message: error.message });
   }
-};
-
-/* ================= HELPER FUNCTION ================= */
-
-const recalculateProductRating = async (productId) => {
-  const reviews = await Review.find({
-    product: productId,
-    isApproved: true,
-  });
-
-  const product = await Product.findById(productId);
-
-  if (!product) return;
-
-  if (reviews.length === 0) {
-    product.numReviews = 0;
-    product.rating = 0;
-  } else {
-    product.numReviews = reviews.length;
-    product.rating =
-      reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
-  }
-
-  await product.save();
 };
