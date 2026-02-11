@@ -144,28 +144,51 @@ export const getReviewsByProductForAdmin = async (req, res) => {
     const keyword = req.query.keyword || "";
     const status = req.query.status || "all";
 
-    // Find product by search keyword
     const product = await Product.findOne({
-      name: { $regex: keyword, $options: "i" }
+      name: { $regex: keyword, $options: "i" },
     });
 
     if (!product) {
       return res.json({
         reviews: [],
         page: 1,
-        pages: 1
+        pages: 1,
+        analytics: {
+          total: 0,
+          approved: 0,
+          pending: 0,
+          average: 0,
+          distribution: [0, 0, 0, 0, 0],
+        },
       });
     }
 
     let filter = { product: product._id };
-
     if (status === "approved") filter.isApproved = true;
     if (status === "pending") filter.isApproved = false;
+
+    const allReviews = await Review.find({ product: product._id });
+
+    const total = allReviews.length;
+    const approved = allReviews.filter(r => r.isApproved).length;
+    const pending = total - approved;
+
+    const approvedReviews = allReviews.filter(r => r.isApproved);
+    const average =
+      approvedReviews.length > 0
+        ? approvedReviews.reduce((acc, r) => acc + r.rating, 0) /
+          approvedReviews.length
+        : 0;
+
+    const distribution = [0, 0, 0, 0, 0];
+    allReviews.forEach(r => {
+      distribution[r.rating - 1]++;
+    });
 
     const count = await Review.countDocuments(filter);
 
     const reviews = await Review.find(filter)
-      .populate("user", "name email")
+      .populate("user", "name")
       .populate("product", "name")
       .limit(pageSize)
       .skip(pageSize * (page - 1))
@@ -174,11 +197,16 @@ export const getReviewsByProductForAdmin = async (req, res) => {
     res.json({
       reviews,
       page,
-      pages: Math.ceil(count / pageSize)
+      pages: Math.ceil(count / pageSize),
+      analytics: {
+        total,
+        approved,
+        pending,
+        average: average.toFixed(1),
+        distribution,
+      },
     });
-
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
     res.status(500).json({ message: "Failed to fetch reviews" });
   }
 };

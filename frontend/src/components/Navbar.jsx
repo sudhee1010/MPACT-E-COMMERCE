@@ -4,14 +4,13 @@ import SideCart from "./SideCart"; // adjust path if needed
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, User } from "lucide-react";
 import toast from "react-hot-toast";
 
 
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  // const [cartOpen, setCartOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -49,36 +48,41 @@ export default function Navbar() {
       left: 0,
       width: "100%",
       height: "100%",
-      backgroundColor: "rgba(0,0,0,0.6)",
+      backgroundColor: "rgba(0,0,0,0.7)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       zIndex: 2000,
+      backdropFilter: "blur(5px)",
     },
     modal: {
-      backgroundColor: "#262626",
-      padding: "2rem",
-      borderRadius: "8px",
-      border: "2px solid #facc15",
-      width: "300px",
+      backgroundColor: "#1a1a1a",
+      padding: "2.5rem",
+      borderRadius: "12px",
+      border: "2px solid #ffd400",
+      width: "320px",
       textAlign: "center",
       color: "white",
+      boxShadow: "0 10px 40px rgba(255, 212, 0, 0.2)",
     },
     loginBtn: {
-      backgroundColor: "#facc15",
+      backgroundColor: "#ffd400",
       border: "none",
-      padding: "0.5rem 1rem",
-      borderRadius: "5px",
+      padding: "0.75rem 1.5rem",
+      borderRadius: "8px",
       cursor: "pointer",
       fontWeight: "bold",
+      color: "#000",
+      transition: "all 0.3s ease",
     },
     cancelBtn: {
       backgroundColor: "transparent",
-      border: "1px solid #facc15",
-      color: "#facc15",
-      padding: "0.5rem 1rem",
-      borderRadius: "5px",
+      border: "2px solid #ffd400",
+      color: "#ffd400",
+      padding: "0.75rem 1.5rem",
+      borderRadius: "8px",
       cursor: "pointer",
+      transition: "all 0.3s ease",
     },
   };
 
@@ -115,27 +119,53 @@ export default function Navbar() {
           font-family: "Segoe UI", Arial, sans-serif;
         }
 
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .navbar {
           position: fixed;
           top: 0;
           left: 0;
           width: 100%;
           height: var(--navbar-height);
-          background-color: #ffd400;
+          background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%);
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 0 60px;
           z-index: 1100;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+          border-bottom: 1px solid rgba(255, 212, 0, 0.15);
+          animation: fadeInDown 0.6s ease;
         }
 
         /* LOGO */
         .nav-logo {
           font-family: 'Jersey 25', sans-serif;
           font-size: 48px;
-          letter-spacing: -0.04em;
-          color: #000;
+          letter-spacing: -0.02em;
+          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 50%, #ffd400 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
           text-decoration: none;
+          transition: all 0.4s ease;
+          filter: drop-shadow(0 0 8px rgba(255, 212, 0, 0.3));
+          position: relative;
+        }
+
+        .nav-logo:hover {
+          filter: drop-shadow(0 0 15px rgba(255, 212, 0, 0.6));
+          transform: scale(1.05);
+          letter-spacing: 0.02em;
         }
 
         /* CENTER LINKS */
@@ -144,53 +174,152 @@ export default function Navbar() {
           left: 50%;
           transform: translateX(-50%);
           display: flex;
-          gap: clamp(20px, 3vw, 48px);
+          gap: clamp(12px, 2vw, 20px);
         }
 
         .nav-links a {
           font-family: 'Jersey 25', sans-serif;
-          font-size: 20px;
-          color: #000;
+          font-size: 16px;
+          color: #000000;
           text-decoration: none;
           white-space: nowrap;
+          padding: 12px 24px;
+          border-radius: 50px;
+          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 100%);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          font-weight: 600;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(255, 212, 0, 0.2);
+        }
+
+        .nav-links a::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+          transition: left 0.6s ease;
+        }
+
+        .nav-links a:hover::before {
+          left: 100%;
         }
 
         .nav-links a:hover {
-          opacity: 0.7;
+          background: linear-gradient(135deg, #ffed4e 0%, #fff5a3 100%);
+          transform: translateY(-3px) scale(1.05);
+          box-shadow: 0 6px 20px rgba(255, 212, 0, 0.5);
+        }
+
+        .nav-links a:active {
+          transform: translateY(-1px) scale(1.02);
         }
 
         /* RIGHT ICONS */
         .nav-icons {
           display: flex;
           align-items: center;
-          gap: 18px;
+          gap: 20px;
         }
 
-        /* ALL ICONS (image-based) */
-        .nav-icons img {
-          width: 21px;
-          height: 21px;
-          display: block;
+        /* ICON BUTTONS */
+        .icon-btn {
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          box-shadow: 0 2px 8px rgba(255, 212, 0, 0.2);
+        }
+
+        .icon-btn::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #ffd400, #ffed4e);
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          z-index: -1;
+          filter: blur(8px);
+        }
+
+        .icon-btn:hover::before {
+          opacity: 0.6;
+        }
+
+        .icon-btn:hover {
+          background: linear-gradient(135deg, #ffed4e 0%, #fff5a3 100%);
+          transform: translateY(-3px) scale(1.15);
+          box-shadow: 0 6px 20px rgba(255, 212, 0, 0.5);
+        }
+
+        .icon-btn:active {
+          transform: translateY(-1px) scale(1.05);
+        }
+
+        /* CART BADGE */
+        .cart-badge {
+          position: absolute;
+          top: -4px;
+          right: -4px;
+          background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+          color: white;
+          border-radius: 50%;
+          padding: 3px 7px;
+          font-size: 11px;
+          font-weight: bold;
+          min-width: 20px;
+          text-align: center;
+          border: 2px solid #000000;
+          box-shadow: 0 2px 8px rgba(255, 0, 0, 0.4);
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
         }
 
         /* HAMBURGER ICON */
         .hamburger {
-          color: #000;
-          font-size: 22px;
+          color: #000000;
+          font-size: 24px;
           line-height: 1;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 8px;
-          border-radius: 6px;
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 100%);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px rgba(255, 212, 0, 0.2);
+        }
+
+        .hamburger:hover {
+          background: linear-gradient(135deg, #ffed4e 0%, #fff5a3 100%);
+          transform: translateY(-3px) scale(1.15);
+          box-shadow: 0 6px 20px rgba(255, 212, 0, 0.5);
         }
 
         .hamburger:active,
         .hamburger:focus {
           outline: none;
-          opacity: 0.85;
+          transform: translateY(-1px) scale(1.05);
         }
 
         /* MOBILE MENU */
@@ -199,19 +328,21 @@ export default function Navbar() {
           top: var(--navbar-height);
           left: 0;
           width: 100%;
-          height: auto; /* fit-content behavior */
+          height: auto;
           max-height: calc(80vh - var(--navbar-height));
-          background: #ffd400;
+          background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 20px;
-          padding: 12px 16px;
+          gap: 16px;
+          padding: 24px 16px;
           transform: translateY(-120%);
-          transition: transform 0.28s ease, opacity 0.18s ease;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
           z-index: 1050;
-          overflow-y: auto; /* only scroll inside when needed */
+          overflow-y: auto;
           -webkit-overflow-scrolling: touch;
+          border-top: 1px solid rgba(255, 212, 0, 0.2);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .mobile-menu.open {
@@ -221,17 +352,27 @@ export default function Navbar() {
 
         .mobile-menu a {
           font-family: 'Jersey 25', sans-serif;
-          font-size: 20px;
-          color: #000;
+          font-size: 18px;
+          color: #000000;
           text-decoration: none;
-          width: 100%;
+          width: auto;
           text-align: center;
-          padding: 10px 8px;
-          border-radius: 6px;
+          padding: 12px 32px;
+          border-radius: 50px;
+          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 100%);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(255, 212, 0, 0.2);
+        }
+
+        .mobile-menu a:hover {
+          background: linear-gradient(135deg, #ffed4e 0%, #fff5a3 100%);
+          transform: translateX(5px) scale(1.05);
+          box-shadow: 0 4px 15px rgba(255, 212, 0, 0.5);
         }
 
         .mobile-menu a:active {
-          opacity: 0.8;
+          transform: translateX(3px) scale(1.02);
         }
 
         /* PAGE OFFSET FIX */
@@ -249,10 +390,9 @@ export default function Navbar() {
           }
 
           .hamburger {
-            display: block;
+            display: flex;
           }
 
-          /* slightly reduce logo on medium screens */
           .nav-logo {
             font-size: 40px;
           }
@@ -271,16 +411,20 @@ export default function Navbar() {
             font-size: 34px;
           }
 
-          .nav-icons img {
-            width: 18px;
-            height: 18px;
+          .icon-btn {
+            width: 38px;
+            height: 38px;
+          }
+
+          .nav-icons {
+            gap: 12px;
           }
 
           .mobile-menu {
             top: var(--navbar-height);
             height: auto;
             max-height: calc(80vh - var(--navbar-height));
-            padding-top: 12px;
+            padding-top: 16px;
           }
 
           .page-wrapper {
@@ -302,74 +446,36 @@ export default function Navbar() {
           <Link to="/product">PRODUCTS</Link>
           <Link to="/about">ABOUT US</Link>
           <Link to="/blog">BLOG</Link>
-          {/* <Link to="/wishlist" onClick={() => {
-            if (user) navigate("/wishlist");
-            else setShowLoginModal(true);
-          }}>WISHLIST</Link> */}
           <Link
             to="/wishlist"
             onClick={(e) => {
-              e.preventDefault();   // 🔥 STOP AUTO NAVIGATION
-
+              e.preventDefault();
               if (user) navigate("/wishlist");
               else setShowLoginModal(true);
             }}
           >
             WISHLIST
           </Link>
-
-          {/* <Link to="/profile" onClick={handleProfileClick}>PROFILE</Link> */}
-          {/* <Link
-            to="/profile"
-            onClick={(e) => {
-              e.preventDefault();        // 🔥 STOP AUTO NAVIGATION
-              handleProfileClick();     // 🔥 NOW RUN OUR LOGIC
-            }}
-          >
-            PROFILE
-          </Link> */}
           <Link to="/distributor">DISTRIBUTOR</Link>
-
-
         </div>
 
         {/* RIGHT ICONS */}
         <div className="nav-icons">
-          {/* <Link to="/seeMore">
-            <img src="/icons/search.png" alt="Search" />
-          </Link> */}
-          <Link
-          to="/profile"
-          onClick={(e) => {
-            e.preventDefault();        // 🔥 STOP AUTO NAVIGATION
-            handleProfileClick();     // 🔥 NOW RUN OUR LOGIC
-          }}
-        >
-            <img src="/icons/avatar.png" alt="User" />
-          </Link>
-
-
-          {/* <Link to="/signup">
-            <img src="/icons/avatar.png" alt="User" />
-          </Link> */}
-
-          {/* CART ICON → SIDE CART */}
-          {/* <img
-            src="/icons/bag.png"
-            alt="Cart"
-            onClick={() => setCartOpen(true)}
-          /> */}
-
-          {/* <div
-            style={{ position: "relative", cursor: "pointer" }}
-            onClick={() => {
-              if (user) setOpenSideCart(true);
-              else setShowLoginModal(true);
-            }}
-          > */}
-
+          {/* USER/PROFILE ICON */}
           <div
-            style={{ position: "relative", cursor: "pointer" }}
+            className="icon-btn"
+            onClick={handleProfileClick}
+            role="button"
+            tabIndex={0}
+            aria-label="User Profile"
+          >
+            <User size={22} color="#000000" strokeWidth={2.5} />
+          </div>
+
+          {/* CART ICON */}
+          <div
+            className="icon-btn"
+            style={{ position: "relative" }}
             onClick={() => {
               if (!user) {
                 setShowLoginModal(true);
@@ -383,37 +489,16 @@ export default function Navbar() {
 
               setOpenSideCart(true);
             }}
+            role="button"
+            tabIndex={0}
+            aria-label="Shopping Cart"
           >
-
-
-            <ShoppingCart
-              size={22}
-              color="black"     // 🔥 GUARANTEED BLACK
-              strokeWidth={2}
-            />
+            <ShoppingCart size={22} color="#000000" strokeWidth={2.5} />
 
             {cartCount > 0 && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: "-6px",
-                  right: "-10px",
-                  background: "red",
-                  color: "white",
-                  borderRadius: "50%",
-                  padding: "2px 7px",
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  minWidth: "20px",
-                  textAlign: "center"
-                }}
-              >
-                {cartCount}
-              </span>
+              <span className="cart-badge">{cartCount}</span>
             )}
           </div>
-
-
 
           {/* HAMBURGER */}
           <div
@@ -444,25 +529,31 @@ export default function Navbar() {
         <Link to="/product" onClick={() => setMenuOpen(false)}>PRODUCTS</Link>
         <Link to="/about" onClick={() => setMenuOpen(false)}>ABOUT US</Link>
         <Link to="/blog" onClick={() => setMenuOpen(false)}>BLOG</Link>
-        <Link to="/wishlist" onClick={() => setMenuOpen(false)}>WISHLIST</Link>
+        <Link 
+          to="/wishlist" 
+          onClick={(e) => {
+            e.preventDefault();
+            setMenuOpen(false);
+            if (user) navigate("/wishlist");
+            else setShowLoginModal(true);
+          }}
+        >
+          WISHLIST
+        </Link>
         <Link to="/distributor" onClick={() => setMenuOpen(false)}>DISTRIBUTOR</Link>
-
       </div>
 
       {/* ================= SIDE CART ================= */}
-      {/* <SideCart open={cartOpen} onClose={() => setCartOpen(false)} /> */}
-      {/* <SideCart /> */}
       {user && <SideCart />}
-
 
       {/* ================= LOGIN REQUIRED MODAL ================= */}
       {showLoginModal && (
-        <div style={modalStyles.overlay}>
-          <div style={modalStyles.modal}>
-            <h3 style={{ marginBottom: "1rem", color: "#facc15" }}>
+        <div style={modalStyles.overlay} onClick={() => setShowLoginModal(false)}>
+          <div style={modalStyles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginBottom: "1rem", color: "#ffd400", fontSize: "24px" }}>
               Login Required
             </h3>
-            <p style={{ marginBottom: "1.5rem" }}>
+            <p style={{ marginBottom: "1.5rem", color: "#ccc" }}>
               Please login to continue.
             </p>
 
@@ -473,6 +564,14 @@ export default function Navbar() {
                   setShowLoginModal(false);
                   navigate("/login");
                 }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "scale(1.05)";
+                  e.target.style.boxShadow = "0 5px 20px rgba(255, 212, 0, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "scale(1)";
+                  e.target.style.boxShadow = "none";
+                }}
               >
                 Login
               </button>
@@ -480,6 +579,12 @@ export default function Navbar() {
               <button
                 style={modalStyles.cancelBtn}
                 onClick={() => setShowLoginModal(false)}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(255, 212, 0, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                }}
               >
                 Cancel
               </button>
@@ -487,9 +592,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-
-
-
     </>
   );
 }
