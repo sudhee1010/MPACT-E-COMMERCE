@@ -108,7 +108,7 @@ import { Sonner } from "./components/ui/Sonner.jsx";
 import { Slider } from "./components/ui/Slider.jsx";
 import { Skeleton } from "./components/ui/Skeleton.jsx";
 import AdminDistributor from "./components/AdminDistributor.jsx";
-import  Reviews  from "./components/Reviews.jsx";
+import AdminReviews from "./components/Reviews.jsx";
 
 
 
@@ -234,7 +234,7 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/personalsettings" element={<PersonalSettings />} />
              <Route path="/help-support" element={< AdminHelpSupport/>} />
-             <Route path="/reviews" element={<Reviews />} />
+             <Route path="/reviews" element={<AdminReviews />} />
 
           </Route>
 

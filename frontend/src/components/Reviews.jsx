@@ -3,7 +3,7 @@ import api from "../api/axios";
 import { Trash2, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
-export  function AdminReviews() {
+export default function AdminReviews() {
   const [reviews, setReviews] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState("all");
