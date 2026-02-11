@@ -34,11 +34,24 @@
 
 
 
-
 import PDFDocument from "pdfkit";
 import Order from "../models/Order.js";
-import path from "path";
-import fs from "fs";
+
+function numberToWords(amount) {
+  const a = [
+    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+    "Seventeen", "Eighteen", "Nineteen"
+  ];
+  const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+  if (amount < 20) return a[amount];
+  if (amount < 100) return b[Math.floor(amount / 10)] + " " + a[amount % 10];
+  if (amount < 1000)
+    return a[Math.floor(amount / 100)] + " Hundred " + numberToWords(amount % 100);
+
+  return amount;
+}
 
 export const downloadInvoice = async (req, res) => {
   try {
@@ -48,48 +61,25 @@ export const downloadInvoice = async (req, res) => {
       return res.status(400).json({ message: "Invoice not available" });
     }
 
-    // Generate Invoice Number
-    const invoiceNumber = `INV-${order._id.toString().slice(-6).toUpperCase()}`;
+    const invoiceNumber = `MP-${new Date().getFullYear()}-${order._id
+      .toString()
+      .slice(-5)
+      .toUpperCase()}`;
 
     const doc = new PDFDocument({ margin: 40 });
-
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename=${invoiceNumber}.pdf`
     );
-
     doc.pipe(res);
 
-    /* =======================
-       LOGO + HEADER
-    ======================== */
+    /* ================= HEADER ================= */
 
-    const logoPath = path.join(process.cwd(), "public/logo.png"); // place logo here
+    doc.fontSize(18).text("TAX INVOICE", { align: "center" });
+    doc.moveDown();
 
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 40, 40, { width: 120 });
-    }
-
-    doc
-      .fontSize(22)
-      .text("TAX INVOICE", 400, 50, { align: "right" });
-
-    doc
-      .fontSize(10)
-      .text(`Invoice No: ${invoiceNumber}`, { align: "right" })
-      .text(`Date: ${new Date(order.createdAt).toLocaleDateString("en-IN")}`, {
-        align: "right",
-      });
-
-    doc.moveDown(4);
-
-    /* =======================
-       COMPANY DETAILS
-    ======================== */
-
-    doc
-      .fontSize(11)
+    doc.fontSize(11)
       .text("MPACT Pvt Ltd")
       .text("GSTIN: 32ABCDE1234F1Z5")
       .text("Kerala, India")
@@ -97,103 +87,100 @@ export const downloadInvoice = async (req, res) => {
 
     doc.moveDown();
 
-    /* =======================
-       BILL TO
-    ======================== */
+    doc.text(`Invoice No: ${invoiceNumber}`, { align: "right" });
+    doc.text(`Invoice Date: ${new Date(order.createdAt).toLocaleDateString("en-IN")}`, { align: "right" });
 
-    doc.fontSize(12).text("Bill To:", { underline: true });
-    doc
-      .fontSize(11)
-      .text(order.shippingAddress.name || "Customer")
-      .text(order.shippingAddress.address)
-      .text(
-        `${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.pincode}`
-      )
-      .text(`Phone: ${order.shippingAddress.phone}`);
+    doc.moveDown();
 
+    /* ================= BILL TO ================= */
+
+    doc.text("Bill To:", { underline: true });
+    doc.text(order.shippingAddress.name || "Customer");
+    doc.text(order.shippingAddress.address);
+    doc.text(
+      `${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.pincode}`
+    );
     doc.moveDown(2);
 
-    /* =======================
-       TABLE HEADER
-    ======================== */
+    /* ================= TABLE ================= */
 
     const tableTop = doc.y;
-    const itemX = 40;
-    const qtyX = 300;
-    const priceX = 350;
-    const totalX = 450;
+    const col = {
+      item: 40,
+      hsn: 200,
+      qty: 260,
+      rate: 310,
+      taxable: 360,
+      cgst: 430,
+      sgst: 490,
+      total: 550
+    };
 
-    doc
-      .fontSize(11)
-      .text("Item", itemX, tableTop)
-      .text("Qty", qtyX, tableTop)
-      .text("Price", priceX, tableTop)
-      .text("Total", totalX, tableTop);
+    doc.fontSize(9)
+      .text("Item", col.item, tableTop)
+      .text("HSN", col.hsn, tableTop)
+      .text("Qty", col.qty, tableTop)
+      .text("Rate", col.rate, tableTop)
+      .text("Taxable", col.taxable, tableTop)
+      .text("CGST", col.cgst, tableTop)
+      .text("SGST", col.sgst, tableTop)
+      .text("Total", col.total, tableTop);
 
-    doc.moveTo(40, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+    doc.moveTo(40, tableTop + 15).lineTo(580, tableTop + 15).stroke();
 
     let position = tableTop + 25;
 
-    /* =======================
-       TABLE ROWS
-    ======================== */
+    const cgst = order.taxAmount / 2;
+    const sgst = order.taxAmount / 2;
 
     order.orderItems.forEach((item) => {
-      doc
-        .fontSize(10)
-        .text(item.name, itemX, position)
-        .text(item.quantity, qtyX, position)
-        .text(`₹ ${item.price.toFixed(2)}`, priceX, position)
-        .text(`₹ ${(item.price * item.quantity).toFixed(2)}`, totalX, position);
+      const taxable = item.price * item.quantity;
+      const itemCGST = cgst / order.orderItems.length;
+      const itemSGST = sgst / order.orderItems.length;
+
+      doc.fontSize(8)
+        .text(item.name, col.item, position)
+        .text("1905", col.hsn, position) // example HSN
+        .text(item.quantity, col.qty, position)
+        .text(item.price.toFixed(2), col.rate, position)
+        .text(taxable.toFixed(2), col.taxable, position)
+        .text(itemCGST.toFixed(2), col.cgst, position)
+        .text(itemSGST.toFixed(2), col.sgst, position)
+        .text((taxable + itemCGST + itemSGST).toFixed(2), col.total, position);
 
       position += 20;
     });
 
     doc.moveDown(2);
 
-    /* =======================
-       GST CALCULATION
-    ======================== */
+    /* ================= TOTAL ================= */
 
-    const subtotal = order.totalAmount - order.taxAmount;
-    const gstRate = 18; // example GST %
-    const cgst = order.taxAmount / 2;
-    const sgst = order.taxAmount / 2;
+    doc.fontSize(11);
+    doc.text(`Subtotal: ₹ ${(order.totalAmount - order.taxAmount).toFixed(2)}`, { align: "right" });
+    doc.text(`CGST (9%): ₹ ${cgst.toFixed(2)}`, { align: "right" });
+    doc.text(`SGST (9%): ₹ ${sgst.toFixed(2)}`, { align: "right" });
+    doc.fontSize(12).text(`Grand Total: ₹ ${order.totalAmount.toFixed(2)}`, { align: "right" });
 
-    position += 20;
+    doc.moveDown();
 
-    doc
-      .fontSize(11)
-      .text(`Subtotal: ₹ ${subtotal.toFixed(2)}`, 350, position);
+    doc.text(
+      `Amount in Words: ${numberToWords(
+        Math.floor(order.totalAmount)
+      )} Rupees Only`
+    );
 
-    position += 20;
+    doc.moveDown(2);
 
-    doc.text(`CGST (9%): ₹ ${cgst.toFixed(2)}`, 350, position);
-    position += 20;
+    /* ================= DECLARATION ================= */
 
-    doc.text(`SGST (9%): ₹ ${sgst.toFixed(2)}`, 350, position);
-    position += 20;
-
-    doc
-      .fontSize(13)
-      .text(`Total: ₹ ${order.totalAmount.toFixed(2)}`, 350, position, {
-        underline: true,
-      });
+    doc.fontSize(9).text(
+      "Declaration: We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct."
+    );
 
     doc.moveDown(4);
 
-    /* =======================
-       FOOTER
-    ======================== */
-
-    doc
-      .fontSize(10)
-      .text(
-        "This is a computer-generated invoice. No signature required.",
-        40,
-        750,
-        { align: "center" }
-      );
+    doc.text("For MPACT Pvt Ltd", { align: "right" });
+    doc.text("Authorized Signatory", { align: "right" });
 
     doc.end();
   } catch (error) {
