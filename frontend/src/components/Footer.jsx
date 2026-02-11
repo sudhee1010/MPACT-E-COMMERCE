@@ -440,6 +440,7 @@ export default function Footer() {
     }
 
     .footer-section ul li a:hover {
+      color:#ffeb3b;
       opacity: 0.8;
       text-decoration: underline;
     }
