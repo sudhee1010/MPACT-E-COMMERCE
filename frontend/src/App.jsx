@@ -108,6 +108,8 @@ import { Sonner } from "./components/ui/Sonner.jsx";
 import { Slider } from "./components/ui/Slider.jsx";
 import { Skeleton } from "./components/ui/Skeleton.jsx";
 import AdminDistributor from "./components/AdminDistributor.jsx";
+import { Reviews } from "./pages/admin/Reviews";
+
 
 
 function App() {
@@ -134,6 +136,7 @@ function App() {
     "/settings",
     "/personalsettings",
     "/help-support",
+     "/reviews",
   ].some((path) => location.pathname.startsWith(path));
 
   return (
@@ -231,6 +234,8 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/personalsettings" element={<PersonalSettings />} />
              <Route path="/help-support" element={< AdminHelpSupport/>} />
+             <Route path="/reviews" element={<Reviews />} />
+
           </Route>
 
           {/* UI DEMOS */}
