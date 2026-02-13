@@ -244,7 +244,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
-import { Star, Upload, X, Send } from "lucide-react";
+import { Star, Upload, X, Send, AlertCircle } from "lucide-react";
 
 export default function UserReviews() {
   const { id: productId } = useParams();
@@ -257,6 +257,14 @@ export default function UserReviews() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Error modal states
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorDetails, setErrorDetails] = useState({
+    title: "",
+    message: "",
+    technicalDetails: ""
+  });
 
   useEffect(() => {
     fetchProduct();
@@ -267,8 +275,15 @@ export default function UserReviews() {
     try {
       const { data } = await api.get(`/api/products/${productId}`);
       setProduct(data);
+      console.log("✅ Product loaded successfully:", data);
     } catch (error) {
+      console.error("❌ Failed to load product:", error);
       toast.error("Failed to load product");
+      showError(
+        "Product Load Error",
+        "Could not load product information. Please refresh the page.",
+        error.response?.data?.message || error.message
+      );
     }
   };
 
@@ -277,8 +292,10 @@ export default function UserReviews() {
       setLoading(true);
       const { data } = await api.get(`/api/reviews/${productId}`);
       setReviews(data);
+      console.log("✅ Reviews loaded successfully:", data.length, "reviews");
     } catch (error) {
-      console.error(error);
+      console.error("❌ Failed to load reviews:", error);
+      // Don't show error for reviews - not critical
     } finally {
       setLoading(false);
     }
@@ -287,8 +304,42 @@ export default function UserReviews() {
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
 
+    // Validation: Maximum 3 images
     if (images.length + files.length > 3) {
       toast.error("Maximum 3 images allowed");
+      showError(
+        "Image Limit Exceeded",
+        "You can only upload up to 3 images per review.",
+        `Attempted to upload ${images.length + files.length} images`
+      );
+      return;
+    }
+
+    // Validation: File size (5MB per image)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = files.filter(file => file.size > maxSize);
+    
+    if (oversizedFiles.length > 0) {
+      toast.error("Some images are too large (max 5MB each)");
+      showError(
+        "File Size Error",
+        "Each image must be less than 5MB.",
+        `Oversized files: ${oversizedFiles.map(f => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)}MB)`).join(", ")}`
+      );
+      return;
+    }
+
+    // Validation: File type
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const invalidFiles = files.filter(file => !validTypes.includes(file.type));
+    
+    if (invalidFiles.length > 0) {
+      toast.error("Invalid file type. Only JPG, PNG, and WEBP allowed");
+      showError(
+        "Invalid File Type",
+        "Please upload only JPG, PNG, or WEBP images.",
+        `Invalid files: ${invalidFiles.map(f => f.name).join(", ")}`
+      );
       return;
     }
 
@@ -298,6 +349,8 @@ export default function UserReviews() {
     // Create previews
     const newPreviews = files.map((file) => URL.createObjectURL(file));
     setImagePreviews([...imagePreviews, ...newPreviews]);
+    
+    console.log("✅ Images selected:", files.length, "new images");
   };
 
   const removeImage = (index) => {
@@ -309,32 +362,68 @@ export default function UserReviews() {
 
     setImages(newImages);
     setImagePreviews(newPreviews);
+    
+    console.log("✅ Image removed, remaining:", newImages.length);
+  };
+
+  const showError = (title, message, technicalDetails) => {
+    setErrorDetails({ title, message, technicalDetails });
+    setShowErrorModal(true);
   };
 
   const submitReview = async () => {
+    console.log("🚀 Starting review submission...");
+    
+    // Validation: Comment is required
     if (!comment.trim()) {
       toast.error("Please write a review");
+      showError(
+        "Missing Review Text",
+        "Please write your review before submitting.",
+        "Comment field is empty"
+      );
+      return;
+    }
+
+    // Validation: Comment length
+    if (comment.trim().length < 10) {
+      toast.error("Review is too short (minimum 10 characters)");
+      showError(
+        "Review Too Short",
+        "Please write at least 10 characters in your review.",
+        `Current length: ${comment.trim().length} characters`
+      );
       return;
     }
 
     try {
       setSubmitting(true);
+      console.log("📝 Review data:", {
+        productId,
+        rating,
+        commentLength: comment.length,
+        imagesCount: images.length
+      });
 
       const formData = new FormData();
       formData.append("rating", rating);
       formData.append("comment", comment);
 
-      images.forEach((image) => {
+      images.forEach((image, index) => {
         formData.append("images", image);
+        console.log(`📎 Adding image ${index + 1}:`, image.name, `(${(image.size / 1024).toFixed(2)}KB)`);
       });
 
+      console.log("🌐 Sending request to:", `/api/reviews/${productId}`);
+      
       const { data } = await api.post(`/api/reviews/${productId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      toast.success(data.message || "Review submitted successfully!");
+      console.log("✅ Review submitted successfully:", data);
+      toast.success(data.message || "Review submitted successfully! Waiting for approval.");
 
       // Reset form
       setShowReviewModal(false);
@@ -343,12 +432,85 @@ export default function UserReviews() {
       setImages([]);
       setImagePreviews([]);
 
-      // Refresh reviews (though new review won't show until approved)
+      // Refresh reviews
       fetchReviews();
+      
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to submit review");
+      console.error("❌ Review submission failed:", error);
+      
+      // Handle different types of errors
+      let errorTitle = "Submission Failed";
+      let errorMessage = "Failed to submit review. Please try again.";
+      let technicalDetails = "";
+
+      if (error.response) {
+        // Server responded with error
+        const status = error.response.status;
+        const serverMessage = error.response.data?.message || "Unknown server error";
+        
+        console.error("📛 Server error:", status, serverMessage);
+        
+        switch (status) {
+          case 400:
+            errorTitle = "Invalid Request";
+            errorMessage = serverMessage;
+            technicalDetails = `Status: 400 Bad Request\nReason: ${serverMessage}`;
+            break;
+          case 401:
+            errorTitle = "Not Authenticated";
+            errorMessage = "Please login to submit a review.";
+            technicalDetails = "Status: 401 Unauthorized\nYou need to be logged in.";
+            break;
+          case 403:
+            errorTitle = "Access Denied";
+            errorMessage = serverMessage || "You don't have permission to review this product.";
+            technicalDetails = `Status: 403 Forbidden\n${serverMessage}`;
+            break;
+          case 404:
+            errorTitle = "Product Not Found";
+            errorMessage = "This product does not exist or has been removed.";
+            technicalDetails = "Status: 404 Not Found\nProduct ID: " + productId;
+            break;
+          case 413:
+            errorTitle = "Files Too Large";
+            errorMessage = "Your images are too large. Please use smaller files.";
+            technicalDetails = "Status: 413 Payload Too Large\nMax size: 5MB per image";
+            break;
+          case 500:
+            errorTitle = "Server Error";
+            errorMessage = "Something went wrong on our end. Please try again later.";
+            technicalDetails = `Status: 500 Internal Server Error\n${serverMessage}`;
+            break;
+          default:
+            errorTitle = "Unexpected Error";
+            errorMessage = serverMessage;
+            technicalDetails = `Status: ${status}\n${serverMessage}`;
+        }
+        
+        toast.error(errorMessage);
+        
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error("📡 No response from server");
+        errorTitle = "Network Error";
+        errorMessage = "Could not reach the server. Please check your internet connection.";
+        technicalDetails = "No response received from server\nCheck network connection";
+        toast.error("Network error. Please check your connection.");
+        
+      } else {
+        // Something else happened
+        console.error("⚠️ Request setup error:", error.message);
+        errorTitle = "Request Error";
+        errorMessage = "Failed to send review. Please try again.";
+        technicalDetails = error.message;
+        toast.error("Failed to submit review");
+      }
+
+      showError(errorTitle, errorMessage, technicalDetails);
+      
     } finally {
       setSubmitting(false);
+      console.log("🏁 Review submission process completed");
     }
   };
 
@@ -508,7 +670,7 @@ export default function UserReviews() {
           border-color: #facc15;
         }
 
-        /* Modal Styles */
+        /* Modal Overlay */
         .modal-overlay {
           position: fixed;
           inset: 0;
@@ -520,6 +682,7 @@ export default function UserReviews() {
           backdrop-filter: blur(10px);
         }
 
+        /* Review Modal */
         .modal {
           width: 90%;
           max-width: 700px;
@@ -676,6 +839,91 @@ export default function UserReviews() {
           cursor: not-allowed;
         }
 
+        /* Error Modal */
+        .error-modal {
+          width: 90%;
+          max-width: 600px;
+          background: #1a1a1a;
+          border: 2px solid #ef4444;
+          border-radius: 20px;
+          padding: 40px;
+          max-height: 90vh;
+          overflow-y: auto;
+        }
+
+        .error-header {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        .error-icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: #ef4444;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .error-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #ef4444;
+        }
+
+        .error-message {
+          color: #ddd;
+          line-height: 1.6;
+          margin-bottom: 20px;
+          font-size: 16px;
+        }
+
+        .error-details {
+          background: #262626;
+          border: 1px solid #3a3a3a;
+          border-radius: 12px;
+          padding: 15px;
+          margin-bottom: 20px;
+        }
+
+        .error-details-title {
+          color: #888;
+          font-size: 12px;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+          font-weight: 600;
+        }
+
+        .error-details-content {
+          color: #fff;
+          font-family: 'Courier New', monospace;
+          font-size: 14px;
+          line-height: 1.5;
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+
+        .error-close-btn {
+          width: 100%;
+          padding: 15px;
+          background: #ef4444;
+          color: #fff;
+          border: none;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 16px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .error-close-btn:hover {
+          background: #dc2626;
+        }
+
         .no-reviews {
           text-align: center;
           padding: 60px 20px;
@@ -802,7 +1050,7 @@ export default function UserReviews() {
 
             <textarea
               className="comment-textarea"
-              placeholder="Share your experience with this product..."
+              placeholder="Share your experience with this product... (minimum 10 characters)"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
@@ -810,10 +1058,10 @@ export default function UserReviews() {
             <div className="image-upload-section">
               <label className="upload-btn">
                 <Upload size={20} />
-                <span>Add Photos (max 3)</span>
+                <span>Add Photos (max 3, 5MB each)</span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
                   multiple
                   onChange={handleImageSelect}
                   style={{ display: "none" }}
@@ -863,6 +1111,38 @@ export default function UserReviews() {
                 {submitting ? "Submitting..." : "Submit Review"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="modal-overlay" onClick={() => setShowErrorModal(false)}>
+          <div className="error-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="error-header">
+              <div className="error-icon">
+                <AlertCircle size={28} color="#fff" />
+              </div>
+              <h2 className="error-title">{errorDetails.title}</h2>
+            </div>
+
+            <p className="error-message">{errorDetails.message}</p>
+
+            {errorDetails.technicalDetails && (
+              <div className="error-details">
+                <div className="error-details-title">Technical Details</div>
+                <div className="error-details-content">
+                  {errorDetails.technicalDetails}
+                </div>
+              </div>
+            )}
+
+            <button
+              className="error-close-btn"
+              onClick={() => setShowErrorModal(false)}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
