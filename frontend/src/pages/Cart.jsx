@@ -281,7 +281,6 @@
 
 
 
-
 import React, { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
@@ -326,9 +325,9 @@ export default function Cart() {
   }, []);
 
   // 🔥 UPDATE QUANTITY (SYNC WITH CONTEXT)
-  const updateQty = async (productId, quantity, stock) => {
-    // Prevent increasing quantity beyond available stock
-    if (quantity > (stock || 0)) {
+  const updateQty = async (productId, quantity, stock, isIncreasing) => {
+    // Only check stock when increasing quantity
+    if (isIncreasing && quantity > (stock || 0)) {
       setStockErrors(prev => ({ 
         ...prev, 
         [productId]: "Max stock reached" 
@@ -336,8 +335,10 @@ export default function Cart() {
       return;
     }
 
-    // Clear any previous stock error for this product
-    setStockErrors(prev => ({ ...prev, [productId]: null }));
+    // Clear any previous stock error for this product when decreasing
+    if (!isIncreasing) {
+      setStockErrors(prev => ({ ...prev, [productId]: null }));
+    }
 
     try {
       if (quantity < 1) {
@@ -586,12 +587,14 @@ export default function Cart() {
                   <div className="qty-row">
                     <span>Quantity:</span>
                     <div className="qty-box">
-                      <button onClick={() => updateQty(item.product._id, item.quantity - 1, item.product.countInStock)}>
+                      <button 
+                        onClick={() => updateQty(item.product._id, item.quantity - 1, item.product.countInStock, false)}
+                      >
                         -
                       </button>
                       <span>{item.quantity}</span>
                       <button 
-                        onClick={() => updateQty(item.product._id, item.quantity + 1, item.product.countInStock)}
+                        onClick={() => updateQty(item.product._id, item.quantity + 1, item.product.countInStock, true)}
                         disabled={isMaxStock(item.product._id, item.quantity)}
                         title={
                           isMaxStock(item.product._id, item.quantity)
