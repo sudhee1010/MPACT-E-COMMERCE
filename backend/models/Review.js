@@ -47,8 +47,6 @@
 
 
 
-
-
 import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
@@ -87,7 +85,7 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Prevent duplicate reviews
-reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+// Removed unique constraint - users can now review the same product multiple times
+// reviewSchema.index({ user: 1, product: 1 }, { unique: true });
 
 export default mongoose.model("Review", reviewSchema);
