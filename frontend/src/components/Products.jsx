@@ -1801,7 +1801,7 @@ const fixedProduct = {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       
 
       {/* Header */}
@@ -1879,6 +1879,7 @@ const fixedProduct = {
           >
             <div
               onClick={(e) => e.stopPropagation()}
+              className="custom-scrollbar"
               style={{
                 backgroundColor: '#2a2a2a',
                 border: '1px solid #374151',
@@ -2103,7 +2104,7 @@ const fixedProduct = {
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Enter product description [SUGGESTED 40 WORDS]"
+                      placeholder="Enter product description"
                       rows="3"
                       style={{
                         width: '100%',
@@ -2127,7 +2128,7 @@ const fixedProduct = {
                     <textarea
                       value={formData.highlights}
                       onChange={(e) => setFormData({ ...formData, highlights: e.target.value })}
-                      placeholder="Feature 1, Feature 2, Feature 3 [SUGGESTED 4 FEATURES]"
+                      placeholder="Feature 1, Feature 2, Feature 3"
                       rows="2"
                       style={{
                         width: '100%',
@@ -2355,7 +2356,7 @@ const fixedProduct = {
             zIndex: 50,
             padding: '1rem'
           }}>
-            <div style={{
+            <div className="custom-scrollbar" style={{
               backgroundColor: '#2a2a2a',
               border: '1px solid #374151',
               borderRadius: '0.5rem',

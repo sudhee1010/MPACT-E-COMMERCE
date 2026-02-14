@@ -45,7 +45,9 @@ connectDB();
 app.set("trust proxy", 1); 
 app.use(
   cors({
-    origin: "https://mpact-e-commerce.onrender.com", 
+    // origin: "https://mpact-e-commerce.onrender.com",
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"], 
     credentials: true,    
   })
 );

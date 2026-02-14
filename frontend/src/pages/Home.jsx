@@ -113,7 +113,7 @@
 //   //   try {
 //   //     setLoadingProducts(true);
 
-//   //     const res = await axios.get("https://mpact-e-backend.onrender.com/api/products", {
+//   //     const res = await axios.get("http://localhost:5000/api/products", {
 //   //       params: {
 //   //         limit: 8,
 //   //         cursor
@@ -149,7 +149,7 @@
 //   try {
 //     setLoadingProducts(true);
 
-//     const res = await axios.get("https://mpact-e-backend.onrender.com/api/products", {
+//     const res = await axios.get("http://localhost:5000/api/products", {
 //       params: { limit: 8 }
 //     });
 
@@ -178,7 +178,7 @@
 //   useEffect(() => {
 //     const fetchHeroBanners = async () => {
 //       try {
-//         const res = await axios.get("https://mpact-e-backend.onrender.com/api/hero-banners");
+//         const res = await axios.get("http://localhost:5000/api/hero-banners");
 //         setHeroSlides(res.data);
 //       } catch (error) {
 //         console.error("Failed to load hero banners");
@@ -1109,8 +1109,11 @@ import WhatsAppFloat from '../components/WhatsAppFloat';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
-// import HomeAds from '../components/Homeads';
 import HomeAds from './HomeAds';
+import HighlightScrollBar from '../components/OfferScrollBar';
+import VideoCarouselSection from './Videocarouselsection';
+import StickyCircleSection from './RoundVideo';  
+
 
 
 
@@ -1212,7 +1215,7 @@ const MPACTLandingPage = () => {
   //   try {
   //     setLoadingProducts(true);
 
-  //     const res = await axios.get("https://mpact-e-backend.onrender.com/api/products", {
+  //     const res = await axios.get("http://localhost:5000/api/products", {
   //       params: {
   //         limit: 8,
   //         cursor
@@ -1667,431 +1670,347 @@ const MPACTLandingPage = () => {
           </div> */}
         </div>
       </section>
+      
+
+      <HomeAds />
 
 
-      {/* ================= PRODUCTS SECTION ================= */}
-      <section
-        ref={productsRef}
+{/* ================= PRODUCTS SECTION ================= */}
+<section
+  ref={productsRef}
+  style={{
+    padding: "4rem 0",
+    backgroundColor: "#262626",
+    position: "relative",
+    overflow: "hidden"
+  }}
+>
+  <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 1rem" }}>
+    <h2
+      style={{
+        fontSize: "3rem",
+        fontWeight: 900,
+        color: "#facc15",
+        textAlign: "center",
+        marginBottom: "2rem"
+      }}
+    >
+      FIND OUR PRODUCTS
+    </h2>
+
+    {/* CART MESSAGE */}
+    {cartMessage && (
+      <p
         style={{
-          padding: "4rem 0",
-          backgroundColor: "#262626",
-          position: "relative",
-          overflow: "hidden"
+          textAlign: "center",
+          marginBottom: "1rem",
+          fontWeight: "bold",
+          color: cartMessage.startsWith("✅") ? "#4ade80" : "#f87171"
         }}
       >
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 1rem" }}>
-          <h2
-            style={{
-              fontSize: "3rem",
-              fontWeight: 900,
-              color: "#facc15",
-              textAlign: "center",
-              marginBottom: "2rem"
-            }}
-          >
-            FIND OUR PRODUCTS
-          </h2>
+        {cartMessage}
+      </p>
+    )}
 
-          {/* CART MESSAGE */}
-          {cartMessage && (
-            <p
+    {/* LOADING / ERROR */}
+    {loadingProducts && (
+      <p style={{ textAlign: "center", color: "#facc15" }}>
+        Loading products...
+      </p>
+    )}
+    {productError && (
+      <p style={{ textAlign: "center", color: "red" }}>{productError}</p>
+    )}
+
+    {/* PRODUCTS GRID */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+        gap: "1.25rem"
+      }}
+    >
+      {Array.isArray(products) &&
+        products.map((product) => (
+          <div
+            key={product._id}
+            onClick={() => navigate(`/productspec/${product._id}`)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              height: "89%",
+              background:
+                "linear-gradient(to bottom, rgba(120,53,15,0.4), #171717)",
+              border: "2px solid rgba(133,77,14,0.5)",
+              borderRadius: "0.75rem",
+              overflow: "hidden",
+              transition: "all 0.4s ease",
+              transform:
+                scrollY > 500
+                  ? hoveredProduct === product._id
+                    ? "scale(1.05)"
+                    : "scale(1)"
+                  : "translateY(60px)",
+              opacity: scrollY > 500 ? 1 : 0,
+              cursor: "pointer"
+            }}
+            onMouseEnter={() => setHoveredProduct(product._id)}
+            onMouseLeave={() => setHoveredProduct(null)}
+          >
+            {/* IMAGE */}
+            <div
               style={{
-                textAlign: "center",
-                marginBottom: "1rem",
-                fontWeight: "bold",
-                color: cartMessage.startsWith("✅") ? "#4ade80" : "#f87171"
+                height: "360px",
+                overflow: "hidden",
+                backgroundColor: "#000"
               }}
             >
-              {cartMessage}
-            </p>
-          )}
+              <img
+                src={product.images?.[0]?.url || proteinGym}
+                alt={product.name || "product"}
+                loading="lazy"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  transition: "transform 0.5s ease",
+                  transform:
+                    hoveredProduct === product._id
+                      ? "scale(1.1)"
+                      : "scale(1)"
+                }}
+              />
+            </div>
 
-          {/* LOADING / ERROR */}
-          {loadingProducts && (
-            <p style={{ textAlign: "center", color: "#facc15" }}>
-              Loading products...
-            </p>
-          )}
-          {productError && (
-            <p style={{ textAlign: "center", color: "red" }}>{productError}</p>
-          )}
-
-          {/* PRODUCTS GRID */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: "1.25rem"
-            }}
-          >
-            {Array.isArray(products) &&
-              products.map((product) => (
-                <div
-                  key={product._id}
+            {/* CONTENT */}
+            <div
+              style={{
+                padding: "0.75rem",
+                backgroundColor: "#171717",
+                display: "flex",
+                flexDirection: "column",
+                flexGrow: 1
+              }}
+            >
+              {/* TITLE */}
+              {product.title && (
+                <h3
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                    background:
-                      "linear-gradient(to bottom, rgba(120,53,15,0.4), #171717)",
-                    border: "2px solid rgba(133,77,14,0.5)",
-                    borderRadius: "0.75rem",
-                    overflow: "hidden",
-                    transition: "all 0.4s ease",
-                    transform:
-                      scrollY > 500
-                        ? hoveredProduct === product._id
-                          ? "scale(1.05)"
-                          : "scale(1)"
-                        : "translateY(60px)",
-                    opacity: scrollY > 500 ? 1 : 0
+                    fontSize: "1rem",
+                    fontWeight: 900,
+                    color: "white",
+                    textAlign: "center",
+                    marginBottom: "0.25rem",
+                    textTransform: "uppercase"
                   }}
-                  onMouseEnter={() => setHoveredProduct(product._id)}
-                  onMouseLeave={() => setHoveredProduct(null)}
                 >
-                  {/* IMAGE */}
-                  <div
-                    style={{
-                      height: "360px",
-                      overflow: "hidden",
-                      backgroundColor: "#000"
-                    }}
-                  >
-                    <img
-                      src={product.images?.[0]?.url || proteinGym}
-                      alt={product.name || "product"}
-                      loading="lazy"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        transition: "transform 0.5s ease",
-                        transform:
-                          hoveredProduct === product._id
-                            ? "scale(1.1)"
-                            : "scale(1)"
-                      }}
-                    />
-                  </div>
+                  {product.title}
+                </h3>
+              )}
 
-                  {/* CONTENT */}
-                  <div
-                    style={{
-                      padding: "0.75rem",
-                      backgroundColor: "#171717",
-                      display: "flex",
-                      flexDirection: "column",
-                      flexGrow: 1
-                    }}
-                  >
-                    {/* TITLE */}
-                    {product.title && (
-                      <h3
-                        style={{
-                          fontSize: "1rem",
-                          fontWeight: 900,
-                          color: "white",
-                          textAlign: "center",
-                          marginBottom: "0.25rem",
-                          textTransform: "uppercase"
-                        }}
-                      >
-                        {product.title}
-                      </h3>
-                    )}
+              {/* NAME */}
+              <p
+                style={{
+                  fontSize: "0.7rem",
+                  color: "#9ca3af",
+                  textAlign: "center",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                {product.name}
+              </p>
 
-                    {/* NAME */}
-                    <p
+              {/* DESCRIPTION */}
+              <p
+                style={{
+                  fontSize: "10px",
+                  color: "#9ca3af",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                {product.description}
+              </p>
+
+              {/* HIGHLIGHTS */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "0.375rem",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                {Array.isArray(product.highlights) &&
+                  product.highlights.map((item, i) => (
+                    <div
+                      key={i}
                       style={{
-                        fontSize: "0.7rem",
-                        color: "#9ca3af",
+                        border: "1px solid rgba(202,138,4,0.5)",
+                        borderRadius: "0.25rem",
+                        padding: "0.125rem 0.375rem",
+                        fontSize: "9px",
+                        fontWeight: "bold",
                         textAlign: "center",
-                        marginBottom: "0.5rem"
+                        color: "#facc15"
                       }}
                     >
-                      {product.name}
-                    </p>
+                      {item}
+                    </div>
+                  ))}
+              </div>
 
-                    {/* DESCRIPTION */}
-                    <p
+              {/* RATING */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  marginBottom: "0.5rem"
+                }}
+              >
+                <div>
+                  {"★"
+                    .repeat(Math.round(product.rating || 0))
+                    .split("")
+                    .map((_, i) => (
+                      <span
+                        key={i}
+                        style={{ color: "#facc15", fontSize: "0.75rem" }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  {"☆"
+                    .repeat(5 - Math.round(product.rating || 0))
+                    .split("")
+                    .map((_, i) => (
+                      <span
+                        key={i}
+                        style={{ color: "#4b5563", fontSize: "0.75rem" }}
+                      >
+                        ☆
+                      </span>
+                    ))}
+                </div>
+                <span style={{ fontSize: "10px", color: "#9ca3af" }}>
+                  {product.numReviews || 0} Reviews
+                </span>
+              </div>
+
+              {/* PRICE + BUTTON (STICKS TO BOTTOM) */}
+              <div style={{ marginTop: "auto" }}>
+                {product.originalPrice > product.price && (
+                  <div style={{ marginBottom: "0.25rem" }}>
+                    <span
                       style={{
                         fontSize: "10px",
-                        color: "#9ca3af",
-                        marginBottom: "0.5rem"
+                        color: "#6b7280",
+                        textDecoration: "line-through"
                       }}
                     >
-                      {product.description}
-                    </p>
-
-                    {/* HIGHLIGHTS */}
-                    <div
+                      ₹{product.originalPrice}
+                    </span>
+                    <span
                       style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                        gap: "0.375rem",
-                        marginBottom: "0.5rem"
+                        fontSize: "10px",
+                        color: "#4ade80",
+                        marginLeft: "0.25rem",
+                        fontWeight: "bold"
                       }}
                     >
-                      {Array.isArray(product.highlights) &&
-                        product.highlights.map((item, i) => (
-                          <div
-                            key={i}
-                            style={{
-                              border: "1px solid rgba(202,138,4,0.5)",
-                              borderRadius: "0.25rem",
-                              padding: "0.125rem 0.375rem",
-                              fontSize: "9px",
-                              fontWeight: "bold",
-                              textAlign: "center",
-                              color: "#facc15"
-                            }}
-                          >
-                            {item}
-                          </div>
-                        ))}
-                    </div>
-
-                    {/* RATING */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                        marginBottom: "0.5rem"
-                      }}
-                    >
-                      <div>
-                        {"★"
-                          .repeat(Math.round(product.rating || 0))
-                          .split("")
-                          .map((_, i) => (
-                            <span
-                              key={i}
-                              style={{ color: "#facc15", fontSize: "0.75rem" }}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        {"☆"
-                          .repeat(5 - Math.round(product.rating || 0))
-                          .split("")
-                          .map((_, i) => (
-                            <span
-                              key={i}
-                              style={{ color: "#4b5563", fontSize: "0.75rem" }}
-                            >
-                              ☆
-                            </span>
-                          ))}
-                      </div>
-                      <span style={{ fontSize: "10px", color: "#9ca3af" }}>
-                        {product.numReviews || 0} Reviews
-                      </span>
-                    </div>
-
-                    {/* PRICE + BUTTON (STICKS TO BOTTOM) */}
-                    <div style={{ marginTop: "auto" }}>
-                      {product.originalPrice > product.price && (
-                        <div style={{ marginBottom: "0.25rem" }}>
-                          <span
-                            style={{
-                              fontSize: "10px",
-                              color: "#6b7280",
-                              textDecoration: "line-through"
-                            }}
-                          >
-                            ₹{product.originalPrice}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: "10px",
-                              color: "#4ade80",
-                              marginLeft: "0.25rem",
-                              fontWeight: "bold"
-                            }}
-                          >
-                            {product.discountPercent}% OFF
-                          </span>
-                        </div>
-                      )}
-
-                      {/* <div
-                        style={{
-                          fontSize: "1.1rem",
-                          fontWeight: 900,
-                          marginBottom: "0.75rem",
-                          color: "white"
-                        }}
-                      >
-                        RS : {product.price}
-                      </div>
-
-                      <button
-                        onClick={() => handleBuyNow(product)}
-                        style={{
-                          width: "100%",
-                          backgroundColor: "#facc15",
-                          color: "black",
-                          fontWeight: 900,
-                          padding: "0.5rem",
-                          borderRadius: "0.25rem",
-                          border: "none",
-                          cursor: "pointer",
-                          transition: "all 0.3s",
-                          fontSize: "0.75rem"
-                        }}
-                        {product.countInStock > 0 ? (
-                          <button
-                            onClick={() => handleBuyNow(product)}
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#facc15",
-                              color: "black",
-                              fontWeight: 900,
-                              padding: "0.5rem",
-                              borderRadius: "0.25rem",
-                              border: "none",
-                              cursor: "pointer",
-                              transition: "all 0.3s",
-                              fontSize: "0.75rem"
-                            }}
-                          >
-                            PLACE ORDER
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#2a2a2a",
-                              color: "#9ca3af",
-                              fontWeight: 900,
-                              padding: "0.5rem",
-                              borderRadius: "0.25rem",
-                              border: "1px solid #555",
-                              cursor: "not-allowed",
-                              fontSize: "0.75rem",
-                              opacity: 0.7
-                            }}
-                          >
-                            OUT OF STOCK
-                          </button>
-                        )} */}
-
-                      <div
-                        style={{
-                          fontSize: "1.1rem",
-                          fontWeight: 900,
-                          marginBottom: "0.75rem",
-                          color: "white"
-                        }}
-                      >
-                        RS : {product.price}
-                      </div>
-
-                      {product.countInStock > 0 ? (
-                        <button
-                          onClick={() => navigate(`/productspec/${product._id}`)}
-                          style={{
-                            width: "100%",
-                            backgroundColor: "#facc15",
-                            color: "black",
-                            fontWeight: 900,
-                            padding: "0.5rem",
-                            borderRadius: "0.25rem",
-                            border: "2px solid #facc15",
-                            cursor: "pointer",
-                            transition: "all 0.3s",
-                            fontSize: "0.75rem"
-                          }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = "gold"}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = "#facc15"}
-                        >
-                          BUY NOW
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          style={{
-                            width: "100%",
-                            backgroundColor: "#2a2a2a",
-                            color: "#9ca3af",
-                            fontWeight: 900,
-                            padding: "0.5rem",
-                            borderRadius: "0.25rem",
-                            border: "1px solid #555",
-                            cursor: "not-allowed",
-                            fontSize: "0.75rem",
-                            opacity: 0.7
-                          }}
-                        >
-                          OUT OF STOCK
-                        </button>
-                      )}
-
-
-                    </div>
+                      {product.discountPercent}% OFF
+                    </span>
                   </div>
+                )}
+
+                <div
+                  style={{
+                    fontSize: "1.1rem",
+                    fontWeight: 900,
+                    marginBottom: "0.75rem",
+                    color: "white"
+                  }}
+                >
+                  RS : {product.price}
                 </div>
-              ))}
+
+                {product.countInStock > 0 ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBuyNow(product);
+                    }}
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#facc15",
+                      color: "black",
+                      fontWeight: 900,
+                      padding: "0.5rem",
+                      borderRadius: "0.25rem",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "all 0.3s",
+                      fontSize: "0.75rem"
+                    }}
+                  >
+                    PLACE ORDER
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#2a2a2a",
+                      color: "#9ca3af",
+                      fontWeight: 900,
+                      padding: "0.5rem",
+                      borderRadius: "0.25rem",
+                      border: "1px solid #555",
+                      cursor: "not-allowed",
+                      fontSize: "0.75rem",
+                      opacity: 0.7
+                    }}
+                  >
+                    OUT OF STOCK
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
+        ))}
+    </div>
 
-          {/* <div style={{ textAlign: 'center' }}>
-            <button
-              disabled={!hasNextPage || loadingProducts}
-              onClick={() => fetchProducts(nextCursor)}
-              style={{
-                backgroundColor: hoveredButton === 'see-more' ? '#eab308' : '#facc15',
-                color: 'black',
-                fontWeight: 'bold',
-                padding: '0.75rem 2rem',
-                borderRadius: '0.25rem',
-                border: 'none',
-                cursor: !hasNextPage ? 'not-allowed' : 'pointer',
-                transition: 'all 0.3s',
-                transform: hoveredButton === 'see-more' ? 'scale(1.05)' : 'scale(1)',
-                opacity: !hasNextPage ? 0.6 : 1
-              }}
-              onMouseEnter={() => setHoveredButton('see-more')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              {loadingProducts
-                ? "LOADING..."
-                : hasNextPage
-                  ? "SEE MORE →"
-                  : "NO MORE PRODUCTS"}
-            </button>
-          </div> */}
-
-          <div style={{ textAlign: "center" }}>
-            <button
-              onClick={() => navigate("/product")}
-              style={{
-                backgroundColor: hoveredButton === "see-more" ? "#eab308" : "#facc15",
-                color: "black",
-                fontWeight: "bold",
-                padding: "0.75rem 2rem",
-                borderRadius: "0.25rem",
-                marginTop: "20px",
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.3s",
-                transform: hoveredButton === "see-more" ? "scale(1.05)" : "scale(1)"
-              }}
-              onMouseEnter={() => setHoveredButton("see-more")}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              SEE MORE →
-            </button>
-          </div>
-
-
-        </div>
-      </section>
-
+    <div style={{ textAlign: "center" }}>
+      <button
+        onClick={() => navigate("/product")}
+        style={{
+          backgroundColor: hoveredButton === "see-more" ? "#eab308" : "#facc15",
+          color: "black",
+          fontWeight: "bold",
+          padding: "0.75rem 2rem",
+          borderRadius: "0.25rem",
+          marginTop: "20px",
+          border: "none",
+          cursor: "pointer",
+          transition: "all 0.3s",
+          transform: hoveredButton === "see-more" ? "scale(1.05)" : "scale(1)"
+        }}
+        onMouseEnter={() => setHoveredButton("see-more")}
+        onMouseLeave={() => setHoveredButton(null)}
+      >
+        SEE MORE →
+      </button>
+    </div>
+  </div>
+</section>
+      <HighlightScrollBar />
       <MotivationalSection />
       <FeaturesSection />
+      <VideoCarouselSection />
+      <StickyCircleSection />
       <VideoShowcaseSection />
+
 
       <Footer />
       {showLoginModal && (
@@ -2159,7 +2078,6 @@ const MPACTLandingPage = () => {
           </div>
         </div>
       )}
-      <HomeAds />
       <WhatsAppFloat />
 
     </div>
