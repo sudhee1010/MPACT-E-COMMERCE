@@ -140,7 +140,7 @@ import express from "express";
 import {
   addReview,
   getProductReviews,
-  deleteReview,
+  deleteReviewByAdmin,
   getReviewsByProductForAdmin,
   getAllReviewsForAdmin,
 } from "../controllers/reviewController.js";
@@ -161,8 +161,8 @@ router.get("/admin/all", protect, isAdmin, getAllReviewsForAdmin);
 // Get reviews by product (with search)
 router.get("/admin/product", protect, isAdmin, getReviewsByProductForAdmin);
 
-// Delete review
-router.delete("/:id", protect, isAdmin, deleteReview);
+// Delete review (ADMIN ONLY)
+router.delete("/:id", protect, isAdmin, deleteReviewByAdmin);
 
 /* ==============================
    USER ROUTES

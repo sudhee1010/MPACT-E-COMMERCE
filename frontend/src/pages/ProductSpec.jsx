@@ -1666,6 +1666,7 @@
 // export default ProductPage;
 
 
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
@@ -1704,10 +1705,9 @@ const ProductPage = () => {
   // Custom Modal State
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [modalConfig, setModalConfig] = useState({
-    type: "", // 'success', 'error', 'warning', 'confirm'
+    type: "", // 'success', 'error', 'warning'
     title: "",
     message: "",
-    onConfirm: null,
   });
 
   const [activeImage, setActiveImage] = useState("");
@@ -1774,40 +1774,6 @@ const ProductPage = () => {
   const showNotification = (type, title, message) => {
     setModalConfig({ type, title, message });
     setShowCustomModal(true);
-  };
-
-  const showConfirmDialog = (title, message, onConfirm) => {
-    setModalConfig({ 
-      type: "confirm", 
-      title, 
-      message, 
-      onConfirm 
-    });
-    setShowCustomModal(true);
-  };
-
-  const handleDeleteReview = async (reviewId) => {
-    showConfirmDialog(
-      "Delete Review",
-      "Are you sure you want to delete your review? This action cannot be undone.",
-      async () => {
-        try {
-          await api.delete(`/reviews/user/${reviewId}`);
-          showNotification("success", "Success", "Your review has been deleted successfully");
-          
-          // Refresh reviews
-          const reviewsRes = await api.get(`/reviews/${product._id}`);
-          setReviews(reviewsRes.data);
-          
-          // Refresh product to update rating
-          const productRes = await api.get(`/products/${id}`);
-          setProduct(productRes.data);
-        } catch (error) {
-          const message = error.response?.data?.message;
-          showNotification("error", "Error", message || "Failed to delete review");
-        }
-      }
-    );
   };
 
   const handleAddToCart = async (productId) => {
@@ -3207,21 +3173,7 @@ const ProductPage = () => {
                       <div style={styles.reviewAvatar}>
                         {review.user?.name?.charAt(0).toUpperCase()}
                       </div>
-                      <div className="flex-1">
-                        <div style={styles.reviewUserName}>{review.user?.name}</div>
-                      </div>
-                      {/* Delete button for own review */}
-                      {user && review.user?._id === user._id && (
-                        <button
-                          onClick={() => handleDeleteReview(review._id)}
-                          className="text-red-500 hover:text-red-600 transition-colors"
-                          title="Delete your review"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
+                      <div style={styles.reviewUserName}>{review.user?.name}</div>
                     </div>
 
                     <img
@@ -3246,21 +3198,7 @@ const ProductPage = () => {
                       <div style={styles.reviewAvatar}>
                         {review.user?.name?.charAt(0).toUpperCase()}
                       </div>
-                      <div className="flex-1">
-                        <div style={styles.reviewUserName}>{review.user?.name}</div>
-                      </div>
-                      {/* Delete button for own review */}
-                      {user && review.user?._id === user._id && (
-                        <button
-                          onClick={() => handleDeleteReview(review._id)}
-                          className="text-red-500 hover:text-red-600 transition-colors"
-                          title="Delete your review"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
+                      <div style={styles.reviewUserName}>{review.user?.name}</div>
                     </div>
 
                     <div style={styles.reviewStars}>
@@ -3368,7 +3306,7 @@ const ProductPage = () => {
                       <XCircle className="w-8 h-8 text-red-500" />
                     </div>
                   )}
-                  {(modalConfig.type === "warning" || modalConfig.type === "confirm") && (
+                  {modalConfig.type === "warning" && (
                     <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center">
                       <AlertCircle className="w-8 h-8 text-yellow-500" />
                     </div>
@@ -3385,42 +3323,16 @@ const ProductPage = () => {
                   {modalConfig.message}
                 </p>
 
-                {/* Buttons */}
-                {modalConfig.type === "confirm" ? (
-                  <div className="flex gap-3">
-                    <button
-                      className="flex-1 px-6 py-3 bg-transparent border-2 border-yellow-400 text-yellow-400 rounded-xl font-semibold hover:bg-yellow-400 hover:text-black transition-all"
-                      onClick={() => {
-                        setShowCustomModal(false);
-                        setModalConfig({ type: "", title: "", message: "", onConfirm: null });
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="flex-1 px-6 py-3 bg-red-500 border-2 border-red-500 text-white rounded-xl font-semibold hover:bg-red-600 hover:border-red-600 transition-all"
-                      onClick={() => {
-                        setShowCustomModal(false);
-                        if (modalConfig.onConfirm) {
-                          modalConfig.onConfirm();
-                        }
-                        setModalConfig({ type: "", title: "", message: "", onConfirm: null });
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="w-full px-6 py-3 bg-yellow-400 text-black rounded-xl font-semibold hover:bg-yellow-500 transition-all"
-                    onClick={() => {
-                      setShowCustomModal(false);
-                      setModalConfig({ type: "", title: "", message: "", onConfirm: null });
-                    }}
-                  >
-                    OK
-                  </button>
-                )}
+                {/* OK Button */}
+                <button
+                  className="w-full px-6 py-3 bg-yellow-400 text-black rounded-xl font-semibold hover:bg-yellow-500 transition-all"
+                  onClick={() => {
+                    setShowCustomModal(false);
+                    setModalConfig({ type: "", title: "", message: "" });
+                  }}
+                >
+                  OK
+                </button>
               </div>
             </div>
           )}

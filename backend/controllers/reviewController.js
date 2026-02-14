@@ -444,7 +444,6 @@
 //   }
 // };
 
-
 import Review from "../models/Review.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
@@ -490,8 +489,7 @@ export const addReview = async (req, res) => {
       });
     }
 
-    // ✅ REMOVED: Duplicate review check
-    // Users can now review the same product multiple times if they purchase it multiple times
+    // ✅ Users can review the same product multiple times if they purchase it multiple times
     
     // Handle uploaded images
     const images = req.files
@@ -542,7 +540,7 @@ export const getProductReviews = async (req, res) => {
   }
 };
 
-/* ================= DELETE REVIEW (ADMIN) ================= */
+/* ================= DELETE REVIEW (ADMIN ONLY) ================= */
 export const deleteReviewByAdmin = async (req, res) => {
   try {
     console.log("Admin delete review - ID:", req.params.id);
@@ -565,33 +563,6 @@ export const deleteReviewByAdmin = async (req, res) => {
     res.json({ message: "Review deleted successfully" });
   } catch (error) {
     console.error("Admin delete error:", error);
-    res.status(500).json({ message: "Failed to delete review" });
-  }
-};
-
-/* ================= DELETE OWN REVIEW (USER) ================= */
-export const deleteOwnReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    // Check if the user owns this review
-    if (review.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "You can only delete your own reviews" });
-    }
-
-    const productId = review.product;
-
-    await review.deleteOne();
-
-    await recalculateProductRating(productId);
-
-    res.json({ message: "Review deleted successfully" });
-  } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Failed to delete review" });
   }
 };
@@ -622,7 +593,7 @@ export const getReviewsByProductForAdmin = async (req, res) => {
 
     const pages = Math.ceil(totalFiltered / pageSize);
 
-    // Analytics (not filtered by status)
+    // Analytics
     let analyticsFilter = {};
     if (keyword && mongoose.Types.ObjectId.isValid(keyword)) {
       analyticsFilter.product = keyword;
