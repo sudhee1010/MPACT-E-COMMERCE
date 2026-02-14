@@ -445,7 +445,6 @@
 // };
 
 
-
 import Review from "../models/Review.js";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
@@ -455,11 +454,9 @@ import mongoose from "mongoose";
 const recalculateProductRating = async (productId) => {
   const reviews = await Review.find({
     product: productId,
-    isApproved: true,
   });
 
   const product = await Product.findById(productId);
-
   if (!product) return;
 
   if (reviews.length === 0) {
@@ -522,12 +519,15 @@ export const addReview = async (req, res) => {
       images,
     });
 
+    // Recalculate product rating immediately
+    await recalculateProductRating(productId);
+
     // Populate user and product info
     await review.populate("user", "name");
     await review.populate("product", "name");
 
     res.status(201).json({
-      message: "Review submitted successfully. Waiting for approval.",
+      message: "Review submitted successfully!",
       review,
     });
   } catch (err) {
@@ -536,57 +536,16 @@ export const addReview = async (req, res) => {
   }
 };
 
-/* ================= GET APPROVED REVIEWS ================= */
+/* ================= GET ALL REVIEWS FOR A PRODUCT ================= */
 export const getProductReviews = async (req, res) => {
   try {
     const reviews = await Review.find({
       product: req.params.productId,
-      isApproved: true,
     })
       .populate("user", "name")
       .sort({ createdAt: -1 });
 
     res.json(reviews);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* ================= APPROVE REVIEW ================= */
-export const approveReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    review.isApproved = true;
-    await review.save();
-
-    await recalculateProductRating(review.product);
-
-    res.json({ message: "Review approved successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/* ================= REJECT REVIEW ================= */
-export const rejectReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found" });
-    }
-
-    review.isApproved = false;
-    await review.save();
-
-    await recalculateProductRating(review.product);
-
-    res.json({ message: "Review rejected successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -617,7 +576,7 @@ export const deleteReview = async (req, res) => {
 /* ================= ADMIN FETCH WITH SEARCH ================= */
 export const getReviewsByProductForAdmin = async (req, res) => {
   try {
-    const { keyword, status, page = 1, limit = 10 } = req.query;
+    const { keyword, page = 1, limit = 10 } = req.query;
 
     const pageNumber = Number(page);
     const pageSize = Number(limit);
@@ -628,10 +587,6 @@ export const getReviewsByProductForAdmin = async (req, res) => {
     if (keyword && mongoose.Types.ObjectId.isValid(keyword)) {
       filter.product = keyword;
     }
-
-    // Filter by approval status
-    if (status === "approved") filter.isApproved = true;
-    if (status === "pending") filter.isApproved = false;
 
     const totalFiltered = await Review.countDocuments(filter);
 
@@ -646,34 +601,22 @@ export const getReviewsByProductForAdmin = async (req, res) => {
 
     // Analytics (not filtered by status)
     let analyticsFilter = {};
-
     if (keyword && mongoose.Types.ObjectId.isValid(keyword)) {
       analyticsFilter.product = keyword;
     }
 
     const total = await Review.countDocuments(analyticsFilter);
-    const approved = await Review.countDocuments({
-      ...analyticsFilter,
-      isApproved: true,
-    });
-    const pending = await Review.countDocuments({
-      ...analyticsFilter,
-      isApproved: false,
-    });
 
     const ratingData = await Review.find(analyticsFilter).select("rating");
-
     const average =
       ratingData.length > 0
         ? (
-            ratingData.reduce((acc, r) => acc + r.rating, 0) /
-            ratingData.length
+            ratingData.reduce((acc, r) => acc + r.rating, 0) / ratingData.length
           ).toFixed(1)
         : 0;
 
     // Rating distribution (1★ to 5★)
     const distribution = [0, 0, 0, 0, 0];
-
     ratingData.forEach((r) => {
       if (r.rating >= 1 && r.rating <= 5) {
         distribution[r.rating - 1]++;
@@ -686,8 +629,6 @@ export const getReviewsByProductForAdmin = async (req, res) => {
       pages,
       analytics: {
         total,
-        approved,
-        pending,
         average,
         distribution,
       },
@@ -701,19 +642,14 @@ export const getReviewsByProductForAdmin = async (req, res) => {
 /* ================= GET ALL REVIEWS FOR ADMIN (NO FILTER) ================= */
 export const getAllReviewsForAdmin = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10 } = req.query;
 
     const pageNumber = Number(page);
     const pageSize = Number(limit);
 
-    let filter = {};
+    const totalFiltered = await Review.countDocuments();
 
-    if (status === "approved") filter.isApproved = true;
-    if (status === "pending") filter.isApproved = false;
-
-    const totalFiltered = await Review.countDocuments(filter);
-
-    const reviews = await Review.find(filter)
+    const reviews = await Review.find()
       .populate("user", "name")
       .populate("product", "name")
       .sort({ createdAt: -1 })
@@ -724,21 +660,16 @@ export const getAllReviewsForAdmin = async (req, res) => {
 
     // Global analytics
     const total = await Review.countDocuments();
-    const approved = await Review.countDocuments({ isApproved: true });
-    const pending = await Review.countDocuments({ isApproved: false });
 
     const ratingData = await Review.find().select("rating");
-
     const average =
       ratingData.length > 0
         ? (
-            ratingData.reduce((acc, r) => acc + r.rating, 0) /
-            ratingData.length
+            ratingData.reduce((acc, r) => acc + r.rating, 0) / ratingData.length
           ).toFixed(1)
         : 0;
 
     const distribution = [0, 0, 0, 0, 0];
-
     ratingData.forEach((r) => {
       if (r.rating >= 1 && r.rating <= 5) {
         distribution[r.rating - 1]++;
@@ -751,8 +682,6 @@ export const getAllReviewsForAdmin = async (req, res) => {
       pages,
       analytics: {
         total,
-        approved,
-        pending,
         average,
         distribution,
       },

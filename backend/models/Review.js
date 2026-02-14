@@ -1,3 +1,54 @@
+// import mongoose from "mongoose";
+
+// const reviewSchema = new mongoose.Schema(
+//   {
+//     user: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true
+//     },
+
+//     product: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "Product",
+//       required: true
+//     },
+
+//     rating: {
+//       type: Number,
+//       required: true,
+//       min: 1,
+//       max: 5
+//     },
+    
+//     comment: {
+//       type: String,
+//       required: true
+//     },
+    
+//     images: [
+//    {
+//      url: { type: String },
+//      public_id: { type: String }
+//    }
+// ],
+//     isApproved: {
+//       type: Boolean,
+//       default: false
+//     }
+//   },
+//   { timestamps: true }
+// );
+
+// // Prevent duplicate reviews
+// reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+
+// export default mongoose.model("Review", reviewSchema);
+
+
+
+
+
 import mongoose from "mongoose";
 
 const reviewSchema = new mongoose.Schema(
@@ -27,15 +78,11 @@ const reviewSchema = new mongoose.Schema(
     },
     
     images: [
-   {
-     url: { type: String },
-     public_id: { type: String }
-   }
-],
-    isApproved: {
-      type: Boolean,
-      default: false
-    }
+      {
+        url: { type: String },
+        public_id: { type: String }
+      }
+    ]
   },
   { timestamps: true }
 );
