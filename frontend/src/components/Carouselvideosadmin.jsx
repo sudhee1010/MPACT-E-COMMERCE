@@ -23,8 +23,8 @@ export default function CarouselVideosAdmin() {
   });
 
   // API Base URLs - Update these to match your backend
-  const API_URL = "http://localhost:5000/api/videohome";
-  const PRODUCTS_API_URL = "http://localhost:5000/api/products";
+  const API_URL = "https://mpact-e-backend.onrender.com/api/videohome";
+  const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
 
   // Fetch all videos
   const fetchVideos = async () => {
