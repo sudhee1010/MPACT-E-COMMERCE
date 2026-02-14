@@ -377,10 +377,12 @@
 import { Link } from "react-router-dom";
 import { Instagram, Youtube } from "lucide-react";
 import { SiFacebook } from "react-icons/si";
+import OfferScrollBar from "./OfferScrollBar"
 
 export default function Footer() {
   return (
     <>
+      <OfferScrollBar />
       <footer className="mpact-footer">
         <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Khand:wght@500;600;700;800&display=swap');
