@@ -490,18 +490,9 @@ export const addReview = async (req, res) => {
       });
     }
 
-    // Prevent duplicate review
-    const alreadyReviewed = await Review.findOne({
-      user: req.user._id,
-      product: productId,
-    });
-
-    if (alreadyReviewed) {
-      return res.status(400).json({
-        message: "You have already reviewed this product",
-      });
-    }
-
+    // ✅ REMOVED: Duplicate review check
+    // Users can now review the same product multiple times if they purchase it multiple times
+    
     // Handle uploaded images
     const images = req.files
       ? req.files.map((file) => ({
@@ -551,13 +542,45 @@ export const getProductReviews = async (req, res) => {
   }
 };
 
-/* ================= DELETE REVIEW ================= */
-export const deleteReview = async (req, res) => {
+/* ================= DELETE REVIEW (ADMIN) ================= */
+export const deleteReviewByAdmin = async (req, res) => {
+  try {
+    console.log("Admin delete review - ID:", req.params.id);
+    console.log("Admin user:", req.user);
+    
+    const review = await Review.findById(req.params.id);
+
+    if (!review) {
+      console.log("Review not found");
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    const productId = review.product;
+
+    await review.deleteOne();
+
+    await recalculateProductRating(productId);
+
+    console.log("Review deleted successfully by admin");
+    res.json({ message: "Review deleted successfully" });
+  } catch (error) {
+    console.error("Admin delete error:", error);
+    res.status(500).json({ message: "Failed to delete review" });
+  }
+};
+
+/* ================= DELETE OWN REVIEW (USER) ================= */
+export const deleteOwnReview = async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
 
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
+    }
+
+    // Check if the user owns this review
+    if (review.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "You can only delete your own reviews" });
     }
 
     const productId = review.product;
