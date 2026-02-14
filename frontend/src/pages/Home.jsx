@@ -113,7 +113,7 @@
 //   //   try {
 //   //     setLoadingProducts(true);
 
-//   //     const res = await axios.get("http://localhost:5000/api/products", {
+//   //     const res = await axios.get("https://mpact-e-backend.onrender.com/api/products", {
 //   //       params: {
 //   //         limit: 8,
 //   //         cursor
@@ -149,7 +149,7 @@
 //   try {
 //     setLoadingProducts(true);
 
-//     const res = await axios.get("http://localhost:5000/api/products", {
+//     const res = await axios.get("https://mpact-e-backend.onrender.com/api/products", {
 //       params: { limit: 8 }
 //     });
 
@@ -178,7 +178,7 @@
 //   useEffect(() => {
 //     const fetchHeroBanners = async () => {
 //       try {
-//         const res = await axios.get("http://localhost:5000/api/hero-banners");
+//         const res = await axios.get("https://mpact-e-backend.onrender.com/api/hero-banners");
 //         setHeroSlides(res.data);
 //       } catch (error) {
 //         console.error("Failed to load hero banners");
@@ -1215,7 +1215,7 @@ const MPACTLandingPage = () => {
   //   try {
   //     setLoadingProducts(true);
 
-  //     const res = await axios.get("http://localhost:5000/api/products", {
+  //     const res = await axios.get("https://mpact-e-backend.onrender.com/api/products", {
   //       params: {
   //         limit: 8,
   //         cursor

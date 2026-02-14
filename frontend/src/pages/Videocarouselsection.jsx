@@ -21,7 +21,7 @@ export default function VideoCarouselSection() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/videohome");
+        const res = await axios.get("https://mpact-e-backend.onrender.com/api/videohome");
         setVideos(res.data || []);
       } catch (err) {
         console.error("Failed to load videos", err);

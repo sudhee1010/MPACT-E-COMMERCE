@@ -101,7 +101,7 @@ router.post("/upload", upload.single("video"), async (req, res) => {
     // Construct video URL (adjust based on your server setup)
     const videoUrl = `${req.protocol}://${req.get("host")}/uploads/videos/${req.file.filename}`;
     // Or for local development:
-    // const videoUrl = `http://localhost:5000/uploads/videos/${req.file.filename}`;
+    // const videoUrl = `https://mpact-e-backend.onrender.com/uploads/videos/${req.file.filename}`;
 
     res.json({
       message: "Video uploaded successfully",
