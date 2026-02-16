@@ -18,7 +18,7 @@ const router = express.Router();
 // Configure multer for video uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = "uploads/videos";
+    const uploadDir = path.join(__dirname, "..", "uploads", "videos");
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -33,7 +33,7 @@ const storage = multer.diskStorage({
 
 // File filter to accept only videos
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /mp4|mov|avi|webm|mkv/;
+  const allowedTypes = /mp4|mov|avi|webm|mkv|mpg|mpeg/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = file.mimetype.startsWith("video/");
 
@@ -46,19 +46,24 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
   fileFilter: fileFilter,
 });
 
 // ==================== ROUTES ====================
 
-// @route   GET /api/videohome
-// @desc    Get all videos
-// @access  Public
+/**
+ * @route   GET /api/videohome
+ * @desc    Get all videos (active videos first, then by order)
+ * @access  Public
+ */
 router.get("/", async (req, res) => {
   try {
-    const videos = await VideoHome.find().sort({ createdAt: -1 });
-    res.json(videos);
+    // Get all videos, sorted by isActive (active first), then by order, then by createdAt
+    const videos = await VideoHome.find()
+      .sort({ isActive: -1, order: 1, createdAt: -1 });
+    
+    res.status(200).json(videos);
   } catch (error) {
     console.error("Error fetching videos:", error);
     res.status(500).json({ 
@@ -68,9 +73,31 @@ router.get("/", async (req, res) => {
   }
 });
 
-// @route   GET /api/videohome/:id
-// @desc    Get single video by ID
-// @access  Public
+/**
+ * @route   GET /api/videohome/active
+ * @desc    Get only active videos (for frontend display)
+ * @access  Public
+ */
+router.get("/active", async (req, res) => {
+  try {
+    const videos = await VideoHome.find({ isActive: true })
+      .sort({ order: 1, createdAt: -1 });
+    
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error("Error fetching active videos:", error);
+    res.status(500).json({ 
+      message: "Failed to fetch active videos", 
+      error: error.message 
+    });
+  }
+});
+
+/**
+ * @route   GET /api/videohome/:id
+ * @desc    Get single video by ID
+ * @access  Public
+ */
 router.get("/:id", async (req, res) => {
   try {
     const video = await VideoHome.findById(req.params.id);
@@ -79,7 +106,7 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Video not found" });
     }
     
-    res.json(video);
+    res.status(200).json(video);
   } catch (error) {
     console.error("Error fetching video:", error);
     res.status(500).json({ 
@@ -89,21 +116,27 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// @route   POST /api/videohome/upload
-// @desc    Upload video file
-// @access  Private (add authentication middleware if needed)
+/**
+ * @route   POST /api/videohome/upload
+ * @desc    Upload video file
+ * @access  Private (add authentication middleware if needed)
+ */
 router.post("/upload", upload.single("video"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No video file uploaded" });
     }
 
-    // Construct video URL (adjust based on your server setup)
-    const videoUrl = `${req.protocol}://${req.get("host")}/uploads/videos/${req.file.filename}`;
-    // Or for local development:
-    // const videoUrl = `https://mpact-e-backend.onrender.com/uploads/videos/${req.file.filename}`;
+    // Construct video URL for access
+    // For production, use your domain
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? process.env.BASE_URL 
+      // : `http://localhost:${process.env.PORT || 5000}`;
+      : "https://mpact-e-backend.onrender.com";
+    
+    const videoUrl = `${baseUrl}/uploads/videos/${req.file.filename}`;
 
-    res.json({
+    res.status(200).json({
       message: "Video uploaded successfully",
       videoUrl: videoUrl,
       filename: req.file.filename,
@@ -119,9 +152,11 @@ router.post("/upload", upload.single("video"), async (req, res) => {
   }
 });
 
-// @route   POST /api/videohome
-// @desc    Create new video entry
-// @access  Private (add authentication middleware if needed)
+/**
+ * @route   POST /api/videohome
+ * @desc    Create new video entry
+ * @access  Private (add authentication middleware if needed)
+ */
 router.post("/", async (req, res) => {
   try {
     const { 
@@ -130,7 +165,9 @@ router.post("/", async (req, res) => {
       productId, 
       currentPrice, 
       originalPrice, 
-      discount 
+      discount,
+      isActive,
+      order
     } = req.body;
 
     // Validation
@@ -141,14 +178,20 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Get the highest order number for new video
+    const lastVideo = await VideoHome.findOne().sort({ order: -1 });
+    const nextOrder = lastVideo ? lastVideo.order + 1 : 0;
+
     // Create new video
     const newVideo = new VideoHome({
       videoUrl,
       productName,
-      productId,
+      productId: productId.toLowerCase(),
       currentPrice: parseFloat(currentPrice),
       originalPrice: originalPrice ? parseFloat(originalPrice) : null,
       discount: discount ? parseInt(discount) : null,
+      isActive: isActive !== undefined ? isActive : true,
+      order: order !== undefined ? order : nextOrder,
     });
 
     const savedVideo = await newVideo.save();
@@ -166,9 +209,11 @@ router.post("/", async (req, res) => {
   }
 });
 
-// @route   PUT /api/videohome/:id
-// @desc    Update video by ID
-// @access  Private (add authentication middleware if needed)
+/**
+ * @route   PUT /api/videohome/:id
+ * @desc    Update video by ID
+ * @access  Private (add authentication middleware if needed)
+ */
 router.put("/:id", async (req, res) => {
   try {
     const { 
@@ -177,28 +222,31 @@ router.put("/:id", async (req, res) => {
       productId, 
       currentPrice, 
       originalPrice, 
-      discount 
+      discount,
+      isActive,
+      order
     } = req.body;
 
-    // Find and update video
-    const updatedVideo = await VideoHome.findByIdAndUpdate(
-      req.params.id,
-      {
-        videoUrl,
-        productName,
-        productId,
-        currentPrice: parseFloat(currentPrice),
-        originalPrice: originalPrice ? parseFloat(originalPrice) : null,
-        discount: discount ? parseInt(discount) : null,
-      },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedVideo) {
+    // Find video first to check if exists
+    const video = await VideoHome.findById(req.params.id);
+    
+    if (!video) {
       return res.status(404).json({ message: "Video not found" });
     }
 
-    res.json({
+    // Update fields
+    if (videoUrl !== undefined) video.videoUrl = videoUrl;
+    if (productName !== undefined) video.productName = productName;
+    if (productId !== undefined) video.productId = productId.toLowerCase();
+    if (currentPrice !== undefined) video.currentPrice = parseFloat(currentPrice);
+    if (originalPrice !== undefined) video.originalPrice = originalPrice ? parseFloat(originalPrice) : null;
+    if (discount !== undefined) video.discount = discount ? parseInt(discount) : null;
+    if (isActive !== undefined) video.isActive = isActive;
+    if (order !== undefined) video.order = order;
+
+    const updatedVideo = await video.save();
+
+    res.status(200).json({
       message: "Video updated successfully",
       video: updatedVideo
     });
@@ -211,9 +259,11 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// @route   DELETE /api/videohome/:id
-// @desc    Delete video by ID
-// @access  Private (add authentication middleware if needed)
+/**
+ * @route   DELETE /api/videohome/:id
+ * @desc    Delete video by ID
+ * @access  Private (add authentication middleware if needed)
+ */
 router.delete("/:id", async (req, res) => {
   try {
     const video = await VideoHome.findById(req.params.id);
@@ -222,7 +272,7 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ message: "Video not found" });
     }
 
-    // Optional: Delete the video file from storage
+    // Optional: Delete the video file from storage if it's a local file
     if (video.videoUrl && video.videoUrl.includes("/uploads/videos/")) {
       const filename = video.videoUrl.split("/").pop();
       const filePath = path.join(__dirname, "..", "uploads", "videos", filename);
@@ -239,7 +289,7 @@ router.delete("/:id", async (req, res) => {
 
     await VideoHome.findByIdAndDelete(req.params.id);
     
-    res.json({ 
+    res.status(200).json({ 
       message: "Video deleted successfully",
       deletedId: req.params.id
     });
@@ -252,9 +302,11 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// @route   PATCH /api/videohome/:id/toggle
-// @desc    Toggle video active status
-// @access  Private
+/**
+ * @route   PATCH /api/videohome/:id/toggle
+ * @desc    Toggle video active status
+ * @access  Private
+ */
 router.patch("/:id/toggle", async (req, res) => {
   try {
     const video = await VideoHome.findById(req.params.id);
@@ -266,7 +318,7 @@ router.patch("/:id/toggle", async (req, res) => {
     video.isActive = !video.isActive;
     await video.save();
 
-    res.json({
+    res.status(200).json({
       message: `Video ${video.isActive ? 'activated' : 'deactivated'} successfully`,
       video
     });
@@ -279,29 +331,110 @@ router.patch("/:id/toggle", async (req, res) => {
   }
 });
 
-// @route   PATCH /api/videohome/reorder
-// @desc    Reorder videos
-// @access  Private
+/**
+ * @route   PATCH /api/videohome/reorder
+ * @desc    Reorder videos (bulk update)
+ * @access  Private
+ */
 router.patch("/reorder", async (req, res) => {
   try {
-    const { videoIds } = req.body;
+    const { videoOrders } = req.body; // Expecting [{ id: "videoId", order: 1 }, ...]
 
-    if (!Array.isArray(videoIds)) {
-      return res.status(400).json({ message: "videoIds must be an array" });
+    if (!Array.isArray(videoOrders)) {
+      return res.status(400).json({ message: "videoOrders must be an array" });
     }
 
     // Update order for each video
-    const updatePromises = videoIds.map((id, index) => 
-      VideoHome.findByIdAndUpdate(id, { order: index })
+    const updatePromises = videoOrders.map(({ id, order }) => 
+      VideoHome.findByIdAndUpdate(id, { order: order })
     );
 
     await Promise.all(updatePromises);
 
-    res.json({ message: "Videos reordered successfully" });
+    res.status(200).json({ 
+      message: "Videos reordered successfully",
+      count: videoOrders.length
+    });
   } catch (error) {
     console.error("Error reordering videos:", error);
     res.status(500).json({ 
       message: "Failed to reorder videos", 
+      error: error.message 
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/videohome
+ * @desc    Delete multiple videos by IDs
+ * @access  Private
+ */
+router.delete("/", async (req, res) => {
+  try {
+    const { videoIds } = req.body;
+
+    if (!Array.isArray(videoIds) || videoIds.length === 0) {
+      return res.status(400).json({ message: "videoIds array is required" });
+    }
+
+    // Delete all videos in the array
+    const result = await VideoHome.deleteMany({ _id: { $in: videoIds } });
+
+    res.status(200).json({
+      message: `${result.deletedCount} videos deleted successfully`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error("Error deleting videos:", error);
+    res.status(500).json({ 
+      message: "Failed to delete videos", 
+      error: error.message 
+    });
+  }
+});
+
+/**
+ * @route   GET /api/videohome/product/:productId
+ * @desc    Get videos by product ID
+ * @access  Public
+ */
+router.get("/product/:productId", async (req, res) => {
+  try {
+    const videos = await VideoHome.find({ 
+      productId: req.params.productId.toLowerCase(),
+      isActive: true 
+    }).sort({ order: 1, createdAt: -1 });
+
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error("Error fetching videos by product:", error);
+    res.status(500).json({ 
+      message: "Failed to fetch videos by product", 
+      error: error.message 
+    });
+  }
+});
+
+/**
+ * @route   GET /api/videohome/stats/count
+ * @desc    Get video statistics
+ * @access  Private
+ */
+router.get("/stats/count", async (req, res) => {
+  try {
+    const totalVideos = await VideoHome.countDocuments();
+    const activeVideos = await VideoHome.countDocuments({ isActive: true });
+    const inactiveVideos = await VideoHome.countDocuments({ isActive: false });
+
+    res.status(200).json({
+      total: totalVideos,
+      active: activeVideos,
+      inactive: inactiveVideos
+    });
+  } catch (error) {
+    console.error("Error fetching video stats:", error);
+    res.status(500).json({ 
+      message: "Failed to fetch video statistics", 
       error: error.message 
     });
   }

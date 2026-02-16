@@ -14,19 +14,19 @@ import {
   Monitor,
   LogOut,
   HelpingHandIcon,
-  Star,
+   Star,
 } from "lucide-react";
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+    const { logout } = useAuth();
 
 
-  const handleLogout = async () => {
+      const handleLogout = async () => {
     try {
-      await logout();
-      navigate("/");
+      await logout();         
+      navigate("/");    
     } catch (err) {
       toast.error("Logout failed");
     }
@@ -49,8 +49,9 @@ export function AdminLayout() {
     { label: "Distributor Enquiries", path: "/admin-distributor", icon: BarChart3 },
     { label: "CMS", path: "/cms", icon: Image },
     { label: "Ads Banner", path: "/adsbanner", icon: Monitor },
+    { label: "Carousel Videos", path: "/carouselvideosadmin", icon: Monitor },
     { label: "Help Support", path: "/help-support", icon: HelpingHandIcon },
-    { label: "Reviews", path: "/reviews", icon: Star },
+      { label: "Reviews", path: "/reviews", icon: Star },
 
   ];
 
@@ -197,17 +198,17 @@ export function AdminLayout() {
                   .replace(/-/g, " ") || "Dashboard"}
               </h2>
             </div>
-
+            
             {/* Quick Actions */}
             <div className="flex items-center gap-4 h-full">
-              <button
+              <button 
                 onClick={() => navigate("/")}
                 className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-500 transition-colors header-button"
               >
                 <Home size={18} />
                 <span>View Store</span>
               </button>
-
+              
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-all duration-200 header-button"
@@ -215,7 +216,7 @@ export function AdminLayout() {
                 <LogOut size={18} />
                 <span>Logout</span>
               </button>
-
+              
               {/* Admin Profile Icon */}
               <div className="header-profile bg-yellow-400 text-black font-bold rounded-full">
                 A

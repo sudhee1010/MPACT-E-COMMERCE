@@ -19,6 +19,7 @@ import couponRoutes from "./routes/couponRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import heroBannerRoutes from "./routes/heroBannerRoutes.js";
 import videoRoutes from "./routes/videoRoutes.js";
+import videoHomeRoutes from "./routes/videoHomeRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import blogRoutes from "./routes/blogRoutes.js";
 import blogCategoryRoutes from "./routes/blogCategoryRoutes.js";
@@ -45,8 +46,8 @@ connectDB();
 app.set("trust proxy", 1); 
 app.use(
   cors({
-    origin: "https://mpact-e-commerce.onrender.com",
-    // origin: "http://localhost:3000",
+    // origin: "https://mpact-e-commerce.onrender.com",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"], 
     credentials: true,    
   })
@@ -78,6 +79,7 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/hero-banners", heroBannerRoutes);
 app.use("/api/videos", videoRoutes);
+app.use("/api/videohome", videoHomeRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/blog-categories", blogCategoryRoutes);

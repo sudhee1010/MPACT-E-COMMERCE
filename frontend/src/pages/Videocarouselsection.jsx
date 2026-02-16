@@ -16,15 +16,35 @@ export default function VideoCarouselSection() {
   const [loading, setLoading] = useState(true);
   const [cardsPerView, setCardsPerView] = useState(4);
   const [scrollY, setScrollY] = useState(0);
+  const [error, setError] = useState(null);
 
   // Fetch videos from backend
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await axios.get("https://mpact-e-backend.onrender.com/api/videohome");
-        setVideos(res.data || []);
+        setLoading(true);
+        setError(null);
+        console.log("Fetching videos from API...");
+        // const res = await axios.get("http://localhost:5000/api/videohome", {
+        const res = await axios.get("https://mpact-e-backend.onrender.com/api/videohome", {
+          timeout: 10000
+        });
+        console.log("Videos API response:", res.data);
+        
+        // Handle different response formats
+        let videosData = [];
+        if (Array.isArray(res.data)) {
+          videosData = res.data;
+        } else if (res.data && Array.isArray(res.data.data)) {
+          videosData = res.data.data;
+        } else if (res.data && Array.isArray(res.data.videos)) {
+          videosData = res.data.videos;
+        }
+        
+        setVideos(videosData);
       } catch (err) {
         console.error("Failed to load videos", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -37,7 +57,7 @@ export default function VideoCarouselSection() {
     const handleScroll = () => {
       setScrollY(window.scrollY);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -68,29 +88,35 @@ export default function VideoCarouselSection() {
 
   // GSAP animations
   useEffect(() => {
-    if (!videos.length) return;
+    if (!videos.length || loading) return;
 
     const ctx = gsap.context(() => {
-      // Animate section title
-      gsap.fromTo(
-        ".carousel-title",
-        { y: -30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
-      );
+      // Animate section title if it exists
+      if (document.querySelector(".carousel-title")) {
+        gsap.fromTo(
+          ".carousel-title",
+          { y: -30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
+        );
+      }
 
-      // Animate title underline
-      gsap.fromTo(
-        ".title-underline",
-        { width: 0 },
-        { width: 120, duration: 0.8, delay: 0.4, ease: "power3.out" }
-      );
+      // Animate title underline if it exists
+      if (document.querySelector(".title-underline")) {
+        gsap.fromTo(
+          ".title-underline",
+          { width: 0 },
+          { width: 120, duration: 0.8, delay: 0.4, ease: "power3.out" }
+        );
+      }
 
-      // Animate subtitle
-      gsap.fromTo(
-        ".carousel-subtitle",
-        { opacity: 0 },
-        { opacity: 1, duration: 0.8, delay: 0.3, ease: "power3.out" }
-      );
+      // Animate subtitle if it exists
+      if (document.querySelector(".carousel-subtitle")) {
+        gsap.fromTo(
+          ".carousel-subtitle",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.8, delay: 0.3, ease: "power3.out" }
+        );
+      }
 
       // Stagger animate cards
       if (cardsRef.current.length > 0) {
@@ -110,7 +136,7 @@ export default function VideoCarouselSection() {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [videos]);
+  }, [videos, loading]);
 
   // Update carousel position
   const updateCarousel = (index) => {
@@ -141,7 +167,7 @@ export default function VideoCarouselSection() {
   // Update carousel when index changes
   useEffect(() => {
     updateCarousel(currentIndex);
-  }, [currentIndex]);
+  }, [currentIndex, videos]);
 
   const moveCarousel = (direction) => {
     const maxIndex = Math.max(0, videos.length - cardsPerView);
@@ -154,23 +180,39 @@ export default function VideoCarouselSection() {
   };
 
   const goToProductSpec = (productId) => {
-    // Navigate to product details page using the actual product ID
     navigate(`/productspec/${productId}`);
   };
 
-  if (loading) return null;
+  // Show nothing while loading or if no videos
+  if (loading) return (
+    <div style={{ 
+      padding: "40px 0", 
+      background: "#262626",
+      textAlign: "center",
+      color: "#facc15" 
+    }}>
+      Loading videos...
+    </div>
+  );
+  
+  if (error) {
+    console.log("Video carousel error:", error);
+    return null; // Don't show anything on error
+  }
+  
   if (!videos.length) return null;
 
   const maxIndex = Math.max(0, videos.length - cardsPerView);
 
   return (
-    <>
+    <section ref={sectionRef} className="video-carousel-section">
       <style>{`
         .video-carousel-section {
           position: relative;
-          padding: 80px 0 100px;
+          padding: 60px 0 80px;
           background: #262626;
           overflow: hidden;
+          width: 100%;
         }
 
         .video-carousel-section::before {
@@ -185,18 +227,24 @@ export default function VideoCarouselSection() {
 
         .section-header {
           text-align: center;
-          margin-bottom: 60px;
+          margin-bottom: 40px;
           position: relative;
           z-index: 2;
         }
 
         .carousel-title {
-          font-size: 56px;
+          font-size: 42px;
           font-weight: 900;
           color: #facc15;
           margin-bottom: 16px;
           letter-spacing: -0.02em;
           text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+          .carousel-title {
+            font-size: 32px;
+          }
         }
 
         .title-underline {
@@ -208,103 +256,96 @@ export default function VideoCarouselSection() {
         }
 
         .carousel-subtitle {
-          font-size: 18px;
+          font-size: 16px;
           color: #CCCCCC;
           max-width: 600px;
           margin: 0 auto;
           line-height: 1.6;
         }
 
-        .cart-message {
-          text-align: center;
-          margin-bottom: 20px;
-          font-weight: bold;
-          color: #4ade80;
-          font-size: 16px;
-        }
-
         .carousel-container {
           position: relative;
           max-width: 1440px;
           margin: 0 auto;
-          padding: 0 60px;
+          padding: 0 40px;
           z-index: 2;
         }
 
         @media (max-width: 768px) {
           .carousel-container {
-            padding: 0 40px;
+            padding: 0 20px;
           }
         }
 
         .carousel-wrapper {
           overflow: hidden;
           position: relative;
+          margin: 0 -10px;
         }
 
         .carousel-track {
           display: flex;
-          gap: 24px;
-          padding: 20px 0;
+          gap: 20px;
+          padding: 10px 0 20px;
           will-change: transform;
         }
 
         .product-card {
-          flex: 0 0 calc((100% - 72px) / 4);
-          min-width: 280px;
+          flex: 0 0 calc((100% - 60px) / 4);
+          min-width: 260px;
           display: flex;
           flex-direction: column;
-          height: 100%;
           background: linear-gradient(to bottom, rgba(120,53,15,0.4), #171717);
           border: 2px solid rgba(133,77,14,0.5);
           border-radius: 12px;
           overflow: hidden;
           transition: all 0.4s ease;
           cursor: pointer;
-          transform: translateY(60px);
           opacity: 0;
+          transform: translateY(30px);
         }
 
         .product-card.visible {
-          transform: translateY(0);
           opacity: 1;
+          transform: translateY(0);
         }
 
         .product-card:hover {
           border-color: #facc15;
           box-shadow: 0 8px 20px rgba(250, 204, 21, 0.1);
+          transform: translateY(-4px);
         }
 
         @media (max-width: 1400px) {
           .product-card {
-            flex: 0 0 calc((100% - 48px) / 3);
+            flex: 0 0 calc((100% - 40px) / 3);
           }
         }
 
         @media (max-width: 1024px) {
           .product-card {
-            flex: 0 0 calc((100% - 24px) / 2);
+            flex: 0 0 calc((100% - 20px) / 2);
           }
         }
 
         @media (max-width: 768px) {
           .product-card {
             flex: 0 0 calc(100% - 40px);
-            min-width: 280px;
+            min-width: 260px;
           }
         }
 
         .video-container {
           position: relative;
           width: 100%;
-          height: 280px;
+          height: 240px;
           overflow: hidden;
           background: #000;
         }
 
         @media (max-width: 768px) {
           .video-container {
-            height: 240px;
+            height: 200px;
           }
         }
 
@@ -335,8 +376,8 @@ export default function VideoCarouselSection() {
         }
 
         .play-icon {
-          width: 64px;
-          height: 64px;
+          width: 56px;
+          height: 56px;
           border-radius: 50%;
           background: #facc15;
           display: flex;
@@ -354,9 +395,9 @@ export default function VideoCarouselSection() {
           content: '';
           width: 0;
           height: 0;
-          border-left: 18px solid #000;
-          border-top: 12px solid transparent;
-          border-bottom: 12px solid transparent;
+          border-left: 16px solid #000;
+          border-top: 10px solid transparent;
+          border-bottom: 10px solid transparent;
           margin-left: 4px;
         }
 
@@ -369,7 +410,7 @@ export default function VideoCarouselSection() {
         }
 
         .product-name {
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 900;
           color: white;
           margin-bottom: 8px;
@@ -379,26 +420,26 @@ export default function VideoCarouselSection() {
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
-          min-height: 44px;
+          min-height: 42px;
         }
 
         .price-section {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 12px;
-          margin-bottom: 16px;
+          gap: 10px;
+          margin-bottom: 12px;
           flex-wrap: wrap;
         }
 
         .current-price {
-          font-size: 24px;
+          font-size: 22px;
           font-weight: 900;
           color: white;
         }
 
         .original-price {
-          font-size: 16px;
+          font-size: 15px;
           color: #6b7280;
           text-decoration: line-through;
         }
@@ -406,22 +447,23 @@ export default function VideoCarouselSection() {
         .discount-badge {
           background: #facc15;
           color: black;
-          padding: 4px 12px;
+          padding: 4px 10px;
           border-radius: 4px;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 900;
           text-transform: uppercase;
           letter-spacing: 0.05em;
+          display: inline-block;
         }
 
         .cta-button {
           width: 100%;
-          padding: 12px 24px;
+          padding: 10px 20px;
           background: #facc15;
           color: black;
           border: none;
           border-radius: 4px;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 900;
           cursor: pointer;
           text-transform: uppercase;
@@ -432,7 +474,6 @@ export default function VideoCarouselSection() {
 
         .cta-button:hover {
           background: #eab308;
-          transform: scale(1.05);
         }
 
         .cta-button.out-of-stock {
@@ -443,21 +484,16 @@ export default function VideoCarouselSection() {
           opacity: 0.7;
         }
 
-        .cta-button.out-of-stock:hover {
-          transform: none;
-          background: #2a2a2a;
-        }
-
         .carousel-controls {
           display: flex;
           justify-content: center;
-          gap: 20px;
-          margin-top: 48px;
+          gap: 16px;
+          margin-top: 32px;
         }
 
         .carousel-btn {
-          width: 56px;
-          height: 56px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           background: #2a2a2a;
           border: 2px solid #facc15;
@@ -467,7 +503,7 @@ export default function VideoCarouselSection() {
           align-items: center;
           justify-content: center;
           transition: all 0.3s ease;
-          font-size: 28px;
+          font-size: 24px;
           font-weight: 300;
           line-height: 1;
         }
@@ -482,21 +518,20 @@ export default function VideoCarouselSection() {
         .carousel-btn:disabled {
           opacity: 0.3;
           cursor: not-allowed;
-          border-color: #666666;
-          color: #666666;
-          transform: none;
+          border-color: #666;
+          color: #666;
         }
 
         .carousel-indicators {
           display: flex;
           justify-content: center;
-          gap: 12px;
-          margin-top: 32px;
+          gap: 10px;
+          margin-top: 24px;
         }
 
         .indicator {
-          width: 40px;
-          height: 6px;
+          width: 35px;
+          height: 5px;
           background: #2a2a2a;
           border-radius: 3px;
           cursor: pointer;
@@ -511,32 +546,24 @@ export default function VideoCarouselSection() {
 
         .indicator.active {
           background: #facc15;
-          width: 60px;
+          width: 50px;
           opacity: 1;
         }
 
         @media (max-width: 768px) {
           .video-carousel-section {
-            padding: 60px 0 80px;
-          }
-
-          .section-header {
-            margin-bottom: 40px;
-          }
-
-          .carousel-title {
-            font-size: 36px;
+            padding: 40px 0 60px;
           }
 
           .carousel-controls {
-            margin-top: 32px;
-            gap: 16px;
+            margin-top: 24px;
+            gap: 12px;
           }
 
           .carousel-btn {
-            width: 48px;
-            height: 48px;
-            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
           }
 
           .carousel-indicators {
@@ -544,162 +571,122 @@ export default function VideoCarouselSection() {
           }
 
           .indicator {
-            width: 30px;
+            width: 25px;
             height: 4px;
           }
 
           .indicator.active {
-            width: 45px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .carousel-container {
-            padding: 0 20px;
-          }
-
-          .product-card {
-            min-width: 260px;
-          }
-
-          .product-info {
-            padding: 12px;
-          }
-
-          .current-price {
-            font-size: 20px;
-          }
-
-          .product-name {
-            font-size: 14px;
+            width: 35px;
           }
         }
       `}</style>
 
-      <section ref={sectionRef} className="video-carousel-section">
-        {/* Background Decorations */}
-        <div className="bg-decoration circle-decoration-1"></div>
-        <div className="bg-decoration circle-decoration-2"></div>
-
-        {/* Carousel Container */}
-        <div className="carousel-container">
-          <div className="carousel-wrapper">
-            <div ref={trackRef} className="carousel-track">
-              {videos.map((video, index) => (
-                <div
-                  key={video._id || index}
-                  ref={(el) => {
-                    cardsRef.current[index] = el;
-                    if (el) {
-                      setTimeout(() => {
-                        if (scrollY > 500) {
-                          el.classList.add('visible');
-                        }
-                      }, 100);
-                    }
-                  }}
-                  className="product-card"
-                  onClick={() => goToProductSpec(video.productId)}
-                  style={{
-                    transform: scrollY > 500 ? 'translateY(0)' : 'translateY(60px)',
-                    opacity: scrollY > 500 ? 1 : 0
-                  }}
-                >
-                  <div className="video-container">
-                    <video
-                      src={video.videoUrl}
-                      muted
-                      autoPlay
-                      loop
-                      playsInline
-                      poster={video.thumbnailUrl}
-                    />
-                    <div className="video-overlay">
-                      <div className="play-icon"></div>
-                    </div>
-                  </div>
-                  <div className="product-info">
-                    <h3 className="product-name">
-                      {video.productName || "SuperYou Product"}
-                    </h3>
-                    
-                    <div className="price-section">
-                      <span className="current-price">
-                        ₹ {video.currentPrice || "439"}
-                      </span>
-                      {video.originalPrice && (
-                        <span className="original-price">
-                          ₹{video.originalPrice}
-                        </span>
-                      )}
-                    </div>
-
-                    {video.discount && (
-                      <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-                        <span className="discount-badge">
-                          {video.discount}% OFF
-                        </span>
-                      </div>
-                    )}
-
-                    <button
-                      className={`cta-button ${video.countInStock <= 0 ? 'out-of-stock' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (video.countInStock > 0) {
-                          goToProductSpec(video.productId);
-                        }
-                      }}
-                      disabled={video.countInStock <= 0}
-                    >
-                      {video.countInStock > 0 ? 'VIEW PRODUCT' : 'OUT OF STOCK'}
-                    </button>
+      <div className="carousel-container">
+        <div className="carousel-wrapper">
+          <div ref={trackRef} className="carousel-track">
+            {videos.map((video, index) => (
+              <div
+                key={video._id || index}
+                ref={(el) => {
+                  cardsRef.current[index] = el;
+                  if (el && scrollY > 300) {
+                    setTimeout(() => el.classList.add('visible'), index * 100);
+                  }
+                }}
+                className="product-card"
+                onClick={() => goToProductSpec(video.productId)}
+              >
+                <div className="video-container">
+                  <video
+                    src={video.videoUrl}
+                    muted
+                    autoPlay
+                    loop
+                    playsInline
+                    poster={video.thumbnailUrl}
+                  />
+                  <div className="video-overlay">
+                    <div className="play-icon" />
                   </div>
                 </div>
+                <div className="product-info">
+                  <h3 className="product-name">
+                    {video.productName || "Premium Product"}
+                  </h3>
+                  
+                  <div className="price-section">
+                    <span className="current-price">
+                      ₹{video.currentPrice || "0"}
+                    </span>
+                    {video.originalPrice && (
+                      <span className="original-price">
+                        ₹{video.originalPrice}
+                      </span>
+                    )}
+                  </div>
+
+                  {video.discount && (
+                    <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                      <span className="discount-badge">
+                        {video.discount}% OFF
+                      </span>
+                    </div>
+                  )}
+
+                  <button
+                    className={`cta-button ${parseInt(video.countInStock) <= 0 ? 'out-of-stock' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (parseInt(video.countInStock) > 0) {
+                        goToProductSpec(video.productId);
+                      }
+                    }}
+                    disabled={parseInt(video.countInStock) <= 0}
+                  >
+                    {parseInt(video.countInStock) > 0 ? 'VIEW PRODUCT' : 'OUT OF STOCK'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Carousel Controls */}
+        {videos.length > cardsPerView && (
+          <>
+            <div className="carousel-controls">
+              <button
+                className="carousel-btn"
+                onClick={() => moveCarousel(-1)}
+                disabled={currentIndex === 0}
+                aria-label="Previous"
+              >
+                ‹
+              </button>
+              <button
+                className="carousel-btn"
+                onClick={() => moveCarousel(1)}
+                disabled={currentIndex >= maxIndex}
+                aria-label="Next"
+              >
+                ›
+              </button>
+            </div>
+
+            {/* Carousel Indicators */}
+            <div className="carousel-indicators">
+              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+                <button
+                  key={index}
+                  className={`indicator ${index === currentIndex ? "active" : ""}`}
+                  onClick={() => goToSlide(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
               ))}
             </div>
-          </div>
-
-          {/* Carousel Controls */}
-          {videos.length > cardsPerView && (
-            <>
-              <div className="carousel-controls">
-                <button
-                  className="carousel-btn"
-                  onClick={() => moveCarousel(-1)}
-                  disabled={currentIndex === 0}
-                  aria-label="Previous slide"
-                >
-                  ‹
-                </button>
-                <button
-                  className="carousel-btn"
-                  onClick={() => moveCarousel(1)}
-                  disabled={currentIndex >= maxIndex}
-                  aria-label="Next slide"
-                >
-                  ›
-                </button>
-              </div>
-
-              {/* Carousel Indicators */}
-              <div className="carousel-indicators">
-                {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className={`indicator ${index === currentIndex ? "active" : ""}`}
-                    onClick={() => goToSlide(index)}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-
-          </div>
-      </section>
-    </>
+          </>
+        )}
+      </div>
+    </section>
   );
 }
