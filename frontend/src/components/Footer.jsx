@@ -565,7 +565,7 @@ export default function Footer() {
                 <li><a href="/tracking">Tracking Link</a></li>
                 {/* <li><a href="/pro">MPACT Pro</a></li> */}
                 <li><a href="/about">About Us</a></li>
-                <li><a href="/contact">Connect Now</a></li>
+                <li><a href="/connect">Connect Now</a></li>
               </ul>
             </div>
 
