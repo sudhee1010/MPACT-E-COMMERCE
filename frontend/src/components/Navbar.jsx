@@ -130,7 +130,7 @@ export default function Navbar() {
           z-index: 1100;
           overflow: hidden;
           box-shadow: 0 4px 20px rgba(255,212,0,0.3), 0 0 60px rgba(255,212,0,0.1);
-          animation: slideDown 0.6s ease;
+          //animation: slideDown 0.6s ease;
         }
 
         .navbar::before {
