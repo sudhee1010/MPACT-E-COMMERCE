@@ -501,19 +501,40 @@ import api from "../api/axios";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const positionPresets = [
-  { x: -260, y: -40, rotate: -8, scale: 0.95 },
-  { x: -130, y: -80, rotate: -4, scale: 1 },
-  { x: 0, y: -20, rotate: 0, scale: 1.05 },
-  { x: 130, y: 60, rotate: 4, scale: 1 },
-  { x: 260, y: 20, rotate: 8, scale: 0.95 },
-];
-
-const mobilePositionPresets = [
-  { x: -100, y: -60, rotate: -6, scale: 0.9 },
-  { x: 0, y: 0, rotate: 0, scale: 1 },
-  { x: 100, y: -60, rotate: 6, scale: 0.9 },
-];
+// Enhanced position presets for different screen sizes
+const positionPresets = {
+  desktop: [
+    { x: -280, y: -50, rotate: -10, scale: 0.92 },
+    { x: -140, y: -90, rotate: -5, scale: 0.98 },
+    { x: 0, y: -30, rotate: 0, scale: 1.05 },
+    { x: 140, y: 50, rotate: 5, scale: 0.98 },
+    { x: 280, y: 10, rotate: 10, scale: 0.92 },
+  ],
+  laptop: [
+    { x: -220, y: -40, rotate: -8, scale: 0.93 },
+    { x: -110, y: -70, rotate: -4, scale: 0.99 },
+    { x: 0, y: -20, rotate: 0, scale: 1.05 },
+    { x: 110, y: 50, rotate: 4, scale: 0.99 },
+    { x: 220, y: 15, rotate: 8, scale: 0.93 },
+  ],
+  tablet: [
+    { x: -150, y: -30, rotate: -6, scale: 0.94 },
+    { x: -75, y: -50, rotate: -3, scale: 1 },
+    { x: 0, y: -15, rotate: 0, scale: 1.04 },
+    { x: 75, y: 35, rotate: 3, scale: 1 },
+    { x: 150, y: 10, rotate: 6, scale: 0.94 },
+  ],
+  mobile: [
+    { x: -90, y: -50, rotate: -5, scale: 0.9 },
+    { x: 0, y: 0, rotate: 0, scale: 1 },
+    { x: 90, y: -50, rotate: 5, scale: 0.9 },
+  ],
+  mobileSmall: [
+    { x: -70, y: -40, rotate: -4, scale: 0.88 },
+    { x: 0, y: 0, rotate: 0, scale: 1 },
+    { x: 70, y: -40, rotate: 4, scale: 0.88 },
+  ],
+};
 
 export default function VideoShowcaseSection() {
   // Refs for RoundVideo section (first)
@@ -532,18 +553,25 @@ export default function VideoShowcaseSection() {
 
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const [screenSize, setScreenSize] = useState('desktop');
   const [showVideoModal, setShowVideoModal] = useState(false);
 
-  // 🔹 Detect mobile view
+  // 🔹 Enhanced screen size detection
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+    const detectScreenSize = () => {
+      const width = window.innerWidth;
+      
+      if (width >= 1920) setScreenSize('desktop');
+      else if (width >= 1366 && width < 1920) setScreenSize('laptop');
+      else if (width >= 1024 && width < 1366) setScreenSize('laptop');
+      else if (width >= 768 && width < 1024) setScreenSize('tablet');
+      else if (width >= 480 && width < 768) setScreenSize('mobile');
+      else setScreenSize('mobileSmall');
     };
     
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    detectScreenSize();
+    window.addEventListener("resize", detectScreenSize);
+    return () => window.removeEventListener("resize", detectScreenSize);
   }, []);
 
   // 🔹 Fetch videos from backend
@@ -561,14 +589,29 @@ export default function VideoShowcaseSection() {
     fetchVideos();
   }, []);
 
+  // 🔹 Get appropriate presets and video count based on screen size
+  const getDisplayConfig = () => {
+    let presets = positionPresets[screenSize] || positionPresets.desktop;
+    let videoCount = presets.length;
+    
+    // Adjust video count for different screens
+    if (screenSize === 'mobile' || screenSize === 'mobileSmall') {
+      videoCount = 3;
+    }
+    
+    return { presets, videoCount };
+  };
+
   // 🔹 GSAP animations
   useEffect(() => {
     if (!videos.length) return;
 
     const ctx = gsap.context(() => {
+      const { presets, videoCount } = getDisplayConfig();
+      const displayVideos = videos.slice(0, videoCount);
       
-      // ===== ROUND VIDEO SECTION ANIMATION (First Section) =====
-      // Pin the sticky circle container - exact animation from roundvideo file
+      // ===== ROUND VIDEO SECTION ANIMATION =====
+      // Pin the sticky circle container
       ScrollTrigger.create({
         trigger: roundWrapRef.current,
         start: "top top",
@@ -578,22 +621,35 @@ export default function VideoShowcaseSection() {
         scrub: 0.5,
       });
 
-      // Animate the video circle to enlarge on scroll - exact from roundvideo
+      // Responsive circle sizes
+      const getCircleSizes = () => {
+        switch(screenSize) {
+          case 'mobileSmall': return { start: "35vw", end: "200vw" };
+          case 'mobile': return { start: "30vw", end: "180vw" };
+          case 'tablet': return { start: "15vw", end: "160vw" };
+          case 'laptop': return { start: "12vw", end: "150vw" };
+          default: return { start: "10vw", end: "150vw" };
+        }
+      };
+
+      const circleSizes = getCircleSizes();
+
+      // Animate the video circle to enlarge on scroll
       gsap.fromTo(roundElementRef.current,
         {
-          width: isMobile ? "30vw" : "10vw",
-          height: isMobile ? "30vw" : "10vw",
+          width: circleSizes.start,
+          height: circleSizes.start,
           borderRadius: "50%",
           scale: 1,
           opacity: 1,
           ease: "none"
         },
         {
-          width: "150vw",
-          height: "150vw",
+          width: circleSizes.end,
+          height: circleSizes.end,
           borderRadius: "50%",
-          scale: 1.2,
-          opacity: 0.9,
+          scale: screenSize.includes('mobile') ? 1.1 : 1.2,
+          opacity: screenSize.includes('mobile') ? 0.95 : 0.9,
           ease: "none",
           scrollTrigger: {
             trigger: roundWrapRef.current,
@@ -605,12 +661,12 @@ export default function VideoShowcaseSection() {
         }
       );
 
-      // Animate the dark overlay - exact from roundvideo
+      // Animate the dark overlay
       if (roundOverlayRef.current) {
         gsap.fromTo(roundOverlayRef.current,
-          { opacity: 0.3 },
+          { opacity: screenSize.includes('mobile') ? 0.2 : 0.3 },
           {
-            opacity: 0.8,
+            opacity: screenSize.includes('mobile') ? 0.7 : 0.8,
             ease: "none",
             scrollTrigger: {
               trigger: roundWrapRef.current,
@@ -622,26 +678,25 @@ export default function VideoShowcaseSection() {
         );
       }
 
-      // Animate the light button - exact from roundvideo
+      // Animate the light button
       if (roundButtonRef.current) {
         gsap.fromTo(roundButtonRef.current,
           { opacity: 1, scale: 1 },
           {
             opacity: 0,
-            scale: 1.5,
+            scale: screenSize.includes('mobile') ? 1.3 : 1.5,
             ease: "none",
             scrollTrigger: {
               trigger: roundWrapRef.current,
               start: "top top",
-              end: "center center",
+              end: screenSize.includes('mobile') ? "30% center" : "center center",
               scrub: 0.8
             }
           }
         );
       }
 
-      // ===== VIDEO SHOWCASE SECTION ANIMATION (Second Section) =====
-      // Split text for background animation
+      // ===== VIDEO SHOWCASE SECTION ANIMATION =====
       if (showcaseTextRef.current) {
         const split = new SplitType(showcaseTextRef.current, { types: "words" });
 
@@ -649,23 +704,22 @@ export default function VideoShowcaseSection() {
           scrollTrigger: {
             trigger: showcaseSectionRef.current,
             start: "top top",
-            end: "+=250%",
+            end: screenSize.includes('mobile') ? "+=200%" : "+=250%",
             scrub: true,
             pin: true,
           },
         });
 
-        // Animate background text
+        // Responsive text animation
+        const textStagger = screenSize.includes('mobile') ? 0.08 : 0.12;
+        const textXOffset = screenSize.includes('mobile') ? -40 : -80;
+
         showcaseTl.fromTo(
           split.words,
-          { x: -80, opacity: 0 },
-          { x: 0, opacity: 0.12, stagger: 0.12 },
+          { x: textXOffset, opacity: 0 },
+          { x: 0, opacity: 0.12, stagger: textStagger },
           0
         );
-
-        // 🔹 Use appropriate presets based on screen size
-        const displayVideos = isMobile ? videos.slice(0, 3) : videos;
-        const presets = isMobile ? mobilePositionPresets : positionPresets;
 
         // Set initial positions for video cards
         showcaseCardsRef.current.forEach((card, i) => {
@@ -675,36 +729,49 @@ export default function VideoShowcaseSection() {
           }
         });
 
-        // Animate video cards
+        // Animate video cards with responsive stagger
         showcaseTl.fromTo(
           showcaseCardsRef.current.filter(card => card !== null),
-          { opacity: 0, y: 60 },
-          { opacity: 1, y: 0, stagger: 0.12 },
+          { opacity: 0, y: screenSize.includes('mobile') ? 40 : 60 },
+          { opacity: 1, y: 0, stagger: screenSize.includes('mobile') ? 0.08 : 0.12 },
           0.15
         );
 
-        // Animate the yellow circle
+        // Responsive circle animation
+        const circleStartSize = screenSize.includes('mobileSmall') ? "25vw" : 
+                               screenSize.includes('mobile') ? "20vw" : 
+                               screenSize.includes('tablet') ? "15vw" : "12vw";
+
         showcaseTl.fromTo(
           showcaseCircleRef.current,
           { 
-            width: isMobile ? "20vw" : "12vw", 
-            height: isMobile ? "20vw" : "12vw", 
+            width: circleStartSize, 
+            height: circleStartSize, 
             borderRadius: "50%" 
           },
           { 
-            width: "150vw", 
-            height: "150vw", 
-            borderRadius: "75vw" 
+            width: screenSize.includes('mobile') ? "200vw" : "150vw", 
+            height: screenSize.includes('mobile') ? "200vw" : "150vw", 
+            borderRadius: screenSize.includes('mobile') ? "100vw" : "75vw" 
           },
-          0.35
+          screenSize.includes('mobile') ? 0.25 : 0.35
         );
       }
     });
 
     ScrollTrigger.refresh();
 
-    return () => ctx.revert();
-  }, [videos, isMobile]);
+    // Refresh on resize
+    const handleResize = () => {
+      setTimeout(() => ScrollTrigger.refresh(), 100);
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      ctx.revert();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [videos, screenSize]);
 
   const handlePlayClick = (e) => {
     e.preventDefault();
@@ -717,13 +784,20 @@ export default function VideoShowcaseSection() {
 
   if (loading) return null;
 
-  // 🔹 Show only 3 videos on mobile
-  const displayVideos = isMobile ? videos.slice(0, 3) : videos;
+  const { presets, videoCount } = getDisplayConfig();
+  const displayVideos = videos.slice(0, videoCount);
 
   return (
     <>
       <style>{`
-        /* ===== ROUND VIDEO SECTION STYLES (First Section) ===== */
+        /* ===== BASE STYLES ===== */
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+
+        /* ===== ROUND VIDEO SECTION STYLES ===== */
         .round-video-section {
           position: relative;
           background-color: #523122;
@@ -735,12 +809,34 @@ export default function VideoShowcaseSection() {
         .cont {
           position: relative;
           width: 100%;
+          max-width: 100%;
+          margin: 0 auto;
         }
 
         .sticky-circle_wrap {
           position: relative;
-          height: 200vh;
           width: 100%;
+        }
+
+        /* Responsive heights */
+        .sticky-circle_wrap {
+          height: clamp(120vh, 180vh, 250vh);
+        }
+
+        @media (min-width: 1920px) {
+          .sticky-circle_wrap { height: 250vh; }
+        }
+        @media (max-width: 1366px) {
+          .sticky-circle_wrap { height: 200vh; }
+        }
+        @media (max-width: 1024px) {
+          .sticky-circle_wrap { height: 180vh; }
+        }
+        @media (max-width: 768px) {
+          .sticky-circle_wrap { height: 150vh; }
+        }
+        @media (max-width: 480px) {
+          .sticky-circle_wrap { height: 120vh; }
         }
 
         .sticky-circle {
@@ -754,18 +850,36 @@ export default function VideoShowcaseSection() {
         }
 
         .sticky-circle_element {
-          width: clamp(80px, 10vw, 150px);
-          height: clamp(80px, 10vw, 150px);
           border-radius: 50%;
           overflow: hidden;
           position: relative;
-          box-shadow: 0 0 min(50px, 5vw) rgba(0, 0, 0, 0.3);
+          box-shadow: 0 0 min(30px, 3vw) rgba(0, 0, 0, 0.3);
           will-change: width, height, border-radius, scale, opacity;
           transition: box-shadow 0.3s ease;
         }
 
         .sticky-circle_element:hover {
-          box-shadow: 0 0 min(70px, 7vw) rgba(0, 0, 0, 0.5);
+          box-shadow: 0 0 min(50px, 5vw) rgba(0, 0, 0, 0.5);
+        }
+
+        /* Responsive circle sizes */
+        .sticky-circle_element {
+          width: clamp(80px, 10vw, 200px);
+          height: clamp(80px, 10vw, 200px);
+        }
+
+        @media (max-width: 768px) {
+          .sticky-circle_element {
+            width: clamp(100px, 30vw, 180px);
+            height: clamp(100px, 30vw, 180px);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .sticky-circle_element {
+            width: clamp(120px, 35vw, 160px);
+            height: clamp(120px, 35vw, 160px);
+          }
         }
 
         .div-block-40 {
@@ -806,8 +920,6 @@ export default function VideoShowcaseSection() {
 
         /* Circular Play Button Styles */
         .light-button.absolute {
-          width: clamp(80px, 12vw, 180px);
-          height: clamp(80px, 12vw, 180px);
           border-radius: 50%;
           position: relative;
           display: flex;
@@ -817,6 +929,26 @@ export default function VideoShowcaseSection() {
           will-change: opacity, scale;
           background: transparent;
           cursor: pointer;
+        }
+
+        /* Responsive button sizes */
+        .light-button.absolute {
+          width: clamp(80px, 12vw, 200px);
+          height: clamp(80px, 12vw, 200px);
+        }
+
+        @media (max-width: 768px) {
+          .light-button.absolute {
+            width: clamp(100px, 25vw, 180px);
+            height: clamp(100px, 25vw, 180px);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .light-button.absolute {
+            width: clamp(120px, 35vw, 160px);
+            height: clamp(120px, 35vw, 160px);
+          }
         }
 
         .circular-bg {
@@ -831,14 +963,18 @@ export default function VideoShowcaseSection() {
 
         .play-icon {
           z-index: 3;
-          font-size: clamp(20px, 4vw, 60px);
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: transform 0.3s ease;
+        }
+
+        /* Responsive play icon */
+        .play-icon {
           width: clamp(20px, 4vw, 60px);
           height: clamp(20px, 4vw, 60px);
-          transition: transform 0.3s ease;
+          font-size: clamp(20px, 4vw, 60px);
         }
 
         .play-icon::after {
@@ -859,12 +995,19 @@ export default function VideoShowcaseSection() {
           to { transform: rotate(360deg); }
         }
 
+        /* Responsive SVG text */
         .circular-text-svg text {
           font-weight: 700;
           fill: rgba(255, 255, 255, 0.9);
           text-transform: uppercase;
           letter-spacing: 0.15em;
-          font-size: clamp(8px, 1.5vw, 16px);
+          font-size: clamp(6px, 1.2vw, 16px);
+        }
+
+        @media (max-width: 480px) {
+          .circular-text-svg text {
+            font-size: clamp(8px, 2.5vw, 12px);
+          }
         }
 
         .light-button.absolute:hover .play-icon::after {
@@ -875,7 +1018,7 @@ export default function VideoShowcaseSection() {
           background: rgba(0, 0, 0, 0.85);
         }
 
-        /* ===== VIDEO SHOWCASE SECTION STYLES (Second Section) ===== */
+        /* ===== VIDEO SHOWCASE SECTION STYLES ===== */
         .video-showcase-section {
           min-height: 100vh;
           background: #000;
@@ -890,15 +1033,32 @@ export default function VideoShowcaseSection() {
           display: flex;
           justify-content: center;
           align-items: center;
-          font-size: clamp(3rem, 12vw, 8rem);
           font-weight: 900;
           color: rgba(250,204,21,.95);
           pointer-events: none;
           text-align: center;
-          padding: 0 20px;
+          padding: 0 clamp(10px, 3vw, 30px);
           z-index: 5;
           text-transform: uppercase;
           line-height: 1.2;
+          font-size: clamp(1.5rem, 8vw, 8rem);
+        }
+
+        /* Responsive text sizes */
+        @media (min-width: 1920px) {
+          .bg-text { font-size: 8rem; }
+        }
+        @media (max-width: 1366px) {
+          .bg-text { font-size: 6rem; }
+        }
+        @media (max-width: 1024px) {
+          .bg-text { font-size: 5rem; }
+        }
+        @media (max-width: 768px) {
+          .bg-text { font-size: 3.5rem; }
+        }
+        @media (max-width: 480px) {
+          .bg-text { font-size: 2.5rem; }
         }
         
         .showcase-circle {
@@ -909,19 +1069,41 @@ export default function VideoShowcaseSection() {
           background: rgba(250,204,21,.95);
           z-index: 10;
           border-radius: 50%;
+          will-change: width, height;
         }
         
         .video-card {
           position: absolute;
           top: 50%;
           left: 50%;
-          width: clamp(140px, 15vw, 220px);
-          aspect-ratio: 9/16;
-          border-radius: clamp(12px, 1.5vw, 20px);
+          transform: translate(-50%, -50%);
+          border-radius: clamp(8px, 1.5vw, 20px);
           overflow: hidden;
-          box-shadow: 0 20px 40px rgba(0,0,0,.45);
+          box-shadow: 0 10px 30px rgba(0,0,0,.45);
           z-index: 20;
           will-change: transform, opacity;
+        }
+
+        /* Responsive video card sizes */
+        .video-card {
+          width: clamp(100px, 15vw, 280px);
+          aspect-ratio: 9/16;
+        }
+
+        @media (min-width: 1920px) {
+          .video-card { width: 280px; }
+        }
+        @media (max-width: 1366px) {
+          .video-card { width: 200px; }
+        }
+        @media (max-width: 1024px) {
+          .video-card { width: 160px; }
+        }
+        @media (max-width: 768px) {
+          .video-card { width: 130px; }
+        }
+        @media (max-width: 480px) {
+          .video-card { width: 100px; }
         }
         
         .video-card video {
@@ -937,7 +1119,7 @@ export default function VideoShowcaseSection() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(0, 0, 0, 0.95);
+          background: rgba(0, 0, 0, 0.98);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -961,7 +1143,7 @@ export default function VideoShowcaseSection() {
 
         @keyframes slideUp {
           from {
-            transform: translateY(min(50px, 5vh));
+            transform: translateY(min(30px, 3vh));
             opacity: 0;
           }
           to {
@@ -979,13 +1161,11 @@ export default function VideoShowcaseSection() {
 
         .modal-close-btn {
           position: absolute;
-          top: max(-50px, -5vh);
+          top: clamp(-40px, -5vh, -30px);
           right: 0;
           background: white;
           color: #523122;
           border: none;
-          width: clamp(32px, 5vw, 40px);
-          height: clamp(32px, 5vw, 40px);
           border-radius: 50%;
           font-size: clamp(20px, 3vw, 24px);
           cursor: pointer;
@@ -994,6 +1174,12 @@ export default function VideoShowcaseSection() {
           justify-content: center;
           transition: all 0.3s ease;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive close button */
+        .modal-close-btn {
+          width: clamp(32px, 5vw, 44px);
+          height: clamp(32px, 5vw, 44px);
         }
 
         .modal-close-btn:hover {
@@ -1014,95 +1200,28 @@ export default function VideoShowcaseSection() {
           perspective: 1000;
         }
 
-        /* Responsive Styles */
-        @media (max-width: 992px) {
-          .sticky-circle_wrap {
-            height: 180vh;
-          }
-          
-          .bg-text {
-            font-size: clamp(2.5rem, 10vw, 6rem);
-          }
-        }
-
-        @media (max-width: 768px) {
+        /* Landscape mode optimizations */
+        @media (orientation: landscape) and (max-height: 600px) {
           .sticky-circle_wrap {
             height: 150vh;
           }
           
           .sticky-circle_element {
-            width: clamp(100px, 30vw, 200px);
-            height: clamp(100px, 30vw, 200px);
+            width: clamp(60px, 15vh, 120px);
+            height: clamp(60px, 15vh, 120px);
           }
 
           .light-button.absolute {
-            width: clamp(120px, 25vw, 180px);
-            height: clamp(120px, 25vw, 180px);
+            width: clamp(70px, 18vh, 140px);
+            height: clamp(70px, 18vh, 140px);
           }
 
-          .play-icon {
-            font-size: clamp(30px, 8vw, 50px);
-          }
-
-          .play-icon::after {
-            font-size: clamp(24px, 6vw, 40px);
-          }
-
-          .circular-text-svg text {
-            font-size: clamp(10px, 2vw, 14px);
+          .video-card {
+            width: clamp(80px, 12vh, 140px);
           }
 
           .bg-text {
-            font-size: clamp(2rem, 8vw, 4rem);
-          }
-
-          .video-card {
-            width: clamp(120px, 25vw, 160px);
-          }
-        }
-
-        @media (max-width: 480px) {
-          .sticky-circle_wrap {
-            height: 120vh;
-          }
-          
-          .sticky-circle_element {
-            width: clamp(120px, 35vw, 180px);
-            height: clamp(120px, 35vw, 180px);
-          }
-
-          .light-button.absolute {
-            width: clamp(140px, 35vw, 180px);
-            height: clamp(140px, 35vw, 180px);
-          }
-
-          .circular-text-svg {
-            animation-duration: 15s;
-          }
-
-          .bg-text {
-            font-size: clamp(1.5rem, 6vw, 3rem);
-          }
-
-          .video-card {
-            width: clamp(100px, 30vw, 140px);
-          }
-        }
-
-        /* Landscape mode */
-        @media (orientation: landscape) and (max-height: 600px) {
-          .sticky-circle_element {
-            width: clamp(80px, 20vh, 150px);
-            height: clamp(80px, 20vh, 150px);
-          }
-
-          .light-button.absolute {
-            width: clamp(100px, 25vh, 180px);
-            height: clamp(100px, 25vh, 180px);
-          }
-
-          .video-card {
-            width: clamp(100px, 15vh, 160px);
+            font-size: clamp(1.2rem, 8vh, 4rem);
           }
         }
 
@@ -1147,10 +1266,37 @@ export default function VideoShowcaseSection() {
             width: 44px;
             height: 44px;
           }
+          
+          .video-card {
+            box-shadow: 0 5px 15px rgba(0,0,0,.3);
+          }
+        }
+
+        /* High-DPI screens */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+          .video-card {
+            box-shadow: 0 15px 35px rgba(0,0,0,.5);
+          }
+        }
+
+        /* Ultra-wide screens */
+        @media (min-width: 2560px) {
+          .video-card {
+            width: 320px;
+          }
+          
+          .bg-text {
+            font-size: 10rem;
+          }
+          
+          .sticky-circle_element {
+            width: 200px;
+            height: 200px;
+          }
         }
       `}</style>
 
-      {/* ===== ROUND VIDEO SECTION (First Section) ===== */}
+      {/* ===== ROUND VIDEO SECTION ===== */}
       <div className="round-video-section" ref={roundSectionRef}>
         <div className="cont">
           <div className="sticky-circle_wrap" ref={roundWrapRef}>
@@ -1221,7 +1367,7 @@ export default function VideoShowcaseSection() {
         </div>
       </div>
 
-      {/* ===== VIDEO SHOWCASE SECTION (Second Section) ===== */}
+      {/* ===== VIDEO SHOWCASE SECTION ===== */}
       <section ref={showcaseSectionRef} className="video-showcase-section">
         <h2 ref={showcaseTextRef} className="bg-text">
           WHAT'S EVERYONE TALKING
