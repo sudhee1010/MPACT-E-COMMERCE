@@ -47,7 +47,7 @@ export default function VerifyEmail() {
       setLoading(true);
       await api.post("/api/auth/verify-otp", { email, otp });
       toast.success("Email verified successfully");
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid OTP");
     } finally {

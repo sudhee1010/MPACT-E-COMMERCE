@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { updateCartItemApi, removeCartItemApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
@@ -13,12 +13,21 @@ export default function SideCart() {
     cartMeta,
   } = useCart();
 
+  // Add state to track stock errors from backend
+  const [stockErrors, setStockErrors] = useState({});
+
   const increaseQty = async (productId, currentQty, stock) => {
     // Prevent increasing quantity beyond available stock
     if (currentQty >= stock) {
-      console.log(`Cannot add more. Only ${stock} items available in stock.`);
+      setStockErrors(prev => ({ 
+        ...prev, 
+        [productId]: "Max stock reached" 
+      }));
       return;
     }
+
+    // Clear any previous stock error for this product
+    setStockErrors(prev => ({ ...prev, [productId]: null }));
 
     try {
       // Optimistic UI update
@@ -35,13 +44,22 @@ export default function SideCart() {
       refreshCart(); // Refresh cart to sync with backend
     } catch (err) {
       console.log("Increase qty error:", err);
-      
+
       // If error contains stock-related message
-      if (err.response?.data?.message?.includes("stock") || 
-          err.response?.data?.error?.includes("stock")) {
+      if (
+        err.response?.data?.message?.includes("stock") ||
+        err.response?.data?.error?.includes("stock") ||
+        err.response?.data?.message?.includes("available") ||
+        err.response?.data?.error?.includes("available")
+      ) {
         console.log("Stock limitation error:", err.response?.data);
+        // Set stock error to disable button for this product
+        setStockErrors(prev => ({ 
+          ...prev, 
+          [productId]: "max stock reached" 
+        }));
       }
-      
+
       // Refresh cart to revert optimistic update on error
       refreshCart();
     }
@@ -52,6 +70,12 @@ export default function SideCart() {
       if (currentQty <= 1) {
         const res = await removeCartItemApi(productId);
         setCartItems(res.data.items);
+        // Clear any stock errors for this product
+        setStockErrors(prev => {
+          const updated = { ...prev };
+          delete updated[productId];
+          return updated;
+        });
         refreshCart();
         return;
       }
@@ -64,10 +88,13 @@ export default function SideCart() {
         ),
       );
 
+      // Clear stock error when decreasing quantity
+      setStockErrors(prev => ({ ...prev, [productId]: null }));
+
       await updateCartItemApi(productId, currentQty - 1);
       refreshCart();
     } catch (err) {
-      console.log("Decrease qty error:", err);
+      console.error("Decrease qty error:", err.message);
       refreshCart(); // rollback on error
     }
   };
@@ -76,16 +103,31 @@ export default function SideCart() {
     try {
       const res = await removeCartItemApi(productId);
       setCartItems(res.data.items);
+      
+      // Clear stock error for removed item
+      setStockErrors(prev => {
+        const updated = { ...prev };
+        delete updated[productId];
+        return updated;
+      });
+      
       refreshCart();
     } catch (err) {
-      console.log("Remove item error:", err);
+      console.error("Remove item error:", err.message);
     }
   };
 
   // Helper to disable + button when at max stock
   const isMaxStock = (productId, currentQty) => {
-    const item = cartItems.find(item => item.product._id === productId);
+    const item = cartItems.find((item) => item.product._id === productId);
     if (!item) return false;
+    
+    // Check if there's a stock error from backend
+    if (stockErrors[productId]) {
+      return true;
+    }
+    
+    // Check local stock count
     return currentQty >= item.product.countInStock;
   };
 
@@ -144,7 +186,7 @@ export default function SideCart() {
           top: var(--navbar-height);
           bottom: 0;
           right: 0;
-          width: 520px;
+          width: 350px;
           background: #2a2a2a;
           transform: translateX(${openSideCart ? "0" : "100%"});
           transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
@@ -189,7 +231,7 @@ export default function SideCart() {
         }
 
         .body {
-          padding: 24px;
+          padding: 14px;
           flex: 1;
           overflow-y: auto;
           display: flex;
@@ -207,7 +249,7 @@ export default function SideCart() {
         .item {
           border: 2px solid #ffeb00;
           border-radius: 12px;
-          padding: 18px;
+          padding: 6px;
           display: flex;
           gap: 16px;
           position: relative;
@@ -218,7 +260,7 @@ export default function SideCart() {
           width: 90px;
           height: 120px;
           object-fit: cover;
-          border-radius: 10px;
+          border-radius: 6px;
           flex-shrink: 0;
         }
 
@@ -254,8 +296,14 @@ export default function SideCart() {
 
         .stock-warning {
           font-size: 12px;
+          width: fit-content;
           color: #ff6b6b;
+          background: rgba(255, 107, 107, 0.15);
+          padding: 6px 8px;
+          border-radius: 4px;
+          border-left: 3px solid #ff6b6b;
           margin-top: 4px;
+          font-weight: 500;
         }
 
         .qty {
@@ -283,9 +331,10 @@ export default function SideCart() {
         }
 
         .qty button:disabled {
-          opacity: 0.4;
+          opacity: 0.5;
           cursor: not-allowed;
-          color: #888;
+          color: #999;
+          background: rgba(255, 0, 0, 0.1);
         }
 
         .qty span {
@@ -315,14 +364,14 @@ export default function SideCart() {
 
         .priceBox {
           border-top: 2px solid #ffeb00;
-          padding: 20px 24px;
+          padding: 10px 14px;
           background: #222;
         }
 
         .row {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 12px;
+          margin-bottom: 4px;
           color: #fff;
           font-size: 15px;
         }
@@ -331,7 +380,7 @@ export default function SideCart() {
           margin-bottom: 0;
           font-size: 18px;
           font-weight: bold;
-          padding-top: 12px;
+          padding-top: 4px;
           border-top: 1px solid #444;
         }
 
@@ -341,7 +390,7 @@ export default function SideCart() {
         }
 
         .footer {
-          padding: 18px 24px;
+          padding: 14px 14px;
           background: #2a2a2a;
         }
 
@@ -349,7 +398,7 @@ export default function SideCart() {
           display: block;
           background: #ffeb00;
           color: #000;
-          padding: 16px;
+          padding: 8px;
           text-align: center;
           font-weight: 900;
           text-decoration: none;
@@ -360,36 +409,6 @@ export default function SideCart() {
         .footer a:hover {
           background: #ffed33;
         }
-
-        // @media (max-width: 768px) {
-        //   .sidecart {
-        //     top: 0;
-        //     bottom: 0;
-        //     width: 100%;
-        //     height: 100vh;
-        //   }
-
-        //   .header {
-        //     position: sticky;
-        //     top: 0;
-        //     height: 60px;
-        //     padding: 0 16px;
-        //     display: flex;
-        //     align-items: center;
-        //     justify-content: space-between;
-        //     z-index: 1001;
-        //   }
-
-        //   .close-btn {
-        //     width: 40px;
-        //     height: 40px;
-        //     font-size: 24px;
-        //   }
-
-        //   .body {
-        //     padding-top: 16px;
-        //   }
-        // }
 
         @media (max-width: 480px) {
           .header {
@@ -467,36 +486,56 @@ export default function SideCart() {
           }
         }
 
-         @media (max-width: 768px) 
+        @media (max-width: 768px) {
+          .sidecart {
+            top: --navbar-height-mobile;
+            bottom: 0;
+            width: 100%;
+            height: 100vh;
+          }
 
-  .sidecart {
-    top: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100vh;
-  }
+          .header {
+            position: sticky;
+            top: 0;
+            height: 50px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1001;
+          }
 
-  .header {
-    position: sticky;
-    top: 0;
-    height: 60px;
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 1001;
-  }
+          .close-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+          }
 
-  .close-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 24px;
-  }
+          .body {
+            padding-top: 16px;
+          }
+          
+          .remove {
+            position: absolute;
+            height: 30px;
+            right: 12px;
+            top: 12px;
+            font-size: 12px;
+            padding: 4px 8px;
+            background: #ff4444;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+          }
 
-  .body {
-    padding-top: 16px; /* NO offset needed now */
-  }
-}
+          .remove:hover {
+            background: #ff6666;
+          }
+
+          .item {
+            padding: 12px;
+          }
+        }
       `}</style>
 
       <div className="overlay" onClick={() => setOpenSideCart(false)} />
@@ -532,19 +571,27 @@ export default function SideCart() {
                   ₹{item.price} <del>₹{item.originalPrice}</del>
                 </p>
 
-                {/* Stock warning message */}
-                {item.quantity >= item.product.countInStock && (
+                {/* Display stock error message if exists */}
+                {stockErrors[item.product._id] && (
                   <div className="stock-warning">
-                    Max stock reached ({item.product.countInStock} available)
+                    ⚠️ {stockErrors[item.product._id]}
                   </div>
                 )}
+
+                {/* Stock warning message when at max but no specific error */}
+                {!stockErrors[item.product._id] &&
+                  item.quantity >= item.product.countInStock && (
+                    <div className="stock-warning">
+                      📦 Max stock reached ({item.product.countInStock} available)
+                    </div>
+                  )}
 
                 <div className="qty">
                   <button
                     onClick={() => decreaseQty(item.product._id, item.quantity)}
                     aria-label="Decrease quantity"
                   >
-                    -
+                    −
                   </button>
                   <span>{item.quantity}</span>
                   <button
@@ -555,8 +602,15 @@ export default function SideCart() {
                         item.product.countInStock,
                       )
                     }
-                    disabled={item.quantity >= item.product.countInStock}
+                    // Disable button when either local stock is reached OR backend has stock error
+                    disabled={isMaxStock(item.product._id, item.quantity)}
                     aria-label="Increase quantity"
+                    title={
+                      isMaxStock(item.product._id, item.quantity)
+                        ? stockErrors[item.product._id] ||
+                          "Maximum stock reached"
+                        : "Add one more"
+                    }
                   >
                     +
                   </button>

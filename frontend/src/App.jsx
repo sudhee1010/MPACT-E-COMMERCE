@@ -38,8 +38,9 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import OrderDetails from "./pages/OrderDetails.jsx";
 import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
 import ForgotPassword from "./pages/ForgotPassword";
-// import HomeAds from "./components/Homeads.jsx";
-import HomeAds from "./pages/HomeAds.jsx";
+// import Homeads from "./pages/HomeAds.jsx";
+import Homeads from "./pages/HomeAds.jsx";
+
 
 
 
@@ -109,6 +110,7 @@ import { Slider } from "./components/ui/Slider.jsx";
 import { Skeleton } from "./components/ui/Skeleton.jsx";
 import AdminDistributor from "./components/AdminDistributor.jsx";
 import AdminReviews from "./components/Reviews.jsx";
+import Carouselvideosadmin from "./components/Carouselvideosadmin.jsx";
 
 
 
@@ -136,7 +138,8 @@ function App() {
     "/settings",
     "/personalsettings",
     "/help-support",
-     "/reviews",
+    "/reviews",
+    "/carouselvideosadmin",
   ].some((path) => location.pathname.startsWith(path));
 
   return (
@@ -189,7 +192,9 @@ function App() {
           <Route path="/review" element={<Review />} />
           <Route path="/popup" element={<SuccessPopup />} />
           <Route path="/distributor" element={<DistributorEnquiry />} />
-          <Route path="/homeads" element={<HomeAds/>} />
+          <Route path="/homeads" element={<Homeads />} />
+          
+          
 
 
 
@@ -235,7 +240,7 @@ function App() {
             <Route path="/personalsettings" element={<PersonalSettings />} />
              <Route path="/help-support" element={< AdminHelpSupport/>} />
              <Route path="/reviews" element={<AdminReviews />} />
-
+             <Route path="/carouselvideosadmin" element={<Carouselvideosadmin />} />
           </Route>
 
           {/* UI DEMOS */}

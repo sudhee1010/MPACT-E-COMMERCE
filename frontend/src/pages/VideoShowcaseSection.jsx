@@ -300,6 +300,7 @@ import axios from "axios";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SplitType from "split-type";
+import api from "../api/axios";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -342,7 +343,7 @@ export default function VideoShowcaseSection() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/videos");
+        const res = await api.get("/api/videos");
         setVideos(res.data || []);
       } catch (err) {
         console.error("Failed to load videos");

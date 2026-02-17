@@ -137,9 +137,9 @@ export const downloadInvoice = async (req, res) => {
         .fontSize(10)
         .text(item.name, itemX, position, { width: 240 })
         .text(item.quantity, qtyX, position)
-        .text(`RS ${item.price.toFixed(2)}`, priceX, position)
+        .text(`RS: ${item.price.toFixed(2)}`, priceX, position)
         .text(
-          `RS ${(item.price * item.quantity).toFixed(2)}`,
+          `RS: ${(item.price * item.quantity).toFixed(2)}`,
           totalX,
           position
         );
@@ -157,18 +157,18 @@ export const downloadInvoice = async (req, res) => {
 
     doc
       .fontSize(10)
-      .text(`Subtotal: RS ${subtotal.toFixed(2)}`, 350, position);
+      .text(`Subtotal: RS: ${subtotal.toFixed(2)}`, 350, position);
 
     position += 16;
-    doc.text(`CGST (9%): RS ${cgst.toFixed(2)}`, 350, position);
+    doc.text(`CGST (9%): RS: ${cgst.toFixed(2)}`, 350, position);
 
     position += 16;
-    doc.text(`SGST (9%): RS ${sgst.toFixed(2)}`, 350, position);
+    doc.text(`SGST (9%): RS: ${sgst.toFixed(2)}`, 350, position);
 
     position += 18;
     doc
       .fontSize(12)
-      .text(`Grand Total: RS ${order.totalAmount.toFixed(2)}`, 350, position, {
+      .text(`Grand Total: RS: ${order.totalAmount.toFixed(2)}`, 350, position, {
         underline: true,
       });
 
