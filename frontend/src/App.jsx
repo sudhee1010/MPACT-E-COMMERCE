@@ -40,6 +40,8 @@ import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
 import ForgotPassword from "./pages/ForgotPassword";
 // import Homeads from "./pages/HomeAds.jsx";
 import Homeads from "./pages/HomeAds.jsx";
+import Connect from "./pages/Connect.jsx";
+import AdminSubscribers from "./pages/AdminSubscribers.jsx";
 
 
 
@@ -140,6 +142,7 @@ function App() {
     "/help-support",
     "/reviews",
     "/carouselvideosadmin",
+    "/admin-subscribers",
   ].some((path) => location.pathname.startsWith(path));
 
   return (
@@ -215,6 +218,7 @@ function App() {
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/return-policy" element={<Return />} />
+          <Route path="/connect" element={<Connect />} />
 
 
           {/* ADMIN */}
@@ -241,6 +245,7 @@ function App() {
             <Route path="/help-support" element={< AdminHelpSupport />} />
             <Route path="/reviews" element={<AdminReviews />} />
             <Route path="/carouselvideosadmin" element={<Carouselvideosadmin />} />
+            <Route path="/admin-subscribers" element={<AdminSubscribers />} />
           </Route>
 
           {/* UI DEMOS */}
