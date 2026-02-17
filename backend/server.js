@@ -54,6 +54,7 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+app.use("/uploads", express.static("uploads"));
 cron.schedule("*/30 * * * *", cleanupUnverifiedUsers);
 startOrderCleanupJob();
 
