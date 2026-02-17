@@ -15,6 +15,24 @@ export default function Navbar() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { cartCount, setOpenSideCart } = useCart();
 
+  // ✅ LOCK BODY SCROLL WHEN MOBILE MENU IS OPEN
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    };
+  }, [menuOpen]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") setMenuOpen(false);
@@ -146,7 +164,9 @@ export default function Navbar() {
           left: 0;
           width: 100%;
           height: var(--navbar-height);
-          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 50%, #ffe066 100%);
+          // background: linear-gradient(135deg, #ffd400 0%, #ffed4e 50%, #ffe066 100%);
+          background:#ffd400;
+          
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -195,12 +215,11 @@ export default function Navbar() {
           position: absolute;
           left: 50%;
           transform: translateX(-50%);
-          background: white;
+          background: transparent;
           border-radius: 50px;
           padding: 12px 24px;
           display: flex;
           gap: 8px;
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
 
         /* ========= TAB ITEMS ========= */
@@ -226,7 +245,7 @@ export default function Navbar() {
         .nav-tab-label {
           font-family: 'Jersey 25', sans-serif;
           font-size: 14px;
-          color: #999;
+          color: #000;
           transition: all 0.3s ease;
           white-space: nowrap;
         }
@@ -294,19 +313,18 @@ export default function Navbar() {
           width: 46px;
           height: 46px;
           border-radius: 50%;
-          background: white;
+          background: rgba(0, 0, 0, 0.08);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .nav-icon-btn:hover {
+          background: rgba(0, 0, 0, 0.15);
           transform: translateY(-3px) scale(1.1);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
         .cart-badge {
@@ -333,14 +351,13 @@ export default function Navbar() {
           cursor: pointer;
           padding: 10px;
           border-radius: 12px;
-          background: white;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          background: rgba(0, 0, 0, 0.08);
           transition: all 0.3s ease;
         }
 
         .hamburger:hover {
           transform: rotate(90deg);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+          background: rgba(0, 0, 0, 0.15);
         }
 
         /* ========= MOBILE MENU ========= */
@@ -349,7 +366,7 @@ export default function Navbar() {
           top: var(--navbar-height);
           left: 0;
           width: 100%;
-          background: white;
+          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 50%, #ffe066 100%);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -375,27 +392,29 @@ export default function Navbar() {
           cursor: pointer;
           transition: all 0.3s ease;
           text-decoration: none;
-          background: #f5f5f5;
+          background: rgba(0, 0, 0, 0.07);
         }
 
         .mobile-tab.active {
-          background: linear-gradient(135deg, #ffd400 0%, #ffed4e 100%);
+          background: rgba(0, 0, 0, 0.15);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .mobile-tab:hover {
           transform: translateX(8px);
+          background: rgba(0, 0, 0, 0.12);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .mobile-tab-label {
           font-family: 'Jersey 25', sans-serif;
-          font-size: 18px;
-          color: #666;
+          font-size: 20px;
+          color: #000;
         }
 
         .mobile-tab.active .mobile-tab-label {
           color: #000;
-          font-weight: 600;
+          font-weight: 700;
         }
 
         /* ========= RESPONSIVE ========= */
@@ -447,22 +466,22 @@ export default function Navbar() {
         {/* TAB BAR (DESKTOP) */}
         <div className="nav-tabbar">
           <Link to="/" className={`nav-tab ${isActive('/') ? 'active' : ''}`}>
-            <Home size={22} className="nav-tab-icon" color={isActive('/') ? '#000' : '#999'} strokeWidth={2} />
+            <Home size={22} className="nav-tab-icon" color={isActive('/') ? '#000' : '#000'} strokeWidth={2} />
             <span className="nav-tab-label">Home</span>
           </Link>
 
           <Link to="/product" className={`nav-tab ${isActive('/product') ? 'active' : ''}`}>
-            <Package size={22} className="nav-tab-icon" color={isActive('/product') ? '#000' : '#999'} strokeWidth={2} />
+            <Package size={22} className="nav-tab-icon" color={isActive('/product') ? '#000' : '#000'} strokeWidth={2} />
             <span className="nav-tab-label">Products</span>
           </Link>
 
           <Link to="/about" className={`nav-tab ${isActive('/about') ? 'active' : ''}`}>
-            <Info size={22} className="nav-tab-icon" color={isActive('/about') ? '#000' : '#999'} strokeWidth={2} />
+            <Info size={22} className="nav-tab-icon" color={isActive('/about') ? '#000' : '#000'} strokeWidth={2} />
             <span className="nav-tab-label">About</span>
           </Link>
 
           <Link to="/blog" className={`nav-tab ${isActive('/blog') ? 'active' : ''}`}>
-            <BookOpen size={22} className="nav-tab-icon" color={isActive('/blog') ? '#000' : '#999'} strokeWidth={2} />
+            <BookOpen size={22} className="nav-tab-icon" color={isActive('/blog') ? '#000' : '#000'} strokeWidth={2} />
             <span className="nav-tab-label">Blog</span>
           </Link>
 
@@ -475,12 +494,12 @@ export default function Navbar() {
               else setShowLoginModal(true);
             }}
           >
-            <Heart size={22} className="nav-tab-icon" color={isActive('/wishlist') ? '#000' : '#999'} strokeWidth={2} />
+            <Heart size={22} className="nav-tab-icon" color={isActive('/wishlist') ? '#000' : '#000'} strokeWidth={2} />
             <span className="nav-tab-label">Wishlist</span>
           </Link>
 
           <Link to="/distributor" className={`nav-tab ${isActive('/distributor') ? 'active' : ''}`}>
-            <Building2 size={22} className="nav-tab-icon" color={isActive('/distributor') ? '#000' : '#999'} strokeWidth={2} />
+            <Building2 size={22} className="nav-tab-icon" color={isActive('/distributor') ? '#000' : '#000'} strokeWidth={2} />
             <span className="nav-tab-label">Distributor</span>
           </Link>
         </div>
