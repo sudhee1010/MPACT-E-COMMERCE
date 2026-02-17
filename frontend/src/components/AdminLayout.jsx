@@ -51,7 +51,9 @@ export function AdminLayout() {
     { label: "Ads Banner", path: "/adsbanner", icon: Monitor },
     { label: "Carousel Videos", path: "/carouselvideosadmin", icon: Monitor },
     { label: "Help Support", path: "/help-support", icon: HelpingHandIcon },
-      { label: "Reviews", path: "/reviews", icon: Star },
+    { label: "Reviews", path: "/reviews", icon: Star },
+    { label: "Subscribers", path: "/admin-subscribers", icon: Star },
+
 
   ];
 
