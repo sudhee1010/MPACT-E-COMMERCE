@@ -121,24 +121,48 @@ router.get("/:id", async (req, res) => {
  * @desc    Upload video file
  * @access  Private (add authentication middleware if needed)
  */
+// router.post("/upload", upload.single("video"), async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ message: "No video file uploaded" });
+//     }
+
+//     // Construct video URL for access
+//     // For production, use your domain
+//     const baseUrl = process.env.NODE_ENV === 'production' 
+//       ? process.env.BASE_URL 
+//       // : `http://localhost:${process.env.PORT || 5000}`;
+//       : "https://mpact-e-backend.onrender.com";
+    
+//     const videoUrl = `${baseUrl}/uploads/videos/${req.file.filename}`;
+
+//     res.status(200).json({
+//       message: "Video uploaded successfully",
+//       videoUrl: videoUrl,
+//       filename: req.file.filename,
+//       size: req.file.size,
+//       mimetype: req.file.mimetype
+//     });
+//   } catch (error) {
+//     console.error("Error uploading video:", error);
+//     res.status(500).json({ 
+//       message: "Failed to upload video", 
+//       error: error.message 
+//     });
+//   }
+// });
+
 router.post("/upload", upload.single("video"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No video file uploaded" });
     }
 
-    // Construct video URL for access
-    // For production, use your domain
-    const baseUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.BASE_URL 
-      // : `http://localhost:${process.env.PORT || 5000}`;
-      : "https://mpact-e-backend.onrender.com";
-    
-    const videoUrl = `${baseUrl}/uploads/videos/${req.file.filename}`;
+    const videoUrl = `${req.protocol}://${req.get("host")}/uploads/videos/${req.file.filename}`;
 
     res.status(200).json({
       message: "Video uploaded successfully",
-      videoUrl: videoUrl,
+      videoUrl,
       filename: req.file.filename,
       size: req.file.size,
       mimetype: req.file.mimetype
@@ -151,7 +175,6 @@ router.post("/upload", upload.single("video"), async (req, res) => {
     });
   }
 });
-
 /**
  * @route   POST /api/videohome
  * @desc    Create new video entry

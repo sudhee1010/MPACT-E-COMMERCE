@@ -47,7 +47,7 @@ export default function HighlightScrollBar() {
           overflow: hidden;
           padding: 12px 0;
           position: relative;
-          z-index: 999;
+          z-index: 995;
         }
 
         .marquee {
