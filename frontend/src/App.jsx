@@ -41,7 +41,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 // import Homeads from "./pages/HomeAds.jsx";
 import Homeads from "./pages/HomeAds.jsx";
 import Connect from "./pages/Connect.jsx";
-import AdminSubscribers from "./pages/AdminSubscribers.jsx";
+import AdminSubscribers from "./components/AdminSubscribers.jsx";
 
 
 
