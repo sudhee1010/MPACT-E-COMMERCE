@@ -759,7 +759,7 @@ const MPACTLandingPage = () => {
       <VideoCarouselSection />
 
       {/* Sticky Circle Section */}
-      <StickyCircleSection />
+      {/* <StickyCircleSection /> */}
 
       {/* Footer */}
       <Footer />
