@@ -477,26 +477,53 @@ export const addReview = async (req, res) => {
     const productId = req.params.productId;
 
     // Check if user purchased product
-    const hasPurchased = await Order.findOne({
+    // const hasPurchased = await Order.findOne({
+    //   user: req.user._id,
+    //   "orderItems.product": productId,
+    //   orderStatus: { $in: ["delivered", "confirmed"] },
+    // });
+
+    // if (!hasPurchased) {
+    //   return res.status(400).json({
+    //     message: "You can review only purchased products",
+    //   });
+    // }
+
+
+    // Count how many times user purchased this product (delivered only)
+    const purchaseCount = await Order.countDocuments({
       user: req.user._id,
       "orderItems.product": productId,
-      orderStatus: { $in: ["delivered", "confirmed"] },
+      orderStatus: "delivered",
     });
 
-    if (!hasPurchased) {
+    // Count how many reviews user already gave for this product
+    const reviewCount = await Review.countDocuments({
+      user: req.user._id,
+      product: productId,
+    });
+
+    if (purchaseCount === 0) {
       return res.status(400).json({
         message: "You can review only purchased products",
       });
     }
 
+    if (reviewCount >= purchaseCount) {
+      return res.status(400).json({
+        message: "You have already reviewed this purchase",
+      });
+    }
+
+
     // ✅ Users can review the same product multiple times if they purchase it multiple times
-    
+
     // Handle uploaded images
     const images = req.files
       ? req.files.map((file) => ({
-          url: file.path,
-          public_id: file.filename,
-        }))
+        url: file.path,
+        public_id: file.filename,
+      }))
       : [];
 
     // Create review
@@ -507,6 +534,8 @@ export const addReview = async (req, res) => {
       comment,
       images,
     });
+
+
 
     // Recalculate product rating immediately
     await recalculateProductRating(productId);
@@ -545,7 +574,7 @@ export const deleteReviewByAdmin = async (req, res) => {
   try {
     console.log("Admin delete review - ID:", req.params.id);
     console.log("Admin user:", req.user);
-    
+
     const review = await Review.findById(req.params.id);
 
     if (!review) {
@@ -605,8 +634,8 @@ export const getReviewsByProductForAdmin = async (req, res) => {
     const average =
       ratingData.length > 0
         ? (
-            ratingData.reduce((acc, r) => acc + r.rating, 0) / ratingData.length
-          ).toFixed(1)
+          ratingData.reduce((acc, r) => acc + r.rating, 0) / ratingData.length
+        ).toFixed(1)
         : 0;
 
     // Rating distribution (1★ to 5★)
@@ -659,8 +688,8 @@ export const getAllReviewsForAdmin = async (req, res) => {
     const average =
       ratingData.length > 0
         ? (
-            ratingData.reduce((acc, r) => acc + r.rating, 0) / ratingData.length
-          ).toFixed(1)
+          ratingData.reduce((acc, r) => acc + r.rating, 0) / ratingData.length
+        ).toFixed(1)
         : 0;
 
     const distribution = [0, 0, 0, 0, 0];

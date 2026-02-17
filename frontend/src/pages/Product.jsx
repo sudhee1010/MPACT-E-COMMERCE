@@ -8,6 +8,8 @@ import api from "../api/axios";
 import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
+import HighlightScrollBar from "../components/OfferScrollBar";
+
 
 export default function Products() {
   const [categories, setCategories] = useState([]);
@@ -826,6 +828,8 @@ export default function Products() {
           <div className="page-wrapper">
             <div className="products-page">
               <h1 className="page-title">FIND OUR PRODUCTS</h1>
+
+              <HighlightScrollBar />
 
               {Object.keys(productsByCategory).map((categoryName) => (
                 <div className="section" key={categoryName}>

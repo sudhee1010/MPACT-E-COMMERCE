@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, useLocation} from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import { Toaster } from "react-hot-toast";
 import PrivateRoute from "./components/PrivateRoute.jsx";
@@ -63,7 +63,7 @@ import { CMSEnhanced } from "./components/CMSEnhanced.jsx";
 import { AdsBanner } from "./components/AdsBanner.jsx";
 import { Settings } from "./components/Settings.jsx";
 import { PersonalSettings } from "./components/PersonalSettings.jsx";
-import {AdminHelpSupport} from "./components/AdminHelpSupport.jsx"
+import { AdminHelpSupport } from "./components/AdminHelpSupport.jsx"
 
 /* UI demo pages */
 import { Menubar } from "./components/ui/Menubar.jsx";
@@ -111,7 +111,7 @@ import { Skeleton } from "./components/ui/Skeleton.jsx";
 import AdminDistributor from "./components/AdminDistributor.jsx";
 import AdminReviews from "./components/Reviews.jsx";
 import Carouselvideosadmin from "./components/Carouselvideosadmin.jsx";
-
+import Return from "./pages/Return.jsx"
 
 
 function App() {
@@ -193,8 +193,8 @@ function App() {
           <Route path="/popup" element={<SuccessPopup />} />
           <Route path="/distributor" element={<DistributorEnquiry />} />
           <Route path="/homeads" element={<Homeads />} />
-          
-          
+
+
 
 
 
@@ -205,7 +205,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/faq" element={<Faq />} />
           {/* <Route path="/Nutrition" element={<Nutrition />} /> */}
-          <Route path="/blog/:slug" element={<Nutrition />} /> 
+          <Route path="/blog/:slug" element={<Nutrition />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
@@ -214,12 +214,12 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/return-policy" element={<Return />} />
 
 
-
-            {/* ADMIN */}
+          {/* ADMIN */}
           <Route element={<AdminLayout />}>
-          
+
             <Route path="/admindashboard" element={<Dashboard />} />
             <Route path="/admin-distributor" element={<AdminDistributor />} />
             <Route path="/orders" element={<Orders />} />
@@ -238,9 +238,9 @@ function App() {
             <Route path="/adsbanner" element={<AdsBanner />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/personalsettings" element={<PersonalSettings />} />
-             <Route path="/help-support" element={< AdminHelpSupport/>} />
-             <Route path="/reviews" element={<AdminReviews />} />
-             <Route path="/carouselvideosadmin" element={<Carouselvideosadmin />} />
+            <Route path="/help-support" element={< AdminHelpSupport />} />
+            <Route path="/reviews" element={<AdminReviews />} />
+            <Route path="/carouselvideosadmin" element={<Carouselvideosadmin />} />
           </Route>
 
           {/* UI DEMOS */}

@@ -10,19 +10,23 @@ export default function CarouselVideosAdmin() {
   const [showModal, setShowModal] = useState(false);
   const [editingVideo, setEditingVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [allProductsLoaded, setAllProductsLoaded] = useState(false);
   const [formData, setFormData] = useState({
     videoUrl: "",
-    productId: "",
     productName: "",
+    productId: "",
     currentPrice: "",
     originalPrice: "",
     discount: "",
-    countInStock: "10",
   });
 
-  // API Base URLs - Update these to match your backend
+  // API Base URLs
+  // const API_URL = "https://mpact-e-backend.onrender.com/api/videohome";
+  // const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
   const API_URL = "https://mpact-e-backend.onrender.com/api/videohome";
   const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
 
@@ -30,36 +34,67 @@ export default function CarouselVideosAdmin() {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL);
-      // Ensure we always set an array
+      console.log("Fetching videos from:", API_URL);
+      const res = await axios.get(API_URL, { timeout: 10000 });
+      console.log("Videos API response:", res.data);
+      
+      // Your backend returns array directly
       setVideos(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch videos:", err);
-      alert("Failed to load videos");
       setVideos([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch all products from your main products collection
-  const fetchProducts = async () => {
+  // Fetch ALL products
+  const fetchAllProducts = async () => {
     try {
       setProductsLoading(true);
-      // Use admin endpoint (includes all products) with a large limit.
-      // We use the project's `api` instance so cookies/auth (if required) are included.
-      const res = await api.get("/products/admin/all", { params: { limit: 10000 } });
-      console.log("Products API response:", res.data); // Debug log
-
-      // The backend returns { products, pageInfo }
-      let productsData = [];
-      if (res.data) {
-        if (Array.isArray(res.data.products)) productsData = res.data.products;
-        else if (Array.isArray(res.data.data)) productsData = res.data.data;
-        else if (Array.isArray(res.data)) productsData = res.data;
+      console.log("Fetching products from:", PRODUCTS_API_URL);
+      
+      let allProducts = [];
+      let page = 1;
+      let hasMore = true;
+      
+      while (hasMore && page <= 10) { // Limit to 10 pages max
+        try {
+          const res = await axios.get(PRODUCTS_API_URL, { 
+            params: { 
+              limit: 100,
+              page: page
+            },
+            timeout: 10000
+          });
+          
+          console.log(`Products page ${page} response:`, res.data);
+          
+          let pageProducts = [];
+          if (Array.isArray(res.data)) {
+            pageProducts = res.data;
+            hasMore = res.data.length === 100;
+          } else if (res.data && Array.isArray(res.data.products)) {
+            pageProducts = res.data.products;
+            hasMore = res.data.products.length === 100;
+          } else if (res.data && Array.isArray(res.data.data)) {
+            pageProducts = res.data.data;
+            hasMore = res.data.data.length === 100;
+          } else {
+            hasMore = false;
+          }
+          
+          allProducts = [...allProducts, ...pageProducts];
+          page++;
+        } catch (pageErr) {
+          console.error(`Error fetching page ${page}:`, pageErr);
+          hasMore = false;
+        }
       }
-
-      setProducts(productsData || []);
+      
+      console.log(`Total products loaded: ${allProducts.length}`);
+      setProducts(allProducts);
+      setAllProductsLoaded(true);
     } catch (err) {
       console.error("Failed to fetch products:", err);
       setProducts([]);
@@ -70,7 +105,7 @@ export default function CarouselVideosAdmin() {
 
   useEffect(() => {
     fetchVideos();
-    fetchProducts();
+    fetchAllProducts();
   }, []);
 
   // Handle form input changes
@@ -86,32 +121,27 @@ export default function CarouselVideosAdmin() {
   const handleProductSelect = (product) => {
     if (!product) return;
     
+    // Calculate discount if original price exists
+    let discount = '';
+    if (product.originalPrice && product.price) {
+      const discountPercent = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+      discount = discountPercent.toString();
+    }
+    
     setFormData({
       ...formData,
       productId: product._id || product.id || "",
       productName: product.name || product.productName || product.title || "",
       currentPrice: product.price?.toString() || product.currentPrice?.toString() || "0",
       originalPrice: product.originalPrice?.toString() || "",
-      discount: product.discount?.toString() || "",
-      countInStock: product.countInStock?.toString() || "10",
+      discount: discount || product.discount?.toString() || "",
     });
     setSearchTerm(product.name || product.productName || product.title || "");
     setShowDropdown(false);
   };
 
-  // Filter products based on search term - with safety check
-  const filteredProducts = Array.isArray(products) ? products.filter(product => {
-    if (!product) return false;
-    
-    const searchLower = searchTerm.toLowerCase();
-    const productName = (product.name || product.productName || product.title || "").toLowerCase();
-    const productId = (product._id || product.id || "").toLowerCase();
-    
-    return productName.includes(searchLower) || productId.includes(searchLower);
-  }) : [];
-
-  // Handle video file upload
-  const handleVideoUpload = async (e) => {
+  // Handle file selection
+  const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -125,10 +155,20 @@ export default function CarouselVideosAdmin() {
       return;
     }
 
+    setSelectedFile(file);
+  };
+
+  // Handle video file upload
+  const handleVideoUpload = async () => {
+    if (!selectedFile) {
+      alert("Please select a video file");
+      return;
+    }
+
     try {
       setUploading(true);
       const uploadFormData = new FormData();
-      uploadFormData.append("video", file);
+      uploadFormData.append("video", selectedFile);
 
       const res = await axios.post(
         `${API_URL}/upload`,
@@ -139,16 +179,17 @@ export default function CarouselVideosAdmin() {
             const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total
             );
-            console.log(`Upload Progress: ${percentCompleted}%`);
+            setUploadProgress(percentCompleted);
           },
         }
       );
 
       setFormData((prev) => ({
         ...prev,
-        videoUrl: res.data.videoUrl || res.data.url || "",
+        videoUrl: res.data.videoUrl,
       }));
-
+      setSelectedFile(null);
+      setUploadProgress(0);
       alert("Video uploaded successfully!");
     } catch (err) {
       console.error("Upload failed:", err);
@@ -163,13 +204,13 @@ export default function CarouselVideosAdmin() {
     setEditingVideo(null);
     setFormData({
       videoUrl: "",
-      productId: "",
       productName: "",
+      productId: "",
       currentPrice: "",
       originalPrice: "",
       discount: "",
-      countInStock: "10",
     });
+    setSelectedFile(null);
     setSearchTerm("");
     setShowDropdown(false);
     setShowModal(true);
@@ -180,13 +221,13 @@ export default function CarouselVideosAdmin() {
     setEditingVideo(video);
     setFormData({
       videoUrl: video.videoUrl || "",
-      productId: video.productId || "",
       productName: video.productName || "",
+      productId: video.productId || "",
       currentPrice: video.currentPrice?.toString() || "",
       originalPrice: video.originalPrice?.toString() || "",
       discount: video.discount?.toString() || "",
-      countInStock: video.countInStock?.toString() || "10",
     });
+    setSelectedFile(null);
     setSearchTerm(video.productName || "");
     setShowDropdown(false);
     setShowModal(true);
@@ -197,7 +238,7 @@ export default function CarouselVideosAdmin() {
     e.preventDefault();
 
     if (!formData.videoUrl) {
-      alert("Please upload a video");
+      alert("Please upload a video first");
       return;
     }
 
@@ -206,20 +247,33 @@ export default function CarouselVideosAdmin() {
       return;
     }
 
+    // Prepare data for backend
+    const videoData = {
+      videoUrl: formData.videoUrl,
+      productName: formData.productName,
+      productId: formData.productId,
+      currentPrice: parseFloat(formData.currentPrice),
+      originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
+      discount: formData.discount ? parseInt(formData.discount) : null,
+    };
+
     try {
+      let response;
       if (editingVideo) {
-        await axios.put(
+        response = await axios.put(
           `${API_URL}/${editingVideo._id}`,
-          formData
+          videoData
         );
+        console.log("Update response:", response.data);
         alert("Video updated successfully!");
       } else {
-        await axios.post(API_URL, formData);
+        response = await axios.post(API_URL, videoData);
+        console.log("Create response:", response.data);
         alert("Video added successfully!");
       }
 
       setShowModal(false);
-      fetchVideos();
+      fetchVideos(); // Refresh the list
     } catch (err) {
       console.error("Failed to save video:", err);
       alert("Failed to save video: " + (err.response?.data?.message || err.message));
@@ -235,27 +289,34 @@ export default function CarouselVideosAdmin() {
     try {
       await axios.delete(`${API_URL}/${id}`);
       alert("Video deleted successfully!");
-      fetchVideos();
+      fetchVideos(); // Refresh the list
     } catch (err) {
       console.error("Failed to delete video:", err);
       alert("Failed to delete video: " + (err.response?.data?.message || err.message));
     }
   };
 
-  // Debug function to test API
-  const testProductsAPI = async () => {
+  // Toggle video active status
+  const handleToggleActive = async (id, currentStatus) => {
     try {
-      const res = await api.get("/products/admin/all", { params: { limit: 10000 } });
-      console.log("Products API test - full response:", res);
-      console.log("Products API test - data:", res.data);
-      console.log("Products API test - data type:", typeof res.data);
-      console.log("Products API test - is array:", Array.isArray(res.data.products) ? 'products array' : Array.isArray(res.data) ? 'data array' : 'not array');
-      alert("Check console for API response details");
+      await axios.patch(`${API_URL}/${id}/toggle`);
+      fetchVideos(); // Refresh the list
     } catch (err) {
-      console.error("Products API test failed:", err);
-      alert("API test failed: " + err.message);
+      console.error("Failed to toggle video status:", err);
+      alert("Failed to toggle video status");
     }
   };
+
+  // Filter products based on search term
+  const filteredProducts = Array.isArray(products) ? products.filter(product => {
+    if (!product) return false;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const productName = (product.name || product.productName || product.title || "").toLowerCase();
+    const productId = (product._id || product.id || "").toLowerCase();
+    
+    return productName.includes(searchLower) || productId.includes(searchLower);
+  }).slice(0, 50) : [];
 
   return (
     <>
@@ -308,24 +369,6 @@ export default function CarouselVideosAdmin() {
           box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
         }
 
-        .test-btn {
-          background: #3a3a3a;
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 4px;
-          font-weight: 900;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          margin-left: 12px;
-          border: 1px solid #facc15;
-        }
-
-        .test-btn:hover {
-          background: #4a4a4a;
-        }
-
         .videos-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -341,12 +384,34 @@ export default function CarouselVideosAdmin() {
           border-radius: 12px;
           overflow: hidden;
           transition: all 0.4s ease;
+          position: relative;
         }
 
         .video-card:hover {
           transform: translateY(-4px);
           border-color: #facc15;
           box-shadow: 0 8px 24px rgba(250, 204, 21, 0.2);
+        }
+
+        .active-badge {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 900;
+          z-index: 10;
+        }
+
+        .active-badge.active {
+          background: #4ade80;
+          color: black;
+        }
+
+        .active-badge.inactive {
+          background: #dc2626;
+          color: white;
         }
 
         .video-preview {
@@ -357,15 +422,12 @@ export default function CarouselVideosAdmin() {
           overflow: hidden;
         }
 
+        .video-preview iframe,
         .video-preview video {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 0.5s ease;
-        }
-
-        .video-card:hover .video-preview video {
-          transform: scale(1.1);
+          border: none;
         }
 
         .video-info {
@@ -409,39 +471,6 @@ export default function CarouselVideosAdmin() {
           font-weight: 700;
         }
 
-        .product-link-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(250, 204, 21, 0.1);
-          border: 1px solid #facc15;
-          padding: 4px 12px;
-          border-radius: 4px;
-          color: #facc15;
-          font-size: 12px;
-          margin-top: 8px;
-          width: fit-content;
-        }
-
-        .stock-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 700;
-          text-transform: uppercase;
-        }
-
-        .stock-in {
-          background: #4ade80;
-          color: black;
-        }
-
-        .stock-out {
-          background: #dc2626;
-          color: white;
-        }
-
         .card-actions {
           display: flex;
           gap: 12px;
@@ -449,7 +478,8 @@ export default function CarouselVideosAdmin() {
         }
 
         .btn-edit,
-        .btn-delete {
+        .btn-delete,
+        .btn-toggle {
           flex: 1;
           padding: 12px;
           border: none;
@@ -468,7 +498,6 @@ export default function CarouselVideosAdmin() {
 
         .btn-edit:hover {
           background: #eab308;
-          transform: translateY(-2px);
         }
 
         .btn-delete {
@@ -478,7 +507,15 @@ export default function CarouselVideosAdmin() {
 
         .btn-delete:hover {
           background: #b91c1c;
-          transform: translateY(-2px);
+        }
+
+        .btn-toggle {
+          background: #3a3a3a;
+          color: #fff;
+        }
+
+        .btn-toggle:hover {
+          background: #4a4a4a;
         }
 
         /* Modal Styles */
@@ -568,6 +605,70 @@ export default function CarouselVideosAdmin() {
           border-color: #facc15;
         }
 
+        .file-upload-wrapper {
+          position: relative;
+        }
+
+        .file-upload-label {
+          display: block;
+          padding: 40px 20px;
+          border: 2px dashed #facc15;
+          border-radius: 4px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .file-upload-label:hover {
+          background: rgba(250, 204, 21, 0.1);
+        }
+
+        .file-upload-input {
+          display: none;
+        }
+
+        .upload-icon {
+          font-size: 48px;
+          color: #facc15;
+          margin-bottom: 12px;
+        }
+
+        .upload-text {
+          color: #999;
+          font-size: 14px;
+        }
+
+        .upload-progress {
+          margin-top: 10px;
+          height: 4px;
+          background: #3a3a3a;
+          border-radius: 2px;
+          overflow: hidden;
+        }
+
+        .upload-progress-bar {
+          height: 100%;
+          background: #facc15;
+          transition: width 0.3s ease;
+        }
+
+        .upload-btn {
+          width: 100%;
+          padding: 12px;
+          background: #facc15;
+          color: black;
+          border: none;
+          border-radius: 4px;
+          font-weight: 900;
+          cursor: pointer;
+          margin-top: 10px;
+        }
+
+        .upload-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
         .product-search {
           position: relative;
         }
@@ -624,10 +725,6 @@ export default function CarouselVideosAdmin() {
 
         .search-item:hover {
           background: #2a2a2a;
-        }
-
-        .search-item:last-child {
-          border-bottom: none;
         }
 
         .search-item-name {
@@ -697,56 +794,23 @@ export default function CarouselVideosAdmin() {
           background: #4a4a4a;
         }
 
-        .file-upload-wrapper {
-          position: relative;
-        }
-
-        .file-upload-label {
-          display: block;
-          padding: 40px 20px;
-          border: 2px dashed #facc15;
-          border-radius: 4px;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .file-upload-label:hover {
-          background: rgba(250, 204, 21, 0.1);
-        }
-
-        .file-upload-input {
-          display: none;
-        }
-
-        .upload-icon {
-          font-size: 48px;
-          color: #facc15;
-          margin-bottom: 12px;
-        }
-
-        .upload-text {
-          color: #999;
-          font-size: 14px;
-        }
-
-        .uploading-text {
-          color: #facc15;
-          font-weight: 600;
-        }
-
         .video-preview-container {
           width: 100%;
           border-radius: 4px;
           overflow: hidden;
           background: #000;
           margin-bottom: 12px;
+          position: relative;
+          padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
         }
 
         .video-preview-container video {
+          position: absolute;
+          top: 0;
+          left: 0;
           width: 100%;
-          max-height: 200px;
-          object-fit: cover;
+          height: 100%;
+          border: none;
         }
 
         .readonly-field {
@@ -826,6 +890,14 @@ export default function CarouselVideosAdmin() {
           text-transform: uppercase;
         }
 
+        .api-debug-section {
+          background: #1a1a1a;
+          padding: 12px;
+          border-radius: 4px;
+          margin-bottom: 20px;
+          border: 1px solid #facc15;
+        }
+
         .no-products-message {
           padding: 20px;
           text-align: center;
@@ -834,14 +906,6 @@ export default function CarouselVideosAdmin() {
           border: 1px solid #3a3a3a;
           border-radius: 4px;
           margin-top: 10px;
-        }
-
-        .api-debug-section {
-          background: #1a1a1a;
-          padding: 12px;
-          border-radius: 4px;
-          margin-bottom: 20px;
-          border: 1px solid #facc15;
         }
 
         @media (max-width: 768px) {
@@ -875,32 +939,26 @@ export default function CarouselVideosAdmin() {
           <h1 className="admin-title">
             <span>🎬</span> Video Carousel Management
           </h1>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="test-btn" onClick={testProductsAPI}>
-              🔍 Test Products API
-            </button>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button className="add-btn" onClick={openAddModal}>
               <span>+</span> Add Video to Product
             </button>
           </div>
         </div>
 
-        {/* Debug info - remove in production */}
+        {/* Debug info */}
         <div className="api-debug-section">
-          <details>
+          <details open>
             <summary style={{ color: '#facc15', cursor: 'pointer', fontWeight: 'bold' }}>
-              🛠️ Debug: Products API Status
+              🛠️ Debug: API Status
             </summary>
             <div style={{ marginTop: '12px', color: '#ccc' }}>
               <p>Products loaded: {Array.isArray(products) ? products.length : 'Not an array'}</p>
               <p>Products type: {typeof products}</p>
               <p>Is array: {Array.isArray(products) ? 'Yes' : 'No'}</p>
               <p>Products loading: {productsLoading ? 'Yes' : 'No'}</p>
-              {!Array.isArray(products) && (
-                <p style={{ color: '#ff6b6b' }}>
-                  ⚠️ Products is not an array. Check the API response format.
-                </p>
-              )}
+              <p>Videos loaded: {videos.length}</p>
+              <p>Videos loading: {loading ? 'Yes' : 'No'}</p>
             </div>
           </details>
         </div>
@@ -917,6 +975,9 @@ export default function CarouselVideosAdmin() {
           <div className="videos-grid">
             {videos.map((video) => (
               <div key={video._id} className="video-card">
+                <div className={`active-badge ${video.isActive ? 'active' : 'inactive'}`}>
+                  {video.isActive ? 'ACTIVE' : 'INACTIVE'}
+                </div>
                 <div className="video-preview">
                   <video src={video.videoUrl} muted loop />
                 </div>
@@ -946,17 +1007,6 @@ export default function CarouselVideosAdmin() {
                         <span className="info-value">{video.discount}% OFF</span>
                       </div>
                     )}
-                    <div className="info-item">
-                      <span className="info-label">Stock Status</span>
-                      <span className={`stock-badge ${parseInt(video.countInStock) > 0 ? 'stock-in' : 'stock-out'}`}>
-                        {parseInt(video.countInStock) > 0 ? 'In Stock' : 'Out of Stock'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="product-link-badge">
-                    <span>🔗</span>
-                    <span>Linked to existing product</span>
                   </div>
 
                   <div className="card-actions">
@@ -965,6 +1015,12 @@ export default function CarouselVideosAdmin() {
                       onClick={() => openEditModal(video)}
                     >
                       ✏️ Edit
+                    </button>
+                    <button
+                      className="btn-toggle"
+                      onClick={() => handleToggleActive(video._id, video.isActive)}
+                    >
+                      {video.isActive ? 'Deactivate' : 'Activate'}
                     </button>
                     <button
                       className="btn-delete"
@@ -999,6 +1055,7 @@ export default function CarouselVideosAdmin() {
                     <label className="form-label">
                       Product Video <span className="required">*</span>
                     </label>
+                    
                     {!formData.videoUrl ? (
                       <div className="file-upload-wrapper">
                         <label className="file-upload-label">
@@ -1006,33 +1063,52 @@ export default function CarouselVideosAdmin() {
                             type="file"
                             accept="video/*"
                             className="file-upload-input"
-                            onChange={handleVideoUpload}
+                            onChange={handleFileSelect}
                             disabled={uploading}
                           />
                           <div className="upload-icon">📤</div>
-                          <div className={uploading ? "uploading-text" : "upload-text"}>
-                            {uploading ? "Uploading..." : "Click to upload video"}
+                          <div className="upload-text">
+                            {selectedFile ? selectedFile.name : "Click to select video"}
                           </div>
                           <div className="upload-text" style={{ marginTop: "8px" }}>
                             MP4, WebM, or MOV (max 50MB)
                           </div>
                         </label>
+                        
+                        {selectedFile && (
+                          <>
+                            {uploading && (
+                              <div className="upload-progress">
+                                <div 
+                                  className="upload-progress-bar" 
+                                  style={{ width: `${uploadProgress}%` }}
+                                />
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              className="upload-btn"
+                              onClick={handleVideoUpload}
+                              disabled={uploading}
+                            >
+                              {uploading ? `Uploading ${uploadProgress}%` : "Upload Video"}
+                            </button>
+                          </>
+                        )}
                       </div>
                     ) : (
                       <div>
                         <div className="video-preview-container">
-                          <video
-                            src={formData.videoUrl}
-                            controls
-                          />
+                          <video src={formData.videoUrl} controls />
                         </div>
                         <button
                           type="button"
                           className="btn-delete"
-                          onClick={() =>
-                            setFormData((prev) => ({ ...prev, videoUrl: "" }))
-                          }
-                          style={{ width: "100%" }}
+                          onClick={() => {
+                            setFormData((prev) => ({ ...prev, videoUrl: "" }));
+                            setSelectedFile(null);
+                          }}
+                          style={{ width: "100%", marginTop: "10px" }}
                         >
                           Change Video
                         </button>
@@ -1138,7 +1214,6 @@ export default function CarouselVideosAdmin() {
                               currentPrice: "",
                               originalPrice: "",
                               discount: "",
-                              countInStock: "10",
                             });
                             setSearchTerm("");
                             setShowDropdown(false);
@@ -1213,17 +1288,6 @@ export default function CarouselVideosAdmin() {
                       )}
 
                       <div className="form-group">
-                        <label className="form-label">Stock Quantity</label>
-                        <input
-                          type="text"
-                          className="form-input readonly-field"
-                          value={formData.countInStock}
-                          readOnly
-                          disabled
-                        />
-                      </div>
-
-                      <div className="form-group">
                         <label className="form-label" style={{ color: '#4ade80' }}>
                           ✓ Product details automatically synced from main catalog
                         </label>
@@ -1243,9 +1307,9 @@ export default function CarouselVideosAdmin() {
                   <button
                     type="submit"
                     className="btn-submit"
-                    disabled={!formData.videoUrl || !formData.productId || uploading}
+                    disabled={!formData.videoUrl || !formData.productId}
                   >
-                    {uploading ? "Uploading..." : editingVideo ? "Update Video" : "Add Video"}
+                    {editingVideo ? "Update Video" : "Add Video"}
                   </button>
                 </div>
               </form>

@@ -549,6 +549,8 @@ export default function Footer() {
               <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="/product">Products</a></li>
+                <li><a href="/distributor">Distributor</a></li>
+
                 {/* <li><a href="/products/protein-bars">Protein Bars</a></li>
                 <li><a href="/products/pre-workout">Pre-Workout</a></li>
                 <li><a href="/products/supplements">Supplements</a></li> */}
@@ -574,10 +576,10 @@ export default function Footer() {
                 {/* <li><a href="/refer">Refer & Earn</a></li> */}
                 <li><a href="/terms-and-conditions">Terms and Conditions</a></li>
                 <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/returns">Return Policy</a></li>
+                <li><a href="/return-policy">Return Policy</a></li>
                 <li><a href="/help">Help and Support</a></li>
                 <li><a href="/faq">FAQ</a></li>
-                <li><a href="/help">Contact Us</a></li>
+                {/* <li><a href="/contact">Contact Us</a></li> */}
               </ul>
             </div>
 
