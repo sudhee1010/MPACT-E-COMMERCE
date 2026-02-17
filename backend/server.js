@@ -33,6 +33,7 @@ import inventoryRoutes from "./routes/inventoryRoutes.js"
 import reportRoutes from "./routes/reportRoutes.js";
 import faqRoutes from "./routes/faqRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
+import subscriberRoutes from "./routes/subscriberRoutes.js";
 
 
 dotenv.config();
@@ -89,7 +90,7 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/faqs", faqRoutes);
 app.use("/api/help", helpRoutes);
-
+app.use("/api/subscribe",subscriberRoutes);
 
 const PORT = process.env.PORT || 5000;
 
