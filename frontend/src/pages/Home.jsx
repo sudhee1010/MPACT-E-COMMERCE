@@ -16,7 +16,7 @@ import { useAuth } from "../context/AuthContext";
 import HomeAds from './HomeAds';
 import HighlightScrollBar from '../components/OfferScrollBar';
 import VideoCarouselSection from './Videocarouselsection';
-import StickyCircleSection from './RoundVideo'
+// import StickyCircleSection from './RoundVideo'
 
 const MPACTLandingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
