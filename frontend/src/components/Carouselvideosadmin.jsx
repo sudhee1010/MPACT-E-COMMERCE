@@ -1016,12 +1016,12 @@ export default function CarouselVideosAdmin() {
                     >
                       ✏️ Edit
                     </button>
-                    <button
+                    {/* <button
                       className="btn-toggle"
                       onClick={() => handleToggleActive(video._id, video.isActive)}
                     >
                       {video.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
+                    </button> */}
                     <button
                       className="btn-delete"
                       onClick={() => handleDelete(video._id)}
