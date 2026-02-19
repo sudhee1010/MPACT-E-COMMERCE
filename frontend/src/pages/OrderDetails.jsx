@@ -184,18 +184,18 @@ export default function OrderDetails() {
     };
 
     const getDisplayStatus = (status) => {
-  const map = {
-    initiated: "initiated",
-    placed: "processing",
-    packed: "processing",
-    shipped: "shipped",
-    delivered: "delivered",
-    cancelled: "cancelled",
-    return_requested: "return_requested",
-    returned: "returned"
-  };
-  return map[status] || status;
-};
+        const map = {
+            initiated: "initiated",
+            placed: "processing",
+            packed: "processing",
+            shipped: "shipped",
+            delivered: "delivered",
+            cancelled: "cancelled",
+            return_requested: "return_requested",
+            returned: "returned"
+        };
+        return map[status] || status;
+    };
 
 
     if (loading) {
@@ -332,6 +332,8 @@ export default function OrderDetails() {
                 .payment-pending { background: #facc15; color: black; }
                 .payment-refunded { background: #f97316; color: white; }
                 .payment-cancelled { background: #dc2626; color: white; }
+                .payment-failed { background: #dc2626; color: white; }
+                .payment-processing { background: #3b82f6; color: white; }
                 .order-delivered { background: #22c55e; color: white; }
                 .order-processing { background: #3b82f6; color: white; }
                 .order-shipped { background: #8b5cf6; color: white; }

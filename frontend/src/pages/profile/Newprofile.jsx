@@ -908,8 +908,8 @@ export default function ProfilePage() {
         }
 
         .logout-btn {
-          background-color: transparent;
-          color: white;
+          background-color: #facc15;
+          color: black;
           padding: 1rem 1.5rem;
           border: 2px solid rgba(255, 255, 255, 0.2);
           border-radius: 0.5rem;

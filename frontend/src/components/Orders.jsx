@@ -65,6 +65,22 @@ export function Orders() {
     }
   };
 
+  const getPaymentColor = (status) => {
+  switch (status) {
+    case "paid":
+      return "bg-green-900/50 text-green-400 border border-green-700";
+    case "pending":
+      return "bg-yellow-900/50 text-yellow-400 border border-yellow-700";
+    case "failed":
+      return "bg-red-900/50 text-red-400 border border-red-700";
+    case "refunded":
+      return "bg-blue-900/50 text-blue-400 border border-blue-700";
+    default:
+      return "bg-gray-900/50 text-gray-400 border border-gray-700";
+  }
+};
+
+
 
   const fetchOrders = async () => {
     try {
@@ -255,7 +271,7 @@ export function Orders() {
             <SelectItem value="Returned" className="text-white hover:cursor-pointer">
               Returned
             </SelectItem>
-              <SelectItem value="Return Requested" className="text-white hover:cursor-pointer">
+            <SelectItem value="Return Requested" className="text-white hover:cursor-pointer">
               Return requested
             </SelectItem>
           </SelectContent>
@@ -273,6 +289,7 @@ export function Orders() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Product</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Quantity</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Amount</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Payment</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Status</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Date</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Actions</th>
@@ -288,6 +305,15 @@ export function Orders() {
                   <td className="py-3 px-4 text-sm text-white">{order.orderItems.reduce((s, i) => s + i.quantity, 0)}</td>
                   <td className="py-3 px-4 text-sm font-medium text-yellow-400">
                     {formatINR(order.totalAmount)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPaymentColor(
+                        order.paymentStatus
+                      )}`}
+                    >
+                      {order.paymentStatus?.toUpperCase()}
+                    </span>
                   </td>
                   <td className="py-3 px-4">
                     <span
@@ -317,7 +343,7 @@ export function Orders() {
                         </DialogHeader>
 
                         {selectedOrder && (
-                          <div className="space-y-4 py-4 overflow-y-auto flex-1 scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                          <div className="space-y-4 py-4 overflow-y-auto flex-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <p className="text-sm text-gray-400">Order ID</p>
