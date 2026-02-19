@@ -1896,10 +1896,11 @@ const ProductPage = () => {
       width: "100%",
       height: 560,
     },
-    mainImage: {
+      mainImage: {
       width: "100%",
-      height: 570,
-      objectFit: "cover",
+      height: "100%",
+      objectFit: "fill",
+      display: "block",
     },
     thumbnailsContainer: {
       marginTop: 16,
