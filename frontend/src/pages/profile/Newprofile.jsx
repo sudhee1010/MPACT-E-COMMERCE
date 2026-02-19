@@ -681,7 +681,12 @@ export default function ProfilePage() {
         /* Wishlist */
         .wishlist-grid {
           display: grid;
-          gap: 1.75rem;
+          grid-template-columns: repeat(auto-fill, 291.51px);
+          gap: 18px;
+          justify-content: center;
+          max-width: 1380px;
+          margin: 30px auto;
+          padding: 0 8px;
           transition: grid-template-columns 0.3s ease;
         }
 
