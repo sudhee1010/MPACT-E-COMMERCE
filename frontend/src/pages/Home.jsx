@@ -16,7 +16,7 @@
 // import HomeAds from './HomeAds';
 // import HighlightScrollBar from '../components/OfferScrollBar';
 // import VideoCarouselSection from './Videocarouselsection';
-// // import StickyCircleSection from './RoundVideo'
+// import StickyCircleSection from './RoundVideo'
 
 // const MPACTLandingPage = () => {
 //   const [currentSlide, setCurrentSlide] = useState(0);
@@ -135,6 +135,23 @@
 //   const handleNextSlide = () => {
 //     setCurrentSlide(prev => (prev === heroSlides.length - 1 ? 0 : prev + 1));
 //   };
+//   useEffect(() => {
+//   if (!loadingProducts && !loadingBanners) {
+//     const handleLoad = () => {
+//       setTimeout(() => {
+//         ScrollTrigger.refresh();
+//       }, 400);
+//     };
+
+//     if (document.readyState === "complete") {
+//       handleLoad();
+//     } else {
+//       window.addEventListener("load", handleLoad);
+//       return () => window.removeEventListener("load", handleLoad);
+//     }
+//   }
+// }, [loadingProducts, loadingBanners]);
+
 
 //   const handleBuyNow = (product) => {
 //     if (loading) return;
@@ -433,7 +450,7 @@
 //           </div>
 //         </div>
 //       </section>
-      
+
 //       {/* Home Ads Section */}
 //       <HomeAds />
 
@@ -505,10 +522,9 @@
 //                   borderRadius: "0.75rem",
 //                   overflow: "hidden",
 //                   transition: "all 0.4s ease",
-//                   transform: scrollY > 500
-//                     ? hoveredProduct === product._id ? "scale(1.05)" : "scale(1)"
-//                     : "translateY(60px)",
-//                   opacity: scrollY > 500 ? 1 : 0,
+//                   transform: hoveredProduct === product._id ? "scale(1.05)" : "scale(1)",
+//                   opacity: 1,
+
 //                   cursor: "pointer"
 //                 }}
 //                 onMouseEnter={() => setHoveredProduct(product._id)}
@@ -745,21 +761,22 @@
 
 //       {/* Highlight Scroll Bar */}
 //       <HighlightScrollBar />
-      
+
 //       {/* Motivational Section */}
 //       <MotivationalSection />
-      
+
 //       {/* Features Section */}
 //       <FeaturesSection />
-      
-//       {/* Video Showcase Section */}
-//       <VideoShowcaseSection />
-      
-//       {/* Video Carousel Section - This will now show when videos are added */}
-//       <VideoCarouselSection />
 
 //       {/* Sticky Circle Section */}
 //       {/* <StickyCircleSection /> */}
+
+//       {/* Video Showcase Section */}
+//       <VideoShowcaseSection />
+
+//       {/* Video Carousel Section - This will now show when videos are added */}
+//       <VideoCarouselSection />
+
 
 //       {/* Footer */}
 //       <Footer />
@@ -835,6 +852,7 @@
 // };
 
 // export default MPACTLandingPage;
+
 
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -1188,107 +1206,152 @@ const MPACTLandingPage = () => {
       </header>
 
       {/* Hero Slider */}
-      <section ref={heroRef} style={{ position: 'relative', backgroundColor: 'black', paddingTop: '5rem', overflow: 'hidden' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '3rem 1rem' }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{ position: 'relative', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {heroSlides.map((slide, index) => (
-                <div
-                  key={slide.id || index}
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    opacity: index === currentSlide ? 1 : 0,
-                    transform: index === currentSlide ? 'scale(1)' : 'scale(0.95)',
-                    pointerEvents: index === currentSlide ? 'auto' : 'none',
-                    transition: 'all 0.7s'
-                  }}
-                >
-                  <div style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transform: index === currentSlide ? `translateY(${scrollY * 0.3}px)` : 'translateY(0)',
-                    transition: 'transform 0.1s linear'
-                  }}>
-                    <img
-                      src={slide.image?.url || proteinGym}
-                      alt={`Slide ${index + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: '80rem', margin: '0 auto' }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-              <button
-                onClick={handlePrevSlide}
-                style={{
-                  width: '3rem',
-                  height: '3rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  color: 'white',
-                  transform: hoveredButton === 'prev' ? 'scale(1.1)' : 'scale(1)'
+   {/* Hero Slider */}
+<section ref={heroRef} style={{ 
+  position: 'relative', 
+  backgroundColor: 'black', 
+  paddingTop: '0rem', 
+  overflow: 'hidden',
+  height: 'calc(100vh - 5rem)', // Full viewport height minus header
+  minHeight: '600px' // Minimum height for smaller screens
+}}>
+  <div style={{ 
+    maxWidth: '1280px', 
+    margin: '0 auto', 
+    padding: '0', // Remove padding to allow full width
+    height: '100%'
+  }}>
+    <div style={{ 
+      position: 'relative', 
+      height: '100%',
+      width: '100%'
+    }}>
+      <div style={{ 
+        position: 'relative', 
+        height: '100%', 
+        width: '100%',
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        overflow: 'hidden'
+      }}>
+        {heroSlides.map((slide, index) => (
+          <div
+            key={slide.id || index}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: index === currentSlide ? 1 : 0,
+              transform: index === currentSlide ? 'scale(1)' : 'scale(1.1)', // Slight scale for smoother transition
+              pointerEvents: index === currentSlide ? 'auto' : 'none',
+              transition: 'opacity 0.7s ease-in-out, transform 0.7s ease-in-out',
+              height: '100%',
+              width: '100%'
+            }}
+          >
+            <div style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              // Remove or modify the parallax effect
+              transform: index === currentSlide ? `translateY(${scrollY * 0.1}px)` : 'translateY(0)',
+              transition: 'transform 0.1s linear'
+            }}>
+              <img
+                src={slide.image?.url || proteinGym}
+                alt={`Slide ${index + 1}`}
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', // Changed from 'contain' to 'cover'
+                  maxWidth: '100%', // Allow full width
+                  margin: '0 auto'
                 }}
-                onMouseEnter={() => setHoveredButton('prev')}
-                onMouseLeave={() => setHoveredButton(null)}
-              >
-                <ChevronLeft />
-              </button>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {heroSlides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    style={{
-                      width: index === currentSlide ? '2rem' : '0.75rem',
-                      height: '0.75rem',
-                      borderRadius: '9999px',
-                      backgroundColor: index === currentSlide ? '#facc15' : 'rgba(255,255,255,0.3)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s'
-                    }}
-                  />
-                ))}
-              </div>
-
-              <button
-                onClick={handleNextSlide}
-                style={{
-                  width: '3rem',
-                  height: '3rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  color: 'white',
-                  transform: hoveredButton === 'next' ? 'scale(1.1)' : 'scale(1)'
-                }}
-                onMouseEnter={() => setHoveredButton('next')}
-                onMouseLeave={() => setHoveredButton(null)}
-              >
-                <ChevronRight />
-              </button>
+              />
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Navigation buttons and indicators */}
+      <div style={{ 
+        position: 'absolute',
+        bottom: '2rem',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: '1rem',
+        zIndex: 10
+      }}>
+        <button
+          onClick={handlePrevSlide}
+          style={{
+            width: '3rem',
+            height: '3rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            border: '2px solid #facc15',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            transition: 'all 0.3s',
+            color: 'white',
+            transform: hoveredButton === 'prev' ? 'scale(1.1)' : 'scale(1)'
+          }}
+          onMouseEnter={() => setHoveredButton('prev')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          <ChevronLeft size={24} />
+        </button>
+
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              style={{
+                width: index === currentSlide ? '2rem' : '0.75rem',
+                height: '0.75rem',
+                borderRadius: '9999px',
+                backgroundColor: index === currentSlide ? '#facc15' : 'rgba(255,255,255,0.5)',
+                border: index === currentSlide ? '2px solid #facc15' : '2px solid rgba(255,255,255,0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.3s'
+              }}
+            />
+          ))}
         </div>
-      </section>
+
+        <button
+          onClick={handleNextSlide}
+          style={{
+            width: '3rem',
+            height: '3rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            border: '2px solid #facc15',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            transition: 'all 0.3s',
+            color: 'white',
+            transform: hoveredButton === 'next' ? 'scale(1.1)' : 'scale(1)'
+          }}
+          onMouseEnter={() => setHoveredButton('next')}
+          onMouseLeave={() => setHoveredButton(null)}
+        >
+          <ChevronRight size={24} />
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Home Ads Section */}
       <HomeAds />
