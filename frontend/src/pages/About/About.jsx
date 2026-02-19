@@ -302,7 +302,7 @@ function About() {
           <div className={styles.featuresBanner}>
             <div className={styles.marquee}>
               <div className={styles.marqueeTrack}>
-                {[...about.highlights, ...about.highlights].map((h, i) => (
+                {[...about.highlights, ...about.highlights, ...about.highlights, ...about.highlights].map((h, i) => (
                   <span key={i} className={styles.marqueeItem}>
                     {h.text}
                     <span className={styles.divider}>|</span>
@@ -340,7 +340,7 @@ function About() {
               <div
                 className={`${styles.marqueeTrack} ${styles.marqueeReverse}`}
               >
-                {[...about.highlights, ...about.highlights].map((h, i) => (
+                {[...about.highlights, ...about.highlights, ...about.highlights, ...about.highlights].map((h, i) => (
                   <span key={i} className={styles.marqueeItem}>
                     {h.text}
                     <span className={styles.divider}>|</span>
