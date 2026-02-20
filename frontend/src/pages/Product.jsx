@@ -661,6 +661,18 @@ export default function Products() {
                       ))}
                     </div>
 
+                    {/* Description */}
+                  <p
+                    style={{
+                      fontSize: "10px",
+                      color: "#9ca3af",
+                      marginBottom: "0.5rem",
+                      padding: "0 12px",
+                    }}
+                  >
+                    {product.description}
+                  </p>
+
                     <div className="rating">
                       {"★".repeat(Math.round(product.rating || 0))}
                       {"☆".repeat(5 - Math.round(product.rating || 0))}
