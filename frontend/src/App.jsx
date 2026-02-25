@@ -114,6 +114,7 @@ import AdminDistributor from "./components/AdminDistributor.jsx";
 import AdminReviews from "./components/Reviews.jsx";
 import Carouselvideosadmin from "./components/Carouselvideosadmin.jsx";
 import Return from "./pages/Return.jsx"
+import FuelEarnShare from "./pages/FuelEarnShare.jsx";
 
 
 function App() {
@@ -219,6 +220,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/return-policy" element={<Return />} />
           <Route path="/connect" element={<Connect />} />
+          <Route path="/fuel-earn-share" element={<FuelEarnShare />} />
 
 
           {/* ADMIN */}

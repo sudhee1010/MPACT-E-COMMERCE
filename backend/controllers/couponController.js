@@ -506,3 +506,30 @@ export const deleteCoupon = async (req, res) => {
   await coupon.deleteOne();
   res.json({ message: "Coupon deleted successfully" });
 };
+
+
+/* =========================================================
+   VALIDATE COUPON FOR FUEL PAGE (DISPLAY ONLY)
+========================================================= */
+export const validateCouponForFuel = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    const coupon = await Coupon.findOne({
+      code: code.toUpperCase(),
+      isActive: true
+    }).populate("applicableProducts.product", "name price images _id");
+
+    if (!coupon) {
+      return res.status(404).json({ message: "Invalid coupon code" });
+    }
+
+    if (coupon.expiryDate < new Date()) {
+      return res.status(400).json({ message: "Coupon expired" });
+    }
+
+    res.json(coupon);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to validate coupon" });
+  }
+};

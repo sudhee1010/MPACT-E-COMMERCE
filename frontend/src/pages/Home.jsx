@@ -874,6 +874,7 @@ import HomeAds from './HomeAds';
 import HighlightScrollBar from '../components/OfferScrollBar';
 import VideoCarouselSection from './Videocarouselsection';
 import StickyCircleSection from './RoundVideo'
+import FuelEarnShareFloat from "../components/FuelEarnShareFloat";
 
 const MPACTLandingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -1747,6 +1748,8 @@ const MPACTLandingPage = () => {
         </div>
       )}
 
+      <FuelEarnShareFloat />
+      
       {/* WhatsApp Float Button */}
       <WhatsAppFloat />
     </div>

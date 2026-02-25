@@ -731,7 +731,7 @@ export default function VideoCarouselSection() {
         setLoading(true);
         setError(null);
         console.log("Fetching videos from API...");
-        // const res = await axios.get("http://localhost:5000/api/videohome", {
+        // const res = await axios.get("https://mpact-e-backend.onrender.com/api/videohome", {
         const res = await axios.get("https://mpact-e-backend.onrender.com/api/videohome", {
           timeout: 10000
         });

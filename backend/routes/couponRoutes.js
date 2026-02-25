@@ -7,7 +7,7 @@ import {
   deleteCoupon,
   applyCouponOnOrder,
   getCouponAnalytics,
-
+  validateCouponForFuel
 } from "../controllers/couponController.js";
 
 import { protect } from "../middlewares/authMiddleware.js";
@@ -25,5 +25,6 @@ router.get("/analytics", protect, isAdmin, getCouponAnalytics);
 router.get("/:id", protect, isAdmin, getCouponById);
 router.put("/:id", protect, isAdmin, updateCoupon);
 router.delete("/:id", protect, isAdmin, deleteCoupon);
+router.post("/validate-fuel", protect, validateCouponForFuel);
 
 export default router;
