@@ -565,6 +565,7 @@ export default function Footer() {
                 <li><a href="/tracking">Tracking Link</a></li>
                 {/* <li><a href="/pro">MPACT Pro</a></li> */}
                 <li><a href="/about">About Us</a></li>
+                <li><a href="/faq">FAQ</a></li>
                 <li><a href="/connect">Connect Now</a></li>
               </ul>
             </div>
@@ -578,8 +579,8 @@ export default function Footer() {
                 <li><a href="/privacy-policy">Privacy Policy</a></li>
                 <li><a href="/return-policy">Return Policy</a></li>
                 <li><a href="/help">Help and Support</a></li>
-                <li><a href="/faq">FAQ</a></li>
-                {/* <li><a href="/contact">Contact Us</a></li> */}
+                <li><a href="/contact-us">Contact Us</a></li>
+                <li><a href="/shipping-policy">Shipping Policy </a></li>
               </ul>
             </div>
 
@@ -618,7 +619,7 @@ export default function Footer() {
               <h3>GET IN TOUCH</h3>
               <div className="contact-item">
                 <span className="icon">📱</span>
-                <span>+91 8655450110</span>
+                <span>+91 8075711893</span>
               </div>
               <div className="contact-item">
                 <span className="icon">✉️</span>
