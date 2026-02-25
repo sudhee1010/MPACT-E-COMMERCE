@@ -939,7 +939,7 @@
 //       {/* <ToastContainer position="top-center" autoClose={3000} /> */}
 //       <style>{`
 //         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
-        
+
 //         /* ================= LUXURY LOADER ================= */
 //         .loader-overlay {
 //           position: fixed;
@@ -1095,7 +1095,7 @@
 //             opacity: 1;
 //           }
 //         }
-        
+
 //         /* ✅ MOBILE RESPONSIVE STYLES */
 //         @media (max-width: 768px) {
 //           .product-section {
@@ -1104,83 +1104,83 @@
 //             padding: 30px 20px !important;
 //             margin-left: 0 !important;
 //           }
-          
+
 //           .main-image-container {
 //             height: 300px !important;
 //             margin-left: 0 !important;
 //           }
-          
+
 //           .main-image {
 //             height: 300px !important;
 //           }
-          
+
 //           .thumbnails-container {
 //             margin-left: 0 !important;
 //             grid-template-columns: repeat(4, 1fr) !important;
 //           }
-          
+
 //           .thumbnail-image {
 //             height: 80px !important;
 //           }
-          
+
 //           .details-container {
 //             max-width: 100% !important;
 //           }
-          
+
 //           .title {
 //             font-size: 28px !important;
 //           }
-          
+
 //           .current-price {
 //             font-size: 24px !important;
 //           }
-          
+
 //           .action-buttons {
 //             flex-direction: column !important;
 //           }
-          
+
 //           .action-buttons button {
 //             width: 100% !important;
 //             font-size: 18px !important;
 //           }
-          
+
 //           .reviews-section {
 //             padding: 20px 20px !important;
 //           }
-          
+
 //           .reviews-header {
 //             margin-left: 0 !important;
 //           }
-          
+
 //           .reviews-grid {
 //             grid-template-columns: 1fr !important;
 //           }
-          
+
 //           .range-grid {
 //             grid-template-columns: repeat(2, 1fr) !important;
 //             gap: 16px !important;
 //             padding: 0 20px !important;
 //           }
-          
+
 //           .range-title {
 //             font-size: 32px !important;
 //           }
-          
+
 //           .reviews-buttons {
 //             flex-direction: column !important;
 //             width: 100% !important;
 //           }
-          
+
 //           .reviews-buttons button {
 //             width: 100% !important;
 //           }
-          
+
 //           .popup-content {
 //             padding: 20px !important;
 //             max-height: calc(100vh - 32px) !important;
 //           }
 //         }
-        
+
 //         @media (max-width: 480px) {
 //           .range-grid {
 //             grid-template-columns: 1fr !important;
@@ -1854,13 +1854,13 @@ const ProductPage = () => {
       // Refresh reviews
       const reviewsRes = await api.get(`/reviews/${product._id}`);
       setReviews(reviewsRes.data);
-      
+
       // Refresh product to update rating
       const productRes = await api.get(`/products/${id}`);
       setProduct(productRes.data);
     } catch (error) {
       const message = error.response?.data?.message;
-      
+
       if (message === "You can review only purchased products") {
         showNotification(
           "warning",
@@ -1898,8 +1898,9 @@ const ProductPage = () => {
     },
     mainImage: {
       width: "100%",
-      height: 570,
-      objectFit: "cover",
+      height: "100%",
+      objectFit: "fill",
+      display: "block",
     },
     thumbnailsContainer: {
       marginTop: 16,
@@ -2540,6 +2541,30 @@ const ProductPage = () => {
       gap: 14,
       marginBottom: 34,
     },
+  
+    descriptionContainer: {
+      marginBottom: 34,
+      padding: "16px 0",
+      borderTop: "1px solid rgba(255, 230, 0, 0.2)",
+      borderBottom: "1px solid rgba(255, 230, 0, 0.2)",
+    },
+
+    descriptionTitle: {
+      fontSize: 16,
+      fontWeight: 700,
+      marginBottom: 12,
+      letterSpacing: "0.5px",
+      textTransform: "uppercase",
+      color: "#ffe600",
+    },
+
+    descriptionText: {
+      fontSize: 14,
+      lineHeight: 1.6,
+      color: "#ddd",
+      margin: 0,
+      whiteSpace: "pre-line", // This preserves line breaks
+    },
 
     highlightTag: {
       border: "2px solid #ffe600",
@@ -2941,7 +2966,7 @@ const ProductPage = () => {
                   </span>
                 )}
               </div>
-
+              {/* // In the details section, add this after the highlightsContainer div */}
               <div>
                 <div style={styles.highlightsContainer}>
                   {product.highlights?.map((item, i) => (
@@ -2950,6 +2975,14 @@ const ProductPage = () => {
                     </span>
                   ))}
                 </div>
+
+                {/* Add Description Section Here */}
+                {product.description && (
+                  <div style={styles.descriptionContainer}>
+                    <h3 style={styles.descriptionTitle}>Description</h3>
+                    <p style={styles.descriptionText}>{product.description}</p>
+                  </div>
+                )}
               </div>
 
               <div style={styles.quantityContainer}>

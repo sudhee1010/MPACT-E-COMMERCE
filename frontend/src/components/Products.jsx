@@ -2123,7 +2123,7 @@ const fixedProduct = {
                   {/* Highlights */}
                   <div>
                     <label style={{ display: 'block', color: '#d1d5db', marginBottom: '0.25rem', fontSize: '0.875rem' }}>
-                      Highlights (square bracket-separated)
+                      Highlights (separate with commas)
                     </label>
                     <textarea
                       value={formData.highlights}
@@ -2230,7 +2230,7 @@ const fixedProduct = {
                                 Click to upload or drag and drop
                               </p>
                               <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: '0.25rem 0 0 0' }}>
-                                PNG, JPG, GIF up to 10MB
+                                PNG, JPG, JPEG up to 5MB
                               </p>
                             </>
                           )}

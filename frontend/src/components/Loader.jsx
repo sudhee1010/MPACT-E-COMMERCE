@@ -5,27 +5,68 @@ export default function Loader({ onFinish }) {
   const [hide, setHide] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setHide(true);
-            setTimeout(onFinish, 1000);
-          }, 600);
-          return 100;
-        }
-        return p + 1;
-      });
-    }, 18);
+    // Lock scroll while loading
+    document.body.style.overflow = "hidden";
 
-    return () => clearInterval(interval);
+    const updateProgress = () => {
+      const totalImages = document.images.length;
+      let loadedImages = 0;
+
+      if (totalImages === 0) {
+        setProgress(100);
+        return;
+      }
+
+      const checkImages = () => {
+        loadedImages++;
+        const percent = Math.round((loadedImages / totalImages) * 100);
+        setProgress(percent);
+      };
+
+      Array.from(document.images).forEach((img) => {
+        if (img.complete) {
+          checkImages();
+        } else {
+          img.addEventListener("load", checkImages);
+          img.addEventListener("error", checkImages);
+        }
+      });
+    };
+
+    // Wait for full window load
+    const handleLoad = () => {
+      updateProgress();
+
+      setTimeout(() => {
+        setProgress(100);
+
+        setTimeout(() => {
+          setHide(true);
+
+          setTimeout(() => {
+            document.body.style.overflow = "auto"; // unlock scroll
+            onFinish?.();
+          }, 800);
+        }, 400);
+      }, 300);
+    };
+
+    if (document.readyState === "complete") {
+      handleLoad();
+    } else {
+      window.addEventListener("load", handleLoad);
+    }
+
+    return () => {
+      window.removeEventListener("load", handleLoad);
+      document.body.style.overflow = "auto";
+    };
   }, [onFinish]);
 
   return (
     <div className={`loader ${hide ? "hide" : ""}`}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Khand:wght@600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
 
         .loader {
           position: fixed;
@@ -36,12 +77,12 @@ export default function Loader({ onFinish }) {
           justify-content: center;
           align-items: center;
           z-index: 9999;
-          transition: opacity 0.8s ease;
+          transition: opacity 0.8s ease, visibility 0.8s ease;
         }
 
         .loader.hide {
           opacity: 0;
-          pointer-events: none;
+          visibility: hidden;
         }
 
         .loader-text {
@@ -77,17 +118,18 @@ export default function Loader({ onFinish }) {
 
         .bar {
           width: 280px;
-          height: 2px;
+          height: 3px;
           background: #222;
           margin-top: 40px;
           overflow: hidden;
+          border-radius: 2px;
         }
 
         .bar-fill {
           height: 100%;
           background: #ffd400;
           width: ${progress}%;
-          transition: width 0.15s linear;
+          transition: width 0.3s ease;
         }
 
         .percent {

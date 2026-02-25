@@ -681,7 +681,12 @@ export default function ProfilePage() {
         /* Wishlist */
         .wishlist-grid {
           display: grid;
-          gap: 1.75rem;
+          grid-template-columns: repeat(auto-fill, 291.51px);
+          gap: 18px;
+          justify-content: center;
+          max-width: 1380px;
+          margin: 30px auto;
+          padding: 0 8px;
           transition: grid-template-columns 0.3s ease;
         }
 
@@ -908,8 +913,8 @@ export default function ProfilePage() {
         }
 
         .logout-btn {
-          background-color: transparent;
-          color: white;
+          background-color: #facc15;
+          color: black;
           padding: 1rem 1.5rem;
           border: 2px solid rgba(255, 255, 255, 0.2);
           border-radius: 0.5rem;

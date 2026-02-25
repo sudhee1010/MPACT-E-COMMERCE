@@ -114,9 +114,8 @@ export default function AdminDistributor() {
                 <div
                   key={m._id}
                   onClick={() => setSelected(m)}
-                  className={`p-4 border-b border-gray-800 cursor-pointer transition-colors ${
-                    selected?._id === m._id ? 'bg-gray-800' : 'hover:bg-gray-800/50'
-                  } ${m.status === 'pending' ? 'bg-yellow-400/5' : ''}`}
+                  className={`p-4 border-b border-gray-800 cursor-pointer transition-colors ${selected?._id === m._id ? 'bg-gray-800' : 'hover:bg-gray-800/50'
+                    } ${m.status === 'pending' ? 'bg-yellow-400/5' : ''}`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -129,9 +128,8 @@ export default function AdminDistributor() {
                     <div className="text-right">
                       <div className="text-xs text-gray-500">{new Date(m.createdAt).toLocaleDateString()}</div>
                       <div className="mt-1 text-xs flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          m.status === 'pending' ? 'bg-yellow-400 text-black' : m.status === 'contacted' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
-                        }`}>{m.status}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs ${m.status === 'pending' ? 'bg-yellow-400 text-black' : m.status === 'contacted' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
+                          }`}>{m.status}</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); deleteEnquiry(m._id); }}
                           className="p-1 text-gray-400 hover:text-red-400"
@@ -159,7 +157,7 @@ export default function AdminDistributor() {
                     <p className="text-xs text-gray-500 mt-1">{selected.email} • {selected.city}</p>
                     <p className="text-xs text-gray-500 mt-1">Submitted: {new Date(selected.createdAt).toLocaleString()}</p>
                   </div>
-                    <div className="flex gap-2 items-center">
+                  <div className="flex gap-2 items-center">
                     <button
                       onClick={() => updateStatus(selected._id, 'contacted')}
                       disabled={updating}
@@ -194,17 +192,24 @@ export default function AdminDistributor() {
 
                 <div className="pt-4 border-t border-gray-700 flex gap-3">
                   <button
-                    onClick={() => navigator.clipboard.writeText(selected.email)}
+                    onClick={() => {
+                      navigator.clipboard.writeText(selected.email);
+                      toast.success("Email copied to clipboard ✅");
+                    }}
                     className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-medium rounded-md transition-colors"
                   >
                     Copy Email
                   </button>
                   <button
-                    onClick={() => navigator.clipboard.writeText(selected.phone)}
+                    onClick={() => {
+                      navigator.clipboard.writeText(selected.phone);
+                      toast.success("Phone number copied to clipboard 📞");
+                    }}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
                   >
                     Copy Phone
                   </button>
+
                 </div>
               </div>
             ) : (

@@ -1,247 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import api from "../api/axios";
-// import toast from "react-hot-toast";
-// import {
-//   Upload,
-//   X,
-//   Image as ImageIcon,
-//   Trash2,
-//   Smartphone,
-//   Monitor,
-// } from "lucide-react";
-// import { Button } from "../components/ui/Button";
-// import { Input } from "../components/ui/Input";
-// import { Textarea } from "../components/ui/Textarea";
-
-// export function AdsBanner() {
-//   const [title, setTitle] = useState("");
-//   const [subtitle, setSubtitle] = useState("");
-//   const [imageFile, setImageFile] = useState(null); // NEW IMAGE ONLY
-//   const [preview, setPreview] = useState(""); // existing or new image
-//   const [saving, setSaving] = useState(false);
-//   const [view, setView] = useState("desktop"); // desktop | mobile
-//   const [loading, setLoading] = useState(true);
-
-//   // 🔹 Load existing banner
-//   useEffect(() => {
-//     const fetchBanner = async () => {
-//       try {
-//         const res = await api.get("/api/banners");
-//         if (res.data) {
-//           setTitle(res.data.title || "");
-//           setSubtitle(res.data.subtitle || "");
-//           setPreview(res.data.image?.url || "");
-//         }
-//       } catch (err) {
-//         toast.error("Failed to load banner");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchBanner();
-//   }, []);
-
-//   // 🔹 Image select
-//   const handleImageChange = (e) => {
-//     const file = e.target.files?.[0];
-//     if (!file) return;
-
-//     setImageFile(file);
-//     setPreview(URL.createObjectURL(file));
-//   };
-
-//   // 🔹 Save / Update banner
-//   const handleSubmit = async () => {
-//     // ❌ Only block if NO existing image AND NO new image
-//     if (!preview && !imageFile) {
-//       toast.error("Banner image is required");
-//       return;
-//     }
-
-//     try {
-//       setSaving(true);
-
-//       const data = new FormData();
-//       data.append("title", title);
-//       data.append("subtitle", subtitle);
-
-//       // 🔥 Image optional on update
-//       if (imageFile) {
-//         data.append("image", imageFile);
-//       }
-
-//       await api.post("/api/banners", data, {
-//         headers: { "Content-Type": "multipart/form-data" },
-//       });
-
-//       toast.success("Banner saved successfully");
-//       setImageFile(null); // reset after save
-//     } catch (error) {
-//       toast.error(
-//         error.response?.data?.message || "Failed to save banner"
-//       );
-//     } finally {
-//       setSaving(false);
-//     }
-//   };
-
-//   // 🔹 Delete banner
-//   const handleDelete = async () => {
-//     if (!window.confirm("Delete homepage banner?")) return;
-
-//     try {
-//       await api.delete("/api/banners");
-//       setTitle("");
-//       setSubtitle("");
-//       setPreview("");
-//       setImageFile(null);
-//       toast.success("Banner deleted");
-//     } catch (error) {
-//       toast.error(
-//         error.response?.data?.message || "Failed to delete banner"
-//       );
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="text-center py-10 text-gray-400">
-//         Loading banner...
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="max-w-5xl mx-auto bg-[#1b1b1b] rounded-xl border border-yellow-400/20 p-8 space-y-6 overflow-y-auto scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-
-//       {/* Header */}
-//       <div className="flex items-center justify-between border-b border-yellow-400/20 pb-4">
-//         <div className="flex items-center gap-3">
-//           <ImageIcon className="text-yellow-400" size={26} />
-//           <h2 className="text-2xl font-bold text-white">
-//             Homepage Banner
-//           </h2>
-//         </div>
-
-//         {/* Preview Toggle */}
-//         <div className="flex gap-2">
-//           <Button
-//             size="sm"
-//             onClick={() => setView("desktop")}
-//             className={view === "desktop" ? "bg-yellow-400 text-black" : ""}
-//             variant="outline"
-//           >
-//             <Monitor size={16} />
-//           </Button>
-//           <Button
-//             size="sm"
-//             onClick={() => setView("mobile")}
-//             className={view === "mobile" ? "bg-yellow-400 text-black" : ""}
-//             variant="outline"
-//           >
-//             <Smartphone size={16} />
-//           </Button>
-//         </div>
-//       </div>
-
-//       {/* Title */}
-//       <Input
-//         value={title}
-//         onChange={(e) => setTitle(e.target.value)}
-//         placeholder="Banner title"
-//         className="bg-black border-gray-700 text-white"
-//       />
-
-//       {/* Subtitle */}
-//       <Textarea
-//         value={subtitle}
-//         onChange={(e) => setSubtitle(e.target.value)}
-//         placeholder="Banner subtitle"
-//         className="bg-black border-gray-700 text-white min-h-[90px]"
-//       />
-
-//       {/* Image Upload + Preview */}
-//       <div className="space-y-2">
-//         {preview ? (
-//           <div
-//             className={`relative overflow-hidden rounded-lg border border-gray-700 mx-auto ${
-//               view === "mobile"
-//                 ? "max-w-[380px] h-[420px]"
-//                 : "h-[360px]"
-//             }`}
-//           >
-//             <img
-//               src={preview}
-//               className="w-full h-full object-cover"
-//               alt="Banner preview"
-//             />
-
-//             {/* Live Text Overlay */}
-//             <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-6">
-//               <h3 className="text-white text-2xl font-bold">
-//                 {title || "Banner Title"}
-//               </h3>
-//               <p className="text-gray-200 text-sm mt-2">
-//                 {subtitle || "Banner subtitle goes here"}
-//               </p>
-//             </div>
-
-//             {/* Remove image (only frontend state) */}
-//             <button
-//               onClick={() => {
-//                 setPreview("");
-//                 setImageFile(null);
-//               }}
-//               className="absolute top-3 right-3 bg-black/70 text-white p-2 rounded-full hover:bg-red-600"
-//             >
-//               <X size={16} />
-//             </button>
-//           </div>
-//         ) : (
-//           <label className="flex flex-col items-center justify-center h-56 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-yellow-400 transition">
-//             <Upload className="text-gray-400 mb-2" />
-//             <span className="text-sm text-gray-400">
-//               Click to upload banner image
-//             </span>
-//             <span className="text-xs text-gray-500 mt-1">
-//               1920 × 600 recommended
-//             </span>
-//             <input
-//               hidden
-//               type="file"
-//               accept="image/*"
-//               onChange={handleImageChange}
-//             />
-//           </label>
-//         )}
-//       </div>
-
-//       {/* Actions */}
-//       <div className="flex justify-between items-center pt-4 border-t border-gray-700">
-//         <Button
-//           onClick={handleSubmit}
-//           disabled={saving}
-//           className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-10"
-//         >
-//           {saving ? "Saving..." : "Save Banner"}
-//         </Button>
-
-//         {preview && (
-//           <Button
-//             onClick={handleDelete}
-//             variant="outline"
-//             className="border-red-600 text-red-400 hover:bg-red-600/20"
-//           >
-//             <Trash2 size={18} />
-//           </Button>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import toast from "react-hot-toast";
@@ -255,15 +11,66 @@ import {
   ExternalLink,
   Tag,
   Sparkles,
+  Search,
 } from "lucide-react";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
-import { Textarea } from "../components/ui/Textarea";
+
+// Simple Button component if you don't have one
+const Button = ({ children, onClick, disabled, className, variant, size, ...props }) => {
+  const baseClasses = "px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+  const variantClasses = variant === 'outline' 
+    ? 'border border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400' 
+    : 'bg-yellow-400 hover:bg-yellow-500 text-black';
+  const sizeClasses = size === 'sm' ? 'px-3 py-1.5 text-sm' : '';
+  
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className || ''}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+// Simple Input component
+const Input = ({ value, onChange, placeholder, className, type = "text", ...props }) => {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`w-full px-4 py-2 bg-black border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400 ${className || ''}`}
+      {...props}
+    />
+  );
+};
+
+// Simple Textarea component
+const Textarea = ({ value, onChange, placeholder, className, ...props }) => {
+  return (
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`w-full px-4 py-2 bg-black border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400 resize-none ${className || ''}`}
+      {...props}
+    />
+  );
+};
 
 export function AdsBanner() {
   const [banners, setBanners] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  
+  // Product search state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Form state for new/edit banner
   const [currentBanner, setCurrentBanner] = useState({
@@ -275,13 +82,69 @@ export function AdsBanner() {
     isNew: false,
     imageFile: null,
     preview: "",
+    productId: "",
+    productName: "",
   });
 
   const [saving, setSaving] = useState(false);
 
+  // API Base URL
+  const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
+
+  // 🔹 Fetch ALL products
+  const fetchAllProducts = async () => {
+    try {
+      setProductsLoading(true);
+      
+      let allProducts = [];
+      let page = 1;
+      let hasMore = true;
+      
+      while (hasMore && page <= 10) {
+        try {
+          const res = await api.get("/api/products", { 
+            params: { 
+              limit: 100,
+              page: page
+            },
+            timeout: 10000
+          });
+          
+          let pageProducts = [];
+          if (Array.isArray(res.data)) {
+            pageProducts = res.data;
+            hasMore = res.data.length === 100;
+          } else if (res.data && Array.isArray(res.data.products)) {
+            pageProducts = res.data.products;
+            hasMore = res.data.products.length === 100;
+          } else if (res.data && Array.isArray(res.data.data)) {
+            pageProducts = res.data.data;
+            hasMore = res.data.data.length === 100;
+          } else {
+            hasMore = false;
+          }
+          
+          allProducts = [...allProducts, ...pageProducts];
+          page++;
+        } catch (pageErr) {
+          console.error(`Error fetching page ${page}:`, pageErr);
+          hasMore = false;
+        }
+      }
+      
+      setProducts(allProducts);
+    } catch (err) {
+      console.error("Failed to fetch products:", err);
+      setProducts([]);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
   // 🔹 Load all banners
   useEffect(() => {
     fetchBanners();
+    fetchAllProducts();
   }, []);
 
   const fetchBanners = async () => {
@@ -290,7 +153,6 @@ export function AdsBanner() {
       const res = await api.get("/api/banners");
       const data = res.data;
 
-      // Handle both single banner and array
       if (Array.isArray(data)) {
         setBanners(data);
       } else if (data) {
@@ -299,6 +161,7 @@ export function AdsBanner() {
         setBanners([]);
       }
     } catch (err) {
+      console.error("Failed to load banners:", err);
       toast.error("Failed to load banners");
       setBanners([]);
     } finally {
@@ -317,12 +180,43 @@ export function AdsBanner() {
       isNew: false,
       imageFile: null,
       preview: "",
+      productId: "",
+      productName: "",
     });
+    setSearchTerm("");
+    setShowDropdown(false);
     setShowAddForm(false);
+  };
+
+  // 🔹 Handle product selection
+  const handleProductSelect = (product) => {
+    if (!product) return;
+    
+    setCurrentBanner((prev) => ({
+      ...prev,
+      productId: product._id || product.id || "",
+      productName: product.name || product.productName || product.title || "",
+      link: product._id ? `/productspec/${product._id}` : "",
+      title: product.name || product.productName || product.title || prev.title,
+    }));
+    setSearchTerm(product.name || product.productName || product.title || "");
+    setShowDropdown(false);
   };
 
   // 🔹 Edit banner
   const handleEdit = (banner) => {
+    let productId = "";
+    let productName = "";
+    
+    if (banner.link && banner.link.includes('/products/')) {
+      const productSlug = banner.link.split('/products/')[1];
+      const matchedProduct = products.find(p => p._id === productSlug || p.id === productSlug);
+      if (matchedProduct) {
+        productId = matchedProduct._id || matchedProduct.id;
+        productName = matchedProduct.name || matchedProduct.productName || matchedProduct.title;
+      }
+    }
+
     setCurrentBanner({
       _id: banner._id,
       title: banner.title || "",
@@ -332,7 +226,10 @@ export function AdsBanner() {
       isNew: banner.isNew || false,
       imageFile: null,
       preview: banner.image?.url || "",
+      productId: productId,
+      productName: productName,
     });
+    setSearchTerm(productName);
     setShowAddForm(true);
   };
 
@@ -341,6 +238,18 @@ export function AdsBanner() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
     setCurrentBanner((prev) => ({
       ...prev,
       imageFile: file,
@@ -348,7 +257,7 @@ export function AdsBanner() {
     }));
   };
 
-  // 🔹 Save banner (Create or Update)
+  // 🔹 Save banner
   const handleSubmit = async () => {
     if (!currentBanner.preview && !currentBanner.imageFile) {
       toast.error("Banner image is required");
@@ -365,23 +274,22 @@ export function AdsBanner() {
 
       const data = new FormData();
       data.append("title", currentBanner.title);
-      data.append("subtitle", currentBanner.subtitle);
-      data.append("link", currentBanner.link);
-      data.append("discount", currentBanner.discount);
+      data.append("subtitle", currentBanner.subtitle || "");
+      data.append("link", currentBanner.link || "");
+      data.append("discount", currentBanner.discount || "0");
       data.append("isNew", currentBanner.isNew);
+      data.append("productId", currentBanner.productId || "");
 
       if (currentBanner.imageFile) {
         data.append("image", currentBanner.imageFile);
       }
 
       if (currentBanner._id) {
-        // Update existing
         await api.put(`/api/banners/${currentBanner._id}`, data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         toast.success("Banner updated successfully");
       } else {
-        // Create new
         await api.post("/api/banners", data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -391,6 +299,7 @@ export function AdsBanner() {
       fetchBanners();
       resetForm();
     } catch (error) {
+      console.error("Save error:", error);
       toast.error(error.response?.data?.message || "Failed to save banner");
     } finally {
       setSaving(false);
@@ -406,9 +315,21 @@ export function AdsBanner() {
       toast.success("Banner deleted");
       fetchBanners();
     } catch (error) {
+      console.error("Delete error:", error);
       toast.error(error.response?.data?.message || "Failed to delete banner");
     }
   };
+
+  // 🔹 Filter products based on search term
+  const filteredProducts = Array.isArray(products) ? products.filter(product => {
+    if (!product) return false;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const productName = (product.name || product.productName || product.title || "").toLowerCase();
+    const productId = (product._id || product.id || "").toLowerCase();
+    
+    return productName.includes(searchLower) || productId.includes(searchLower);
+  }).slice(0, 50) : [];
 
   if (loading) {
     return (
@@ -419,7 +340,7 @@ export function AdsBanner() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 p-4">
       {/* Header */}
       <div className="bg-[#1b1b1b] rounded-xl border border-yellow-400/20 p-6">
         <div className="flex items-center justify-between">
@@ -439,7 +360,7 @@ export function AdsBanner() {
             onClick={() => setShowAddForm(true)}
             className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold"
           >
-            <Plus size={18} />
+            <Plus size={18} className="mr-1" />
             Add Banner
           </Button>
         </div>
@@ -460,6 +381,110 @@ export function AdsBanner() {
             </button>
           </div>
 
+          {/* Product Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Select Product (Optional)
+            </label>
+            {!currentBanner.productId ? (
+              <div className="relative">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                  <input
+                    type="text"
+                    className="w-full pl-10 pr-4 py-2 bg-black border border-gray-700 rounded-lg text-white focus:outline-none focus:border-yellow-400"
+                    placeholder="Search products by name or ID..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    autoComplete="off"
+                  />
+                </div>
+                {showDropdown && searchTerm && (
+                  <div className="absolute z-10 top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-[#1a1a1a] border border-yellow-400 rounded-lg shadow-lg">
+                    {productsLoading ? (
+                      <div className="p-4 text-center text-gray-400">
+                        Loading products...
+                      </div>
+                    ) : filteredProducts.length > 0 ? (
+                      filteredProducts.map((product) => (
+                        <div
+                          key={product._id || product.id || Math.random()}
+                          className="p-3 cursor-pointer hover:bg-gray-800 border-b border-gray-700 last:border-b-0"
+                          onClick={() => handleProductSelect(product)}
+                        >
+                          <div className="font-medium text-white">
+                            {product.name || product.productName || product.title || "Unnamed Product"}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            ID: {product._id || product.id || "N/A"}
+                          </div>
+                          <div className="text-sm text-yellow-400 mt-1">
+                            ₹{product.price || product.currentPrice || "0"}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-400">
+                        No products found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-[#1a1a1a] border border-yellow-400 rounded-lg p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium text-white">
+                      {currentBanner.productName}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      ID: {currentBanner.productId}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-sm text-yellow-400 hover:text-yellow-300"
+                    onClick={() => {
+                      setCurrentBanner((prev) => ({
+                        ...prev,
+                        productId: "",
+                        productName: "",
+                        link: "",
+                      }));
+                      setSearchTerm("");
+                      setShowDropdown(false);
+                    }}
+                  >
+                    Change
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Link URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <ExternalLink size={14} className="inline mr-1" />
+              Link URL
+            </label>
+            <Input
+              value={currentBanner.link}
+              onChange={(e) =>
+                setCurrentBanner((prev) => ({
+                  ...prev,
+                  link: e.target.value,
+                }))
+              }
+              placeholder="/productspec/product-id or custom URL"
+            />
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -474,7 +499,6 @@ export function AdsBanner() {
                 }))
               }
               placeholder="e.g., Premium Whey Protein"
-              className="bg-black border-gray-700 text-white"
             />
           </div>
 
@@ -492,50 +516,28 @@ export function AdsBanner() {
                 }))
               }
               placeholder="e.g., Build muscle faster with our best-selling protein"
-              className="bg-black border-gray-700 text-white min-h-[80px]"
             />
           </div>
 
-          {/* Link & Discount Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Product Link */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                <ExternalLink size={14} className="inline mr-1" />
-                Link URL
-              </label>
-              <Input
-                value={currentBanner.link}
-                onChange={(e) =>
-                  setCurrentBanner((prev) => ({
-                    ...prev,
-                    link: e.target.value,
-                  }))
-                }
-                placeholder="/products/whey-protein"
-                className="bg-black border-gray-700 text-white"
-              />
-            </div>
-
-            {/* Discount */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                <Tag size={14} className="inline mr-1" />
-                Discount (%)
-              </label>
-              <Input
-                type="number"
-                value={currentBanner.discount}
-                onChange={(e) =>
-                  setCurrentBanner((prev) => ({
-                    ...prev,
-                    discount: e.target.value,
-                  }))
-                }
-                placeholder="50"
-                className="bg-black border-gray-700 text-white"
-              />
-            </div>
+          {/* Discount */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <Tag size={14} className="inline mr-1" />
+              Discount (%)
+            </label>
+            <Input
+              type="number"
+              value={currentBanner.discount}
+              onChange={(e) =>
+                setCurrentBanner((prev) => ({
+                  ...prev,
+                  discount: e.target.value,
+                }))
+              }
+              placeholder="50"
+              min="0"
+              max="100"
+            />
           </div>
 
           {/* NEW Badge Checkbox */}
@@ -559,38 +561,31 @@ export function AdsBanner() {
           </div>
 
           {/* Image Upload */}
-          <div className="space-y-2">
+          <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Banner Image * (800×400px recommended)
             </label>
 
             {currentBanner.preview ? (
               <div className="relative rounded-lg border border-gray-700 overflow-hidden">
-                {/* Preview Card - Flipkart Style */}
                 <div className="bg-white rounded-lg overflow-hidden max-w-md">
-                  {/* Image */}
                   <div className="relative h-48">
                     <img
                       src={currentBanner.preview}
                       className="w-full h-full object-cover"
                       alt="Banner preview"
                     />
-
-                    {/* Badges */}
                     {currentBanner.discount && (
                       <div className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-600 text-white px-3 py-1 rounded text-xs font-bold shadow-lg">
                         {currentBanner.discount}% OFF
                       </div>
                     )}
-
                     {currentBanner.isNew && !currentBanner.discount && (
                       <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded text-xs font-bold shadow-lg">
                         NEW
                       </div>
                     )}
                   </div>
-
-                  {/* Content */}
                   <div className="p-4 bg-white">
                     <h3 className="text-gray-900 font-semibold text-base mb-1">
                       {currentBanner.title || "Banner Title"}
@@ -603,8 +598,6 @@ export function AdsBanner() {
                     </span>
                   </div>
                 </div>
-
-                {/* Remove Button */}
                 <button
                   onClick={() =>
                     setCurrentBanner((prev) => ({
@@ -625,7 +618,7 @@ export function AdsBanner() {
                   Click to upload banner image
                 </span>
                 <span className="text-xs text-gray-500 mt-1">
-                  Recommended: 800×400px
+                  Recommended: 800×400px (Max 5MB)
                 </span>
                 <input
                   hidden
@@ -677,12 +670,10 @@ export function AdsBanner() {
                 className="bg-black/40 border border-gray-700 rounded-lg p-4 hover:border-yellow-400/40 transition"
               >
                 <div className="flex gap-4">
-                  {/* Drag Handle */}
                   <div className="flex items-center text-gray-600">
                     <GripVertical size={20} />
                   </div>
 
-                  {/* Image Thumbnail */}
                   <div className="relative w-32 h-20 rounded overflow-hidden flex-shrink-0 bg-gray-800">
                     <img
                       src={banner.image?.url}
@@ -701,7 +692,6 @@ export function AdsBanner() {
                     )}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <h4 className="text-white font-semibold text-base mb-1 truncate">
                       {banner.title}
@@ -722,13 +712,11 @@ export function AdsBanner() {
                     )}
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEdit(banner)}
-                      className="border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400"
                     >
                       Edit
                     </Button>
@@ -744,23 +732,6 @@ export function AdsBanner() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Tips */}
-        {banners.length > 0 && (
-          <div className="mt-6 p-4 bg-yellow-400/10 border border-yellow-400/20 rounded-lg">
-            <h4 className="text-yellow-400 font-semibold text-sm mb-2 flex items-center gap-2">
-              <Sparkles size={16} />
-              Pro Tips
-            </h4>
-            <ul className="text-gray-300 text-xs space-y-1">
-              <li>• Banners auto-scroll every 3 seconds on the homepage</li>
-              <li>• Recommended: 4-6 banners for best user experience</li>
-              <li>• Use high-quality images (800×400px) for clarity</li>
-              <li>• Add links to drive traffic to specific products</li>
-              <li>• Update banners weekly to keep content fresh</li>
-            </ul>
           </div>
         )}
       </div>
