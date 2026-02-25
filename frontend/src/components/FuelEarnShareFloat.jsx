@@ -49,10 +49,10 @@ const FuelEarnShareFloat = () => {
           borderRadius: "0 25px 25px 0",
           whiteSpace: "nowrap",
           overflow: "hidden",
-          height: "45px",
+          height: "53px",
           display: "flex",
           alignItems: "center",
-          marginLeft: "10px", // slight overlap behind circle
+          marginLeft: "-20px", // slight overlap behind circle
           paddingLeft: hovered ? "20px" : "0px",
           paddingRight: hovered ? "18px" : "0px",
           width: hovered ? "170px" : "0px",

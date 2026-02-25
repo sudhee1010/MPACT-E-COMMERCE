@@ -1448,7 +1448,7 @@ const MPACTLandingPage = () => {
                     style={{
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
+                      objectFit: "fill",
                       transition: "transform 0.5s ease",
                       transform: hoveredProduct === product._id ? "scale(1.1)" : "scale(1)"
                     }}
