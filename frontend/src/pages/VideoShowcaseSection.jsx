@@ -2615,10 +2615,14 @@ export default function VideoShowcaseSection() {
         </div>{/* /driver */}
 
         {/* Melting wave SVG at bottom */}
-        {/* <img
-          src="https://cdn.prod.website-files.com/669a8d6498ba88c08dfd2cd2/66a79692bac3e381538a3e53_melting%20bg.svg"
-          alt="" className="s3-wave" loading="eager"
-        /> */}
+       {/* <div style={{ position: "relative" }}>
+          <svg viewBox="0 0 1440 320" preserveAspectRatio="none" style={{ width: "100%" }}>
+            <path
+              fill="#ffd500"
+              d="M0,0 L1440,0 L1440,120 C1380,100 1340,60 1300,80 C1260,100 1250,160 1200,180 C1150,200 1100,160 1050,120 C1000,80 950,60 900,80 C850,100 800,140 750,120 C700,100 650,60 600,80 C550,100 520,140 480,150 C440,160 400,120 360,100 C320,80 280,70 240,90 C200,110 190,170 160,190 C130,210 90,200 60,170 C30,140 20,100 0,120 Z"
+            />
+          </svg>
+        </div> */}
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
