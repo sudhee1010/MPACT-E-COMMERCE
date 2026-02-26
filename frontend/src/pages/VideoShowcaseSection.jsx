@@ -2384,7 +2384,8 @@ export default function VideoShowcaseSection() {
         /* Responsive card sizing */
         @media(max-width:1366px){ .s3-card{ width:clamp(150px,17vw,260px); } }
 
-        @media(max-width:1225px){ .s3-card{ .s3-card{position:absolute;top:50%; left:25%; width:55vw; height:98vw; border-width:4px; border-radius:16px; } }
+        @media(max-width:1225px){ .s3-card{ width:clamp(150px,17vw,260px); } }
+
 
 
 
@@ -2442,7 +2443,7 @@ export default function VideoShowcaseSection() {
         }
 
         @media(max-width:375px){
-          .s3-card{ position:absolute;top:50%; left:23%; width:68vw; height:121vw; border-width:3px; border-radius:16px; }
+          .s3-card{ position:absolute;top:10%; left:23%; width:68vw; height:121vw; border-width:3px; border-radius:16px; }
         }
 
         /* Explore All button */
