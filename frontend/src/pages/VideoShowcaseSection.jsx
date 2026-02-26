@@ -2040,52 +2040,49 @@ const FAN_PRESETS = {
     { x: -32, y: -8, rotate: -20, scale: 0.92, zIndex: 4 },
     { x: -21, y: -11, rotate: -12, scale: 0.96, zIndex: 5 },
     { x: -10, y: -13, rotate: -5, scale: 1.02, zIndex: 6 },
-    { x: 0, y: -15, rotate: 0, scale: 1.08, zIndex: 7 },
-    { x: 10, y: -13, rotate: 5, scale: 1.02, zIndex: 6 },
-    { x: 21, y: -11, rotate: 12, scale: 0.96, zIndex: 5 },
-    { x: 32, y: -8, rotate: 20, scale: 0.92, zIndex: 4 },
+    { x: 0,   y: -15, rotate: 0,  scale: 1.08, zIndex: 7 },
+    { x: 10,  y: -13, rotate: 5,  scale: 1.02, zIndex: 6 },
+    { x: 21,  y: -11, rotate: 12, scale: 0.96, zIndex: 5 },
+    { x: 32,  y: -8,  rotate: 20, scale: 0.92, zIndex: 4 },
   ],
   laptop: [
     { x: -30, y: -7, rotate: -19, scale: 0.90, zIndex: 4 },
     { x: -20, y: -10, rotate: -11, scale: 0.95, zIndex: 5 },
-    { x: -9, y: -12, rotate: -4, scale: 1.00, zIndex: 6 },
-    { x: 0, y: -14, rotate: 0, scale: 1.05, zIndex: 7 },
-    { x: 9, y: -12, rotate: 4, scale: 1.00, zIndex: 6 },
-    { x: 20, y: -10, rotate: 11, scale: 0.95, zIndex: 5 },
-    { x: 30, y: -7, rotate: 19, scale: 0.90, zIndex: 4 },
+    { x: -9,  y: -12, rotate: -4, scale: 1.00, zIndex: 6 },
+    { x: 0,   y: -14, rotate: 0,  scale: 1.05, zIndex: 7 },
+    { x: 9,   y: -12, rotate: 4,  scale: 1.00, zIndex: 6 },
+    { x: 20,  y: -10, rotate: 11, scale: 0.95, zIndex: 5 },
+    { x: 30,  y: -7,  rotate: 19, scale: 0.90, zIndex: 4 },
   ],
   tablet: [
     { x: -28, y: -4, rotate: -18, scale: 0.84, zIndex: 4 },
     { x: -18, y: -7, rotate: -10, scale: 0.90, zIndex: 5 },
-    { x: -8, y: -9, rotate: -4, scale: 0.96, zIndex: 6 },
-    { x: 0, y: -11, rotate: 0, scale: 1.01, zIndex: 7 },
-    { x: 8, y: -9, rotate: 4, scale: 0.96, zIndex: 6 },
-    { x: 18, y: -7, rotate: 10, scale: 0.90, zIndex: 5 },
-    { x: 28, y: -4, rotate: 18, scale: 0.84, zIndex: 4 },
+    { x: -8,  y: -9, rotate: -4,  scale: 0.96, zIndex: 6 },
+    { x: 0,   y: -11, rotate: 0,  scale: 1.01, zIndex: 7 },
+    { x: 8,   y: -9,  rotate: 4,  scale: 0.96, zIndex: 6 },
+    { x: 18,  y: -7,  rotate: 10, scale: 0.90, zIndex: 5 },
+    { x: 28,  y: -4,  rotate: 18, scale: 0.84, zIndex: 4 },
   ],
   // Mobile: ALL videos, one-by-one centred stack
-  // Each card lands dead-centre with a small tilt, stacking on top of each other
   mobile: [
     { x: 0, y: 0, rotate: -6, scale: 1.0, zIndex: 4 },
-    { x: 0, y: 0, rotate: 4, scale: 1.0, zIndex: 5 },
+    { x: 0, y: 0, rotate:  4, scale: 1.0, zIndex: 5 },
     { x: 0, y: 0, rotate: -8, scale: 1.0, zIndex: 6 },
-    { x: 0, y: 0, rotate: 6, scale: 1.0, zIndex: 7 },
+    { x: 0, y: 0, rotate:  6, scale: 1.0, zIndex: 7 },
     { x: 0, y: 0, rotate: -4, scale: 1.0, zIndex: 8 },
-    { x: 0, y: 0, rotate: 7, scale: 1.0, zIndex: 9 },
-    { x: 0, y: 0, rotate: 0, scale: 1.0, zIndex: 10 },
+    { x: 0, y: 0, rotate:  7, scale: 1.0, zIndex: 9 },
+    { x: 0, y: 0, rotate:  0, scale: 1.0, zIndex: 10 },
   ],
   mobileSmall: [
     { x: 0, y: 0, rotate: -6, scale: 1.0, zIndex: 4 },
-    { x: 0, y: 0, rotate: 4, scale: 1.0, zIndex: 5 },
+    { x: 0, y: 0, rotate:  4, scale: 1.0, zIndex: 5 },
     { x: 0, y: 0, rotate: -8, scale: 1.0, zIndex: 6 },
-    { x: 0, y: 0, rotate: 6, scale: 1.0, zIndex: 7 },
+    { x: 0, y: 0, rotate:  6, scale: 1.0, zIndex: 7 },
     { x: 0, y: 0, rotate: -4, scale: 1.0, zIndex: 8 },
-    { x: 0, y: 0, rotate: 7, scale: 1.0, zIndex: 9 },
-    { x: 0, y: 0, rotate: 0, scale: 1.0, zIndex: 10 },
+    { x: 0, y: 0, rotate:  7, scale: 1.0, zIndex: 9 },
+    { x: 0, y: 0, rotate:  0, scale: 1.0, zIndex: 10 },
   ],
 };
-
-/* No creator metadata needed — badges, avatars, posters removed per requirements */
 
 const isMob = (s) => s === "mobile" || s === "mobileSmall";
 
@@ -2093,35 +2090,35 @@ const isMob = (s) => s === "mobile" || s === "mobileSmall";
 export default function VideoShowcaseSection() {
 
   /* ── Section 1 refs ── */
-  const roundSectionRef = useRef(null);
-  const roundCircleRef = useRef(null);
-  const roundElementRef = useRef(null);
-  const roundOverlayRef = useRef(null);
-  const roundButtonRef = useRef(null);
-  const roundWrapRef = useRef(null);
+  const roundSectionRef  = useRef(null);
+  const roundCircleRef   = useRef(null);
+  const roundElementRef  = useRef(null);
+  const roundOverlayRef  = useRef(null);
+  const roundButtonRef   = useRef(null);
+  const roundWrapRef     = useRef(null);
 
-  /* ── Section 3 (combined social+API) refs ── */
-  const socialSectionRef = useRef(null);
-  const socialWrapperRef = useRef(null); // tall scroll driver
-  const socialStickyRef = useRef(null); // pinned 100vh
-  const cardRefs = useRef([]);   // all cards (API videos)
-  const videoRefs = useRef([]);   // video elements for hover-play
+  /* ── Section 3 refs ── */
+  const socialSectionRef  = useRef(null);
+  const socialWrapperRef  = useRef(null);
+  const socialStickyRef   = useRef(null);
+  const cardRefs          = useRef([]);
+  const videoRefs         = useRef([]);
 
   /* ── State ── */
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [videos,     setVideos]     = useState([]);
+  const [loading,    setLoading]    = useState(true);
   const [screenSize, setScreenSize] = useState("desktop");
-  const [modal, setModal] = useState(null); // { src }
+  const [modal,      setModal]      = useState(null);
 
   /* ── Screen size ── */
   useEffect(() => {
     const detect = () => {
       const w = window.innerWidth;
-      if (w >= 1366) setScreenSize("desktop");
+      if (w >= 1366)      setScreenSize("desktop");
       else if (w >= 1024) setScreenSize("laptop");
-      else if (w >= 768) setScreenSize("tablet");
-      else if (w >= 480) setScreenSize("mobile");
-      else setScreenSize("mobileSmall");
+      else if (w >= 768)  setScreenSize("tablet");
+      else if (w >= 480)  setScreenSize("mobile");
+      else                setScreenSize("mobileSmall");
     };
     detect();
     window.addEventListener("resize", detect);
@@ -2135,7 +2132,7 @@ export default function VideoShowcaseSection() {
         const res = await api.get("/api/videos");
         setVideos(res.data || []);
       } catch { console.error("Failed to load videos"); }
-      finally { setLoading(false); }
+      finally   { setLoading(false); }
     })();
   }, []);
 
@@ -2143,11 +2140,10 @@ export default function VideoShowcaseSection() {
   useEffect(() => {
     if (!videos.length) return;
 
-    const mobile = isMob(screenSize);
-    const presets = FAN_PRESETS[screenSize] || FAN_PRESETS.desktop;
-    // All views use all available videos (up to 7, matching preset slots)
+    const mobile   = isMob(screenSize);
+    const presets  = FAN_PRESETS[screenSize] || FAN_PRESETS.desktop;
     const videoCount = Math.min(videos.length, presets.length);
-    const dispVids = videos.slice(0, videoCount);
+    const dispVids   = videos.slice(0, videoCount);
 
     const ctx = gsap.context(() => {
 
@@ -2161,11 +2157,11 @@ export default function VideoShowcaseSection() {
         });
         gsap.set(roundElementRef.current, { width: "100vw", height: "100vh", borderRadius: "0%", scale: 1, opacity: 1 });
         gsap.set(roundOverlayRef.current, { opacity: 0.5 });
-        gsap.set(roundButtonRef.current, { opacity: 1, scale: 1 });
+        gsap.set(roundButtonRef.current,  { opacity: 1, scale: 1 });
       } else {
         const sizes = {
-          tablet: { s: "15vw", e: "160vw" },
-          laptop: { s: "12vw", e: "150vw" },
+          tablet:  { s: "15vw", e: "160vw" },
+          laptop:  { s: "12vw", e: "150vw" },
           desktop: { s: "10vw", e: "150vw" },
         }[screenSize] || { s: "10vw", e: "150vw" };
 
@@ -2196,57 +2192,61 @@ export default function VideoShowcaseSection() {
 
       /* ════════════════════════════════════════
          S3 – Combined social + API fan section
-         Cards arrive ONE-BY-ONE strictly in order (0,1,2,3,4,5,6)
-         Each card's animation occupies its own equal slice of the timeline
-         so they appear sequentially as the user scrolls — no simultaneous arrivals.
+         FIX: Use xPercent/yPercent=-50 for centering instead of CSS translate.
+         This is the key fix for iOS Safari — GSAP controls ALL transforms,
+         so CSS translate(-50%,-50%) never conflicts with GSAP's x/y.
       ════════════════════════════════════════ */
       if (!socialSectionRef.current || !cardRefs.current.length) return;
 
-      // Pin the sticky inner viewport
       ScrollTrigger.create({
-        trigger: socialWrapperRef.current,
-        start: "top top",
-        end: "bottom bottom",
-        pin: socialStickyRef.current,
+        trigger:    socialWrapperRef.current,
+        start:      "top top",
+        end:        "bottom bottom",
+        pin:        socialStickyRef.current,
         pinSpacing: false,
       });
-      // Set ALL cards to their starting state: stacked at centre, below screen
+
+      /* 
+        KEY iOS FIX:
+        - Remove translate(-50%,-50%) from CSS entirely (done in styles below)
+        - Set cards at left:50% top:50% in CSS (just the anchor point)
+        - Use xPercent:-50 / yPercent:-50 in GSAP to handle centering
+        - Then x/y vw/vh offsets for fan spread work correctly on all browsers
+      */
       cardRefs.current.forEach((card, i) => {
         if (!card) return;
         gsap.set(card, {
+          xPercent: -50,          // ← replaces CSS translate(-50%)
+          yPercent: -50,          // ← replaces CSS translate(-50%)
           x: 0,
-          y: "85vh",
+          y: "85vh",              // start below viewport
           rotation: 0,
           scale: 0.35,
           opacity: 0,
-          zIndex: i + 1, // each card sits on top of the previous
+          zIndex: i + 1,
         });
       });
 
-
-      /* ── Build a timeline where each card gets an equal sequential slot ──
-         Slot width = 1 / videoCount so they are evenly spread across the scroll.
-         Card i starts animating at slot i and finishes by slot i+1.
-         This guarantees strictly one-by-one arrival with no overlap.
-      ── */
-      const slotW = 1 / videoCount;        // each card's allotted fraction
-      const animDur = slotW * 0.7;           // animation takes 70% of the slot
-      const s3Tl = gsap.timeline();
+      const slotW   = 1 / videoCount;
+      const animDur = slotW * 0.7;
+      const s3Tl    = gsap.timeline();
 
       dispVids.forEach((_, i) => {
         const card = cardRefs.current[i];
         if (!card) return;
-        const pos = presets[i % presets.length];
-        const tStart = i * slotW;          // strictly sequential — card i starts after card i-1
+        const pos    = presets[i % presets.length];
+        const tStart = i * slotW;
 
         s3Tl.to(card,
           {
-            x: `${pos.x}vw`,
-            y: `${pos.y}vh`,
+            xPercent: -50,          // keep centering offset
+            yPercent: -50,          // keep centering offset
+            x:        `${pos.x}vw`,
+            y:        `${pos.y}vh`,
             rotation: pos.rotate,
-            scale: pos.scale,
-            opacity: 1,
-            ease: "power3.out",
+            scale:    pos.scale,
+            opacity:  1,
+            ease:     "power3.out",
             duration: animDur,
           },
           tStart
@@ -2254,10 +2254,10 @@ export default function VideoShowcaseSection() {
       });
 
       ScrollTrigger.create({
-        trigger: socialWrapperRef.current,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 1,
+        trigger:   socialWrapperRef.current,
+        start:     "top top",
+        end:       "bottom bottom",
+        scrub:     1,
         animation: s3Tl,
       });
 
@@ -2286,10 +2286,10 @@ export default function VideoShowcaseSection() {
   }, [videos, screenSize]);
 
   /* ── Derived ── */
-  const mobile = isMob(screenSize);
-  const presets = FAN_PRESETS[screenSize] || FAN_PRESETS.desktop;
+  const mobile     = isMob(screenSize);
+  const presets    = FAN_PRESETS[screenSize] || FAN_PRESETS.desktop;
   const videoCount = Math.min(videos.length, presets.length);
-  const dispVids = videos.slice(0, videoCount);
+  const dispVids   = videos.slice(0, videoCount);
 
   if (loading) return null;
 
@@ -2343,39 +2343,45 @@ export default function VideoShowcaseSection() {
 
         /* ─────────────────────────────────────
            S3 – Social feedback + API videos
-           Cream bg · fan layout · big text behind
         ───────────────────────────────────── */
         .s3-outer  { background:#222123; position:relative; z-index:20; overflow:visible; }
 
-        /* Scroll driver — height = (videoCount × scroll per card) + breathing room.
-           We use a fixed 700vh so there's plenty of room for all 7 cards to arrive
-           one-by-one without feeling rushed. On mobile (3 cards) we use 400vh. */
         .s3-driver {
           background:#ffd500; width:100%;
           height: var(--s3-driver-height, 500vh);
           display:flex; flex-direction:column; align-items:center;
           position:relative; overflow:visible;
         }
-        /* Mobile: 7 videos × ~100vh each + breathing room */
         @media(max-width:767px){ .s3-driver{ --s3-driver-height: 190vh; } }
 
         /* Pinned 100vh viewport */
         .s3-sticky { position:sticky; top:0; width:100%; height:100vh;
                      z-index:4; overflow:hidden; }
 
-        /* ── Fan cards ── */
+        /* ── Fan cards ──
+           KEY iOS FIX:
+           - NO transform: translate(-50%,-50%) here — GSAP handles ALL transforms
+           - position: absolute; top:50%; left:50% sets the anchor point
+           - GSAP's xPercent:-50 / yPercent:-50 handles centering
+           - This prevents iOS Safari from having conflicting transform matrices
+        ── */
         .s3-card {
-          position:absolute;
-          top:70%; left:50%;
-          transform:translate(-50%,-50%);
-          border:0.38vw solid #ffd500;
-          border-radius:2vw; overflow:hidden;
-          /* Larger cards on desktop */
+          position: absolute;
+          top: 65%;
+          left: 50%;
+          /* ⚠️  NO transform here — GSAP owns all transforms on this element */
+          border: 0.38vw solid #ffd500;
+          border-radius: 2vw;
+          overflow: hidden;
           width: clamp(160px, 18vw, 280px);
-          aspect-ratio:9/16;
-          cursor:pointer; will-change:transform,opacity;
-          box-shadow:0 20px 40px rgba(0,0,0,0.52);
-          background:#111;
+          aspect-ratio: 9/16;
+          cursor: pointer;
+          will-change: transform, opacity;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.52);
+          background: #111;
+          /* Force GPU layer — helps iOS rendering */
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
         }
         .s3-card:hover { box-shadow:0 28px 56px rgba(0,0,0,0.7); }
         .s3-card video { width:100%; height:100%; object-fit:cover;
@@ -2383,73 +2389,68 @@ export default function VideoShowcaseSection() {
 
         /* Responsive card sizing */
         @media(max-width:1366px){ .s3-card{ width:clamp(150px,17vw,260px); } }
-
         @media(max-width:1225px){ .s3-card{ width:clamp(150px,17vw,260px); } }
-
-
-
-
-
-        /* iPad Pro 1024px - larger cards, side by side */
-// @media (max-width: 1024px) {
-//   .s3-card {
-  
-//     width: clamp(200px, 28vw, 320px);
-//     height: clamp(280px, 42vw, 480px);
-//     border-width: 4px;
-//     border-radius: 16px;
-//   }
-// }
-
-// /* iPad Pro landscape 1366px - also bump up size */
-// @media (max-width: 1366px) {
-//   .s3-card {
-//     width: clamp(180px, 22vw, 300px);
-//     height: clamp(260px, 36vw, 450px);
-//     border-width: 4px;
-//     border-radius: 16px;
-//   }
-// }
         @media(max-width:1024px){ .s3-card{ width:clamp(160px,16vw,240px); } }
+
         @media(max-width:991px){
-          .s3-card{position:absolute;top:50%; left:50%; width:55vw; height:98vw; border-width:4px; border-radius:16px; }
+          .s3-card{
+            width: 55vw;
+            height: 98vw;
+            border-width: 4px;
+            border-radius: 16px;
+          }
         }
         @media(max-width:821px){
-          .s3-card{position:absolute;top:60%; left:50%; width:55vw; height:90vw; border-width:3px; }
+          .s3-card{
+            width: 55vw;
+            height: 90vw;
+            border-width: 3px;
+          }
         }
-
-        @media(max-width:855px){
-          .s3-card{position:absolute;top:60%; left:50%; width:55vw; height:90vw; border-width:3px; }
-        }
-
-
-        @media(max-width:787px){
-          .s3-card{position:absolute;top:60%; left:50%; width:55vw; height:90vw; border-width:3px; }
-        }
-
         @media(max-width:767px){
-          .s3-card{position:absolute;top:50%; left:50%; width:68vw; height:121vw; border-width:3px; }
+          .s3-card{
+            width: 68vw;
+            height: 121vw;
+            border-width: 3px;
+          }
         }
-
         @media(max-width:541px){
-          .s3-card{ position:absolute;top:50%; left:50%; width:68vw; height:101vw; border-width:3px; border-radius:16px; }
+          .s3-card{
+            width: 68vw;
+            height: 101vw;
+            border-width: 3px;
+            border-radius: 16px;
+          }
         }
         @media(max-width:479px){
-          .s3-card{ position:absolute;top:50%; left:50%; width:68vw; height:121vw; border-width:3px; border-radius:16px; }
+          .s3-card{
+            width: 68vw;
+            height: 121vw;
+            border-width: 3px;
+            border-radius: 16px;
+          }
         }
-
         @media(max-width:413px){
-          .s3-card{ position:absolute;top:50%; left:50%; width:68vw; height:121vw; border-width:3px; border-radius:16px; }
+          .s3-card{
+            width: 68vw;
+            height: 121vw;
+            border-width: 3px;
+            border-radius: 16px;
+          }
         }
-
         @media(max-width:375px){
-          .s3-card{ position:absolute;top:10%; left:23%; width:68vw; height:121vw; border-width:3px; border-radius:16px; }
+          .s3-card{
+            width: 68vw;
+            height: 121vw;
+            border-width: 3px;
+            border-radius: 16px;
+          }
         }
 
         /* Explore All button */
         .s3-cta {
           position:absolute; bottom:4.5vh; left:50%; transform:translateX(-50%);
-          z-index:20; background:#523121; color:#523122;
+          z-index:20; background:#523121;
           font-family:'Antonio',sans-serif; font-size:clamp(.88rem,1.1vw,1.15rem);
           font-weight:700; text-transform:uppercase; letter-spacing:.13em;
           padding:.75em 3em; border-radius:100vw; text-decoration:none;
@@ -2479,10 +2480,6 @@ export default function VideoShowcaseSection() {
         .sf-bg-line.orange { color:#523121; }
         .sf-bg-line.right  { text-align:right; width:100%; }
 
-        /* Wave SVG divider */
-        .s3-wave { width:100%; display:block; position:relative;
-                   z-index:99; margin-top:-2px; }
-
         /* ─────────────────────────────────────
            Shared modal
         ───────────────────────────────────── */
@@ -2495,7 +2492,7 @@ export default function VideoShowcaseSection() {
         @keyframes vmFadeIn { from{opacity:0} to{opacity:1} }
         .vmodal-box {
           position:relative; width:100%;
-          max-width:min(800px,92vw); /* portrait video — narrower box */
+          max-width:min(800px,92vw);
           aspect-ratio:9/16;
           animation:vmSlide .28s ease;
         }
@@ -2567,13 +2564,10 @@ export default function VideoShowcaseSection() {
               <div className="s1-overlay" ref={roundOverlayRef} />
               <div className="s1-vid-wrap">
                 <video autoPlay loop muted playsInline
-                  poster="https://cdn.prod.website-files.com/669a8d6498ba88c08dfd2cd2%2F66ab8740f29f169f743966e6_669a8d6498ba88c08dfd2cd2_66a787ab53235ab6968a788f_on%20site-transcode-poster-00001.jpg"
+                  poster="images/product1.png "
                 >
                   <source src="Videos/Video2.mp4" type="video/mp4" />
-                  <source
-                    src="https://cdn.prod.website-files.com/669a8d6498ba88c08dfd2cd2%2F66ab8740f29f169f743966e6_669a8d6498ba88c08dfd2cd2_66a787ab53235ab6968a788f_on%20site-transcode-transcode.webm"
-                    type="video/webm"
-                  />
+                  
                 </video>
               </div>
             </div>
@@ -2583,12 +2577,10 @@ export default function VideoShowcaseSection() {
 
       {/* ══════════════════════════════════════════════════════════════
           SECTION 3 – Social feedback + API videos combined
-          Cream bg · fan layout · cards arrive one-by-one on scroll
-          API video URLs are used; SOCIAL_META supplies name/avatar/poster
       ══════════════════════════════════════════════════════════════ */}
       <div className="s3-outer" ref={socialSectionRef}>
 
-        {/* Tall scroll driver — drives the pinned animation */}
+        {/* Tall scroll driver */}
         <div className="s3-driver" ref={socialWrapperRef}>
 
           {/* Pinned 100vh sticky viewport */}
@@ -2601,7 +2593,7 @@ export default function VideoShowcaseSection() {
               <span className="sf-bg-line right">talking</span>
             </div>
 
-            {/* API video cards — no badges, no posters, no names */}
+            {/* API video cards */}
             {dispVids.map((v, i) => (
               <div
                 key={v._id}
@@ -2625,19 +2617,10 @@ export default function VideoShowcaseSection() {
           </div>{/* /sticky */}
         </div>{/* /driver */}
 
-        {/* Melting wave SVG at bottom */}
-        {/* <div style={{ position: "relative" }}>
-          <svg viewBox="0 0 1440 320" preserveAspectRatio="none" style={{ width: "100%" }}>
-            <path
-              fill="#ffd500"
-              d="M0,0 L1440,0 L1440,120 C1380,100 1340,60 1300,80 C1260,100 1250,160 1200,180 C1150,200 1100,160 1050,120 C1000,80 950,60 900,80 C850,100 800,140 750,120 C700,100 650,60 600,80 C550,100 520,140 480,150 C440,160 400,120 360,100 C320,80 280,70 240,90 C200,110 190,170 160,190 C130,210 90,200 60,170 C30,140 20,100 0,120 Z"
-            />
-          </svg>
-        </div> */}
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          MODAL – plays the API video (portrait aspect ratio)
+          MODAL
       ══════════════════════════════════════════════════════════════ */}
       {modal && (
         <div className="vmodal-bg" onClick={() => setModal(null)}>
