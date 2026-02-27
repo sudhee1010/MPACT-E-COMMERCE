@@ -375,7 +375,7 @@
 
 
 import { Link } from "react-router-dom";
-import { Instagram, Youtube } from "lucide-react";
+import { Instagram, Youtube, Linkedin, Twitter } from "lucide-react";
 import { SiFacebook } from "react-icons/si";
 import OfferScrollBar from "./OfferScrollBar"
 
@@ -609,6 +609,26 @@ export default function Footer() {
                 >
                   <div className="social-circle">
                     <Youtube size={22} strokeWidth={2} />
+                  </div>
+                </a>
+
+                <a
+                  href="https://www.linkedin.com/in/mpact-in-8b5b753b2?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="social-circle">
+                    <Linkedin size={22} strokeWidth={2} />
+                  </div>
+                </a>
+
+                <a
+                  href="https://x.com/mpact_in?s=11"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="social-circle">
+                    <Twitter size={22} strokeWidth={2} />
                   </div>
                 </a>
               </div>

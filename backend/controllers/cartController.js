@@ -13,6 +13,8 @@ const calculateTotal = (items) =>
 
 
 // ✅ Get logged-in user's cart
+
+
 // export const getCart = async (req, res) => {
 //   try {
 //     const cart = await Cart.findOne({ user: req.user._id }).populate(
@@ -22,59 +24,70 @@ const calculateTotal = (items) =>
 
 //     if (cart) {
 //       cart.items.forEach(item => {
-//         if (item.product?.price) {
-//           item.price = item.product.price;
-//         }
-
-//         if (item.product?.originalPrice) {
-//           item.originalPrice = item.product.originalPrice;
-//         } else {
-//           item.originalPrice = item.product.price;
-//         }
+//         if (item.product?.price) item.price = item.product.price;
+//         item.originalPrice = item.product.originalPrice || item.product.price;
 //       });
-
-
 
 //       cart.totalPrice = calculateTotal(cart.items);
 //       await cart.save();
 //     }
 
-//     res.json(cart || { items: [], totalPrice: 0 });
+//     const TAX_RATE = 0.05;
+//     const taxAmount = cart ? cart.totalPrice * TAX_RATE : 0;
+//     const totalWithTax = (cart?.totalPrice || 0) + taxAmount;
+
+//     res.json({
+//       items: cart?.items || [],
+//       totalPrice: cart?.totalPrice || 0,
+//       taxAmount,
+//       totalWithTax
+//     });
 //   } catch (error) {
-//     console.error("Get Cart Error:", error);
 //     res.status(500).json({ message: "Failed to fetch cart" });
 //   }
 // };
-
 
 export const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id }).populate(
       "items.product",
-      "name price originalPrice discountPercent images"
+      "name price originalPrice discountPercent images countInStock"
     );
 
-    if (cart) {
-      cart.items.forEach(item => {
-        if (item.product?.price) item.price = item.product.price;
-        item.originalPrice = item.product.originalPrice || item.product.price;
+    if (!cart) {
+      return res.json({
+        items: [],
+        totalPrice: 0,
+        taxAmount: 0,
+        totalWithTax: 0
       });
-
-      cart.totalPrice = calculateTotal(cart.items);
-      await cart.save();
     }
 
+    // 🔥 Remove deleted products safely
+    cart.items = cart.items.filter(item => item.product);
+
+    cart.items.forEach(item => {
+      item.price = item.product.price || 0;
+      item.originalPrice =
+        item.product.originalPrice || item.product.price || 0;
+    });
+
+    cart.totalPrice = calculateTotal(cart.items);
+    await cart.save();
+
     const TAX_RATE = 0.05;
-    const taxAmount = cart ? cart.totalPrice * TAX_RATE : 0;
-    const totalWithTax = (cart?.totalPrice || 0) + taxAmount;
+    const taxAmount = cart.totalPrice * TAX_RATE;
+    const totalWithTax = cart.totalPrice + taxAmount;
 
     res.json({
-      items: cart?.items || [],
-      totalPrice: cart?.totalPrice || 0,
+      items: cart.items,
+      totalPrice: cart.totalPrice,
       taxAmount,
       totalWithTax
     });
+
   } catch (error) {
+    console.error("Get Cart Error:", error);
     res.status(500).json({ message: "Failed to fetch cart" });
   }
 };
