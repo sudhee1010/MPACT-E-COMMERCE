@@ -1352,8 +1352,8 @@ export default function CarouselVideosAdmin() {
   });
 
   // API Base URLs
-  // const API_URL = "http://localhost:5000/api/videohome";
-  // const PRODUCTS_API_URL = "http://localhost:5000/api/products";
+  // const API_URL = "https://mpact-e-backend.onrender.com/api/videohome";
+  // const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
   const API_URL = "https://mpact-e-backend.onrender.com/api/videohome";
   const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
 

@@ -35,6 +35,8 @@ import VerifyEmail from "./pages/VerifyEmail.jsx";
 import WishlistPage from "./pages/Wishlist.jsx";
 import TermsAndConditions from "./pages/TermsAndConditions.jsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import Contact from "../src/components/Contact.jsx"
+import Shipping from "../src/components/ShippingPolicy.jsx"
 import OrderDetails from "./pages/OrderDetails.jsx";
 import DistributorEnquiry from "./pages/DistributorEnquiry.jsx";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -114,6 +116,7 @@ import AdminDistributor from "./components/AdminDistributor.jsx";
 import AdminReviews from "./components/Reviews.jsx";
 import Carouselvideosadmin from "./components/Carouselvideosadmin.jsx";
 import Return from "./pages/Return.jsx"
+import FuelEarnShare from "./pages/FuelEarnShare.jsx";
 
 
 function App() {
@@ -215,10 +218,13 @@ function App() {
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/contact-us" element={<Contact />} />
+          <Route path="/shipping-policy" element={<Shipping />} />
           <Route path="/orders/:id" element={<OrderDetails />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/return-policy" element={<Return />} />
           <Route path="/connect" element={<Connect />} />
+          <Route path="/fuel-earn-share" element={<FuelEarnShare />} />
 
 
           {/* ADMIN */}
