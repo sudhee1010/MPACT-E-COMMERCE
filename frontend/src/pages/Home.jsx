@@ -1749,7 +1749,7 @@
 //       )}
 
 //       <FuelEarnShareFloat />
-      
+
 //       {/* WhatsApp Float Button */}
 //       <WhatsAppFloat />
 //     </div>
@@ -1894,13 +1894,13 @@ const MPACTLandingPage = () => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handlePrevSlide = () => {
-    setCurrentSlide(prev => (prev === 0 ? heroSlides.length - 1 : prev - 1));
-  };
+  // const handlePrevSlide = () => {
+  //   setCurrentSlide(prev => (prev === 0 ? heroSlides.length - 1 : prev - 1));
+  // };
 
-  const handleNextSlide = () => {
-    setCurrentSlide(prev => (prev === heroSlides.length - 1 ? 0 : prev + 1));
-  };
+  // const handleNextSlide = () => {
+  //   setCurrentSlide(prev => (prev === heroSlides.length - 1 ? 0 : prev + 1));
+  // };
   useEffect(() => {
     if (!loadingProducts && !loadingBanners) {
       const handleLoad = () => {
@@ -2181,51 +2181,51 @@ const MPACTLandingPage = () => {
                       }}
                     />
                   </div> */}
-                     
-                     <div style={{
-  width: '100%',
-  height: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transform: index === currentSlide ? `translateY(${scrollY * 0.1}px)` : 'translateY(0)',
-  transition: 'transform 0.1s linear'
-}}>
-  {slide.mediaType === 'video' ? (
-    <video
-      src={slide.video?.url}
-      autoPlay
-      muted
-      loop
-      playsInline
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        maxWidth: '100%',
-        margin: '0 auto'
-      }}
-    />
-  ) : (
-    <img
-      src={slide.image?.url || proteinGym}
-      alt={`Slide ${index + 1}`}
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        maxWidth: '100%',
-        margin: '0 auto'
-      }}
-    />
-  )}
-</div>
+
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transform: index === currentSlide ? `translateY(${scrollY * 0.1}px)` : 'translateY(0)',
+                    transition: 'transform 0.1s linear'
+                  }}>
+                    {slide.mediaType === 'video' ? (
+                      <video
+                        src={slide.video?.url}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          maxWidth: '100%',
+                          margin: '0 auto'
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={slide.image?.url || proteinGym}
+                        alt={`Slide ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          maxWidth: '100%',
+                          margin: '0 auto'
+                        }}
+                      />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
 
             {/* Navigation buttons and indicators */}
-            <div style={{
+            {/* <div style={{
               position: 'absolute',
               bottom: isMobile ? '1rem' : '2rem',
               left: '50%',
@@ -2297,7 +2297,7 @@ const MPACTLandingPage = () => {
               >
                 <ChevronRight size={isMobile ? 18 : 24} />
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
