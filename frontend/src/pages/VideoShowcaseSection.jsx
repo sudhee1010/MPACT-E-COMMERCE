@@ -3575,7 +3575,7 @@ export default function VideoShowcaseSection() {
 
         /* ─── Fan cards ─── */
         .s3-card {
-          position: absolute; top: 65%; left: 50%;
+          position: absolute; top: 69%; left: 50%;
           border: 0.30vw solid #ffd500; border-radius: 2vw;
           overflow: hidden; width: clamp(160px,18vw,280px);
           aspect-ratio: 9/16; cursor: pointer;
