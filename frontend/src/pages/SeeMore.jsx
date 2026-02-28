@@ -637,7 +637,7 @@
 //           background: rgba(255, 235, 0, 0.18);
 //           border-radius: 6px;
 //         }
-          
+
 
 //         @keyframes slideIn {
 //           from {
@@ -1696,6 +1696,7 @@ import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 /* ================= COMPONENT ================= */
 
@@ -2732,6 +2733,13 @@ export default function ProductPage() {
         z-index: 1;
         }
 
+        .card {
+  cursor: pointer;
+}
+.card:hover {
+  transform: translateY(-6px);
+}
+
         .fav {
           position: absolute;
           top: 12px;
@@ -3263,6 +3271,7 @@ const ProductCard = ({
   const [qty, setQty] = useState(1);
   const [stockError, setStockError] = useState(null);
   const { refreshCart, setOpenSideCart } = useCart();
+  const navigate = useNavigate();
   // const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleAddToCart = async (productId) => {
@@ -3306,11 +3315,14 @@ const ProductCard = ({
   };
 
   return (
-    <div className="card">
+    <div
+      className="card"
+      onClick={() => navigate(`/productspec/${product._id}`)}
+    >
       <div className="imageWrap">
         {product.discountPercent > 0 && (
-  <span className="discount">{product.discountPercent}% OFF</span>
-)}
+          <span className="discount">{product.discountPercent}% OFF</span>
+        )}
 
 
         <img
@@ -3320,7 +3332,10 @@ const ProductCard = ({
 
         <button
           className={`fav ${wishlistIds.has(product._id) ? "active" : ""}`}
-          onClick={() => toggleWishlist(product._id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product._id);
+          }}
         >
           <Heart />
         </button>
@@ -3363,10 +3378,16 @@ const ProductCard = ({
         )}
 
         <div className="qty">
-          <button onClick={decreaseQty}>−</button>
+          <button onClick={(e) => {
+            e.stopPropagation();
+            decreaseQty();
+          }}>−</button>
           <span>{qty}</span>
-          <button 
-            onClick={increaseQty}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              increaseQty();
+            }}
             disabled={isMaxStock(qty)}
             title={
               isMaxStock(qty)
@@ -3393,7 +3414,10 @@ const ProductCard = ({
             <>
               <button
                 className="add-to-cart-btn"
-                onClick={() => handleAddToCart(product._id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart(product._id);
+                }}
               >
                 🛒 Add to Cart
               </button>
@@ -3401,6 +3425,7 @@ const ProductCard = ({
               <Link
                 to={`/productspec/${product._id}`}
                 className="action-link"
+                onClick={(e) => e.stopPropagation()}
               >
                 <button className="buy-btn">BUY NOW</button>
               </Link>
