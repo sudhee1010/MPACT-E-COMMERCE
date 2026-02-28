@@ -86,6 +86,11 @@ const orderSchema = new mongoose.Schema(
       default: false
     },
 
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product"
+    },
+
 
 
     /* ================== COUPON FIELDS (ADDED) ================== */

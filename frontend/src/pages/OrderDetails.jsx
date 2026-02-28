@@ -246,6 +246,7 @@ export default function OrderDetails() {
                     min-height: 100vh;
                     background: #1a1a1a;
                     color: white;
+                    overflow-x: hidden;
                     padding: 2rem 1rem;
                     // max-width: 1200px;
                     margin: 0 auto;
@@ -257,6 +258,16 @@ export default function OrderDetails() {
                         padding: 3rem 2rem;
                     }
                 }
+
+                .item-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.item-card:hover {
+    transform: translateY(-3px);
+    border-color: #facc15;
+}
 
                 .back-btn {
                     background: transparent;
@@ -456,12 +467,11 @@ export default function OrderDetails() {
                     color: #f9fafb;
                 }
 
-                .item-meta {
-                    display: flex;
-                    gap: 1rem;
-                    color: #9ca3af;
-                    font-size: 0.9rem;
-                }
+               .item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
 
                 .price-summary {
                     background: #2a2a2a;
@@ -577,23 +587,89 @@ export default function OrderDetails() {
                 }
 
                 @media (max-width: 640px) {
-                    .item-card {
-                        flex-direction: column;
-                    }
-                    
-                    .item-card img {
-                        width: 100%;
-                        height: 200px;
-                    }
-                    
-                    .action-buttons {
-                        flex-direction: column;
-                    }
-                    
-                    .action-btn {
-                        width: 100%;
-                    }
-                }
+
+    .order-page {
+        padding: 1.2rem 0.8rem;
+    }
+
+    .order-id {
+        font-size: 1.1rem;
+        word-break: break-all;
+    }
+
+    .order-date {
+        font-size: 0.8rem;
+    }
+
+    .order-header {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .status-badges {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .action-btn {
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 12px;
+    }
+
+    .section {
+        padding: 1rem;
+    }
+
+    .section-title {
+        font-size: 1rem;
+    }
+
+    .item-card {
+        flex-direction: column;
+        padding: 0.8rem;
+    }
+
+    .item-card img {
+        width: 100%;
+        height: 180px;
+    }
+
+    .item-meta {
+        flex-direction: column;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    .summary-row {
+        font-size: 0.9rem;
+    }
+
+    .total-row {
+        font-size: 1rem;
+    }
+
+    .shipping-address p {
+        font-size: 0.9rem;
+        word-break: break-word;
+    }
+
+    .back-btn {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+}
             `}</style>
 
             <div className="order-page">
@@ -724,7 +800,12 @@ export default function OrderDetails() {
                     <h2 className="section-title">Ordered Items</h2>
                     <div className="items-grid">
                         {order.orderItems.map((item) => (
-                            <div className="item-card" key={item._id}>
+                            <div
+                                className="item-card"
+                                key={item._id}
+                                onClick={() => navigate(`/productspec/${item.product}`)}
+                                style={{ cursor: "pointer" }}
+                            >
                                 <img
                                     src={item.image || "/images/Product1.png"}
                                     alt={item.name}

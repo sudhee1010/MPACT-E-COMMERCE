@@ -1781,6 +1781,14 @@ export default function Products() {
   width: 20px;
   height: 20px;
 }
+  .product-card {
+  cursor: pointer;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  transition: all 0.3s ease;
+}
 
 .favorite-btn.active svg {
   fill: #ff0000;
@@ -2396,7 +2404,11 @@ export default function Products() {
 
               <div className="product-grid">
                 {productsByCategory[categoryName].slice(0, 4).map((product) => (
-                  <div className="product-card" key={product._id}>
+                  <div
+                    className="product-card"
+                    key={product._id}
+                    onClick={() => navigate(`/productspec/${product._id}`)}
+                  >
                     <div
                       className={`discount-badge ${product.discountPercent ? "show" : "hide"
                         }`}
@@ -2410,7 +2422,10 @@ export default function Products() {
                     <button
                       className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
                         }`}
-                      onClick={() => toggleWishlist(product._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWishlist(product._id);
+                      }}
                     >
                       <Heart />
                     </button>
@@ -2463,7 +2478,10 @@ export default function Products() {
                         <>
                           <button
                             className="add-to-cart-btn"
-                            onClick={() => handleAddToCart(product._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product._id);
+                            }}
                           >
                             🛒 Add to Cart
                           </button>
@@ -2471,6 +2489,7 @@ export default function Products() {
                           <Link
                             to={`/productspec/${product._id}`}
                             className="action-link"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <button className="buy-btn">BUY</button>
                           </Link>

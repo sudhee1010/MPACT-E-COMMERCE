@@ -3467,6 +3467,7 @@ import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 /* ================= COMPONENT ================= */
 
@@ -5015,6 +5016,12 @@ export default function ProductPage() {
             font-size: 9px;
           }
         }
+          .card {
+  cursor: pointer;
+}
+  .card {
+  cursor: pointer;
+}
       `}</style>
 
       <Footer />
@@ -5033,6 +5040,8 @@ const ProductCard = ({
   const [qty, setQty] = useState(1);
   const [stockError, setStockError] = useState(null);
   const { refreshCart, setOpenSideCart } = useCart();
+  const navigate = useNavigate();
+  // const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleAddToCart = async (productId) => {
     try {
@@ -5072,7 +5081,10 @@ const ProductCard = ({
   };
 
   return (
-    <div className="card">
+    <div
+      className="card"
+      onClick={() => navigate(`/productspec/${product._id}`)}
+    >
       <div className="imageWrap">
         {product.discountPercent > 0 && (
           <span className="discount">{product.discountPercent}% OFF</span>
@@ -5086,7 +5098,10 @@ const ProductCard = ({
 
         <button
           className={`fav ${wishlistIds.has(product._id) ? "active" : ""}`}
-          onClick={() => toggleWishlist(product._id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(product._id);
+          }}
           aria-label={
             wishlistIds.has(product._id)
               ? "Remove from wishlist"
@@ -5130,10 +5145,16 @@ const ProductCard = ({
         )}
 
         <div className="qty">
-          <button onClick={decreaseQty} aria-label="Decrease quantity">−</button>
+          <button onClick={(e) => {
+            e.stopPropagation();
+            decreaseQty();
+          }} aria-label="Decrease quantity">−</button>
           <span>{qty}</span>
           <button
-            onClick={increaseQty}
+            onClick={(e) => {
+              e.stopPropagation();
+              increaseQty();
+            }}
             disabled={isMaxStock(qty)}
             aria-label="Increase quantity"
             title={
@@ -5151,7 +5172,10 @@ const ProductCard = ({
             <>
               <button
                 className="add-to-cart-btn"
-                onClick={() => handleAddToCart(product._id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart(product._id);
+                }}
               >
                 🛒 Add to Cart
               </button>
@@ -5159,6 +5183,7 @@ const ProductCard = ({
               <Link
                 to={`/productspec/${product._id}`}
                 className="action-link"
+                onClick={(e) => e.stopPropagation()}
               >
                 <button className="buy-btn">BUY NOW</button>
               </Link>
