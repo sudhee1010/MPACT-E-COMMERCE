@@ -3661,7 +3661,7 @@ export default function VideoShowcaseSection() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: #7a5029;
+          background: #80542c;
           border-radius: 100vw;
           padding: .75em 3em;
           text-decoration: none;
@@ -3669,7 +3669,7 @@ export default function VideoShowcaseSection() {
           transition: background .3s;
           white-space: nowrap;
         }
-        .liquid-button:hover { background: #ffd500; }
+        .liquid-button:hover { background: #7a5029; }
 
         .button-text {
           position: relative;
