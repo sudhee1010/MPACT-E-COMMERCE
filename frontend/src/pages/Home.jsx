@@ -2158,7 +2158,7 @@ const MPACTLandingPage = () => {
                     width: '100%'
                   }}
                 >
-                  <div style={{
+                  {/* <div style={{
                     width: '100%',
                     height: '100%',
                     display: 'flex',
@@ -2180,7 +2180,46 @@ const MPACTLandingPage = () => {
                         margin: '0'
                       }}
                     />
-                  </div>
+                  </div> */}
+                     
+                     <div style={{
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transform: index === currentSlide ? `translateY(${scrollY * 0.1}px)` : 'translateY(0)',
+  transition: 'transform 0.1s linear'
+}}>
+  {slide.mediaType === 'video' ? (
+    <video
+      src={slide.video?.url}
+      autoPlay
+      muted
+      loop
+      playsInline
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        maxWidth: '100%',
+        margin: '0 auto'
+      }}
+    />
+  ) : (
+    <img
+      src={slide.image?.url || proteinGym}
+      alt={`Slide ${index + 1}`}
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        maxWidth: '100%',
+        margin: '0 auto'
+      }}
+    />
+  )}
+</div>
                 </div>
               ))}
             </div>

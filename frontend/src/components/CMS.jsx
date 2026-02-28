@@ -1,3 +1,7 @@
+
+
+
+
 // import React, { useState, useEffect } from 'react';
 // import { Plus, Edit, Trash2, MoveUp, MoveDown, Image as ImageIcon, Upload, X, ChevronLeft, ChevronRight, Play, FileText, Users, Calendar, Film, Tag, Clock } from 'lucide-react';
 // import { Button } from '../components/ui/Button';
@@ -624,7 +628,7 @@
 //         toast.success("FAQ added");
 //       }
 
-//       setFaqForm({ category: "", question: "", answer: "" });
+//       setFaqForm({ question: "", answer: "" });
 //       setEditingFaq(null);
 //       setFaqDialogOpen(false);
 //       fetchFaqs();
@@ -758,7 +762,7 @@
 //               <div key={slide._id} className="bg-[#2a2a2a] rounded-lg shadow-sm p-4 flex gap-4 border border-gray-700">
 //                 <div className="w-32 h-20 rounded-md overflow-hidden flex-shrink-0">
 //                   <img
-//                     src={slide.image.url}
+//                     src={slide?.image?.url}
 //                     alt="Hero Banner"
 //                     className="w-full h-full object-cover"
 //                   />
@@ -1408,29 +1412,42 @@
 //           )}
 //         </TabsContent>
 
-//       {/* ================= FAQ TAB ================= */}
-//       <TabsContent value="faq" className="space-y-6">
+//         {/* ================= FAQ TAB ================= */}
+//         <TabsContent value="faq" className="space-y-6">
 
-//         <div className="flex justify-between items-center">
-//           <h3 className="text-lg font-semibold">Manage FAQs</h3>
+//           <div className="flex justify-between items-center">
+//             <h3 className="text-lg font-semibold">Manage FAQs</h3>
 
-//           <Dialog open={faqDialogOpen} onOpenChange={setFaqDialogOpen}>
-//             <DialogTrigger asChild>
-//               <Button className="bg-blue-600 hover:bg-blue-700">
-//                 <Plus size={18} className="mr-2" />
-//                 Add FAQ
-//               </Button>
-//             </DialogTrigger>
+//             <Dialog 
+//               open={faqDialogOpen} 
+//               onOpenChange={(open) => {
+//                 setFaqDialogOpen(open);
+//                 if (!open) {
+//                   // Reset both form and editing state when dialog closes
+//                   setFaqForm({
+//                     question: "",
+//                     answer: "",
+//                   });
+//                   setEditingFaq(null);
+//                 }
+//               }}
+//             >
+//               <DialogTrigger asChild>
+//                 <Button className="bg-blue-600 hover:bg-blue-700">
+//                   <Plus size={18} className="mr-2" />
+//                   Add FAQ
+//                 </Button>
+//               </DialogTrigger>
 
-//             <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-lg">
-//               <DialogHeader>
-//                 <DialogTitle>
-//                   {editingFaq ? "Edit FAQ" : "Add FAQ"}
-//                 </DialogTitle>
-//               </DialogHeader>
+//               <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-lg">
+//                 <DialogHeader>
+//                   <DialogTitle>
+//                     {editingFaq ? "Edit FAQ" : "Add FAQ"}
+//                   </DialogTitle>
+//                 </DialogHeader>
 
-//               <div className="space-y-4 py-4">
-// {/* 
+//                 <div className="space-y-4 py-4">
+//                   {/* 
 //                 <Input
 //                   placeholder="Category (e.g. PRODUCT INFORMATION)"
 //                   className="bg-gray-800"
@@ -1440,98 +1457,98 @@
 //                   }
 //                 /> */}
 
-//                 <Input
-//                   placeholder="Question"
-//                   className="bg-gray-800"
-//                   value={faqForm.question}
-//                   onChange={(e) =>
-//                     setFaqForm({ ...faqForm, question: e.target.value })
-//                   }
-//                 />
+//                   <Input
+//                     placeholder="Question"
+//                     className="bg-gray-800"
+//                     value={faqForm.question}
+//                     onChange={(e) =>
+//                       setFaqForm({ ...faqForm, question: e.target.value })
+//                     }
+//                   />
 
-//                 <Textarea
-//                   placeholder="Answer"
-//                   rows={4}
-//                   className="bg-gray-800"
-//                   value={faqForm.answer}
-//                   onChange={(e) =>
-//                     setFaqForm({ ...faqForm, answer: e.target.value })
-//                   }
-//                 />
-
-//                 <Button
-//                   disabled={faqLoading}
-//                   onClick={handleSaveFaq}
-//                   className="w-full bg-blue-600"
-//                 >
-//                   {faqLoading
-//                     ? "Saving..."
-//                     : editingFaq
-//                       ? "Update FAQ"
-//                       : "Add FAQ"}
-//                 </Button>
-
-//               </div>
-//             </DialogContent>
-//           </Dialog>
-//         </div>
-
-//         {/* FAQ LIST */}
-//         <div className="space-y-4">
-//           {faqs.map((faq) => (
-//             <div
-//               key={faq._id}
-//               className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4"
-//             >
-//               <div className="flex justify-between items-start">
-//                 <div>
-//                   <span className="text-xs text-blue-400 uppercase">
-//                     {faq.category}
-//                   </span>
-//                   <h4 className="font-semibold mt-1">
-//                     {faq.question}
-//                   </h4>
-//                   <p className="text-sm text-gray-400 mt-2">
-//                     {faq.answer}
-//                   </p>
-//                 </div>
-
-//                 <div className="flex gap-2">
-//                   <Button
-//                     size="sm"
-//                     onClick={() => {
-//                       setEditingFaq(faq);
-//                       setFaqForm({
-//                         category: faq.category,
-//                         question: faq.question,
-//                         answer: faq.answer,
-//                       });
-//                       setFaqDialogOpen(true);
-//                     }}
-//                   >
-//                     <Edit size={14} />
-//                   </Button>
+//                   <Textarea
+//                     placeholder="Answer"
+//                     rows={4}
+//                     className="bg-gray-800"
+//                     value={faqForm.answer}
+//                     onChange={(e) =>
+//                       setFaqForm({ ...faqForm, answer: e.target.value })
+//                     }
+//                   />
 
 //                   <Button
-//                     size="sm"
-//                     variant="destructive"
-//                     onClick={() => handleDeleteFaq(faq._id)}
+//                     disabled={faqLoading}
+//                     onClick={handleSaveFaq}
+//                     className="w-full bg-blue-600"
 //                   >
-//                     <Trash2 size={14} />
+//                     {faqLoading
+//                       ? "Saving..."
+//                       : editingFaq
+//                         ? "Update FAQ"
+//                         : "Add FAQ"}
 //                   </Button>
+
+//                 </div>
+//               </DialogContent>
+//             </Dialog>
+//           </div>
+
+//           {/* FAQ LIST */}
+//           <div className="space-y-4">
+//             {faqs.map((faq) => (
+//               <div
+//                 key={faq._id}
+//                 className="bg-[#2a2a2a] border border-gray-700 rounded-lg p-4"
+//               >
+//                 <div className="flex justify-between items-start">
+//                   <div>
+//                     <span className="text-xs text-blue-400 uppercase">
+//                       {faq.category}
+//                     </span>
+//                     <h4 className="font-semibold mt-1">
+//                       {faq.question}
+//                     </h4>
+//                     <p className="text-sm text-gray-400 mt-2">
+//                       {faq.answer}
+//                     </p>
+//                   </div>
+
+//                   <div className="flex gap-2">
+//                     <Button
+//                       size="sm"
+//                       onClick={() => {
+//                         setEditingFaq(faq);
+//                         setFaqForm({
+//                           category: faq.category,
+//                           question: faq.question,
+//                           answer: faq.answer,
+//                         });
+//                         setFaqDialogOpen(true);
+//                       }}
+//                     >
+//                       <Edit size={14} />
+//                     </Button>
+
+//                     <Button
+//                       size="sm"
+//                       variant="destructive"
+//                       onClick={() => handleDeleteFaq(faq._id)}
+//                     >
+//                       <Trash2 size={14} />
+//                     </Button>
+//                   </div>
 //                 </div>
 //               </div>
-//             </div>
-//           ))}
+//             ))}
 
-//           {faqs.length === 0 && (
-//             <div className="text-center text-gray-400 py-10">
-//               No FAQs found
-//             </div>
-//           )}
-//         </div>
+//             {faqs.length === 0 && (
+//               <div className="text-center text-gray-400 py-10">
+//                 No FAQs found
+//               </div>
+//             )}
+//           </div>
 
-//       </TabsContent>
+//         </TabsContent>
 //       </Tabs>
 
 
@@ -1546,8 +1563,6 @@
 //     </div>
 //   );
 // }
-
-
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, MoveUp, MoveDown, Image as ImageIcon, Upload, X, ChevronLeft, ChevronRight, Play, FileText, Users, Calendar, Film, Tag, Clock } from 'lucide-react';
@@ -1628,7 +1643,6 @@ export default function CMS() {
 
 
   const [editingBlog, setEditingBlog] = useState(null);
-  // const [homeVideos, setHomeVideos] = useState(initialHomeVideos);
 
   const [isHomeCarouselDialogOpen, setIsHomeCarouselDialogOpen] = useState(false);
   const [isBlogDialogOpen, setIsBlogDialogOpen] = useState(false);
@@ -1646,11 +1660,14 @@ export default function CMS() {
   });
 
 
+  // ─── HOME CAROUSEL FORM ───────────────────────────────────────────────────
+  // mediaType: "image" | "video"
   const [homeCarouselForm, setHomeCarouselForm] = useState({
-    title: '',
-    description: '',
+    mediaType: 'image',   // NEW: toggle between image and video
     image: null,
     imagePreview: '',
+    video: null,
+    videoPreview: '',
     active: true,
   });
 
@@ -1664,12 +1681,6 @@ export default function CMS() {
   const [faqLoading, setFaqLoading] = useState(false);
   const [faqDialogOpen, setFaqDialogOpen] = useState(false);
 
-
-  // const [homeVideosForm, setHomeVideosForm] = useState({
-  //   videoFile: null,
-  //   videoPreview: '',
-  //   active: true,
-  // });
 
   // File upload handler
   const handleFileUpload = (event, setForm, formKey, previewKey) => {
@@ -1702,10 +1713,16 @@ export default function CMS() {
   };
 
 
-  // Home Carousel Functions
+  // ─── HOME CAROUSEL FUNCTIONS ──────────────────────────────────────────────
 
   const handleAddHomeCarousel = async () => {
-    if (!homeCarouselForm.image) {
+    const isVideo = homeCarouselForm.mediaType === 'video';
+
+    if (isVideo && !homeCarouselForm.video) {
+      toast.error("Please select a video");
+      return;
+    }
+    if (!isVideo && !homeCarouselForm.image) {
       toast.error("Please select an image");
       return;
     }
@@ -1714,7 +1731,14 @@ export default function CMS() {
       setLoadingBanner(true);
 
       const formData = new FormData();
-      formData.append("image", homeCarouselForm.image);
+
+      if (isVideo) {
+        // Field name MUST be "video" — matches uploadVideo.single("video") in routes
+        formData.append("video", homeCarouselForm.video);
+      } else {
+        // Field name MUST be "image" — matches upload.single("image") in routes
+        formData.append("image", homeCarouselForm.image);
+      }
 
       const { data } = await api.post(
         "/api/hero-banners/create-hero",
@@ -1726,7 +1750,7 @@ export default function CMS() {
       resetHomeCarouselForm();
       setIsHomeCarouselDialogOpen(false);
 
-      toast.success("Banner uploaded successfully");
+      toast.success("Slide uploaded successfully");
     } catch (err) {
       toast.error("Upload failed");
     } finally {
@@ -1758,7 +1782,7 @@ export default function CMS() {
         setHomeCarousel(prev =>
           prev.filter(b => b._id !== id)
         );
-        toast.success("Banner deleted");
+        toast.success("Slide deleted");
       } catch {
         toast.error("Delete failed");
       } finally {
@@ -1786,7 +1810,6 @@ export default function CMS() {
         [updated[index + 1], updated[index]];
     }
 
-    // assign new order
     const reordered = updated.map((b, i) => ({
       ...b,
       order: i + 1,
@@ -1808,20 +1831,17 @@ export default function CMS() {
 
   const resetHomeCarouselForm = () => {
     setHomeCarouselForm({
-      title: '',
-      description: '',
+      mediaType: 'image',
       image: null,
       imagePreview: '',
+      video: null,
+      videoPreview: '',
       active: true,
     });
   };
 
 
-
-
-
-
-  // About Us Functions
+  // ─── ABOUT US FUNCTIONS ───────────────────────────────────────────────────
   useEffect(() => {
     fetchAbout();
   }, []);
@@ -1960,11 +1980,7 @@ export default function CMS() {
   }, [about]);
 
 
-
-
-
-
-  // Blog Functions
+  // ─── BLOG FUNCTIONS ───────────────────────────────────────────────────────
   useEffect(() => {
     fetchCategories();
     fetchBlogs();
@@ -2065,11 +2081,7 @@ export default function CMS() {
   };
 
 
-
-
-
-
-  // Home Videos Functions
+  // ─── HOME VIDEOS FUNCTIONS ────────────────────────────────────────────────
   useEffect(() => {
     fetchVideos();
   }, []);
@@ -2077,10 +2089,7 @@ export default function CMS() {
   const fetchVideos = async () => {
     try {
       setVideoLoading(true);
-
-      // IMPORTANT: add ?admin=true
       const { data } = await api.get("/api/videos?admin=true");
-
       setVideos(data);
     } catch {
       toast.error("Failed to load videos");
@@ -2148,7 +2157,7 @@ export default function CMS() {
     });
   };
 
-  /* ================= FAQ FUNCTIONS ================= */
+  /* ─── FAQ FUNCTIONS ─────────────────────────────────────────────────────── */
 
   const fetchFaqs = async () => {
     try {
@@ -2208,90 +2217,219 @@ export default function CMS() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="homeCarousel" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="homeCarousel">Home Carousel</TabsTrigger>
-          <TabsTrigger value="about">About Us</TabsTrigger>
-          <TabsTrigger value="blog">Blog</TabsTrigger>
-          <TabsTrigger value="homeVideos">Home Videos</TabsTrigger>
-          <TabsTrigger value="faq">FAQ</TabsTrigger>
+     <TabsList className="flex w-full overflow-x-auto scrollbar-hide">
+      <TabsTrigger value="homeCarousel" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-4">
+    Home Carousel
+  </TabsTrigger>
+  <TabsTrigger value="about" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-4">
+    About Us
+  </TabsTrigger>
+  <TabsTrigger value="blog" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-4">
+    Blog
+  </TabsTrigger>
+  <TabsTrigger value="homeVideos" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-4">
+    Home Videos
+  </TabsTrigger>
+  <TabsTrigger value="faq" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-4">
+    FAQ
+  </TabsTrigger>
         </TabsList>
 
-        {/* Home Carousel Tab - No Edit Option */}
+        {/* ═══════════════════════════════════════════════════════════════════
+            HOME CAROUSEL TAB
+        ════════════════════════════════════════════════════════════════════ */}
         <TabsContent value="homeCarousel" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Manage Home Carousel Slides</h3>
-            <Dialog open={isHomeCarouselDialogOpen} onOpenChange={setIsHomeCarouselDialogOpen}>
+            {/* <Dialog
+              open={isHomeCarouselDialogOpen}
+              onOpenChange={(open) => {
+                setIsHomeCarouselDialogOpen(open);
+                if (!open) resetHomeCarouselForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Plus size={20} className="mr-2" />
                   Add Slide
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white max-w-md max-h-[90vh] overflow-y-auto">
+              </DialogTrigger> */}
+     <Dialog
+  open={isHomeCarouselDialogOpen}
+  onOpenChange={(open) => {
+    // Only allow opening via button click (which checks length first)
+    // Only allow closing freely
+    if (!open) {
+      setIsHomeCarouselDialogOpen(false);
+      resetHomeCarouselForm();
+    }
+  }}
+>
+  <DialogTrigger asChild>
+   
+    <Button
+  className="bg-blue-600 hover:bg-blue-700 text-white"
+  onClick={() => {
+    if (homeCarousel.length > 0) {
+      toast.error("Delete the existing slide before adding a new one");
+      return;
+    }
+    setIsHomeCarouselDialogOpen(true);
+  
+  }}
+>
+  <Plus size={20} className="mr-2" />
+  Add Slide
+</Button>
+  </DialogTrigger>
+
+              <DialogContent className="bg-[#2a2a2a] border-gray-700 text-white w-[95vw] max-w-md max-h-[90vh] overflow-y-auto mx-auto">
                 <DialogHeader>
                   <DialogTitle>Add Home Carousel Slide</DialogTitle>
                 </DialogHeader>
+
                 <div className="space-y-4 py-4">
-                  {/* <div>
-                    <Label>Title</Label>
-                    <Input
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={homeCarouselForm.title}
-                      onChange={(e) => setHomeCarouselForm({ ...homeCarouselForm, title: e.target.value })}
-                      placeholder="Enter slide title"
-                    />
-                  </div> */}
-                  {/* <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      className="bg-gray-800 border-gray-700 text-white"
-                      value={homeCarouselForm.description}
-                      onChange={(e) => setHomeCarouselForm({ ...homeCarouselForm, description: e.target.value })}
-                      placeholder="Enter description"
-                    />
-                  </div> */}
-                  <div>
-                    <Label>Image</Label>
-                    {homeCarouselForm.imagePreview ? (
-                      <div className="relative mt-2">
-                        <img
-                          src={homeCarouselForm.imagePreview}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(setHomeCarouselForm, 'image', 'imagePreview')}
-                          className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-2">
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-2 text-gray-400" />
-                            <p className="mb-2 text-sm text-gray-400">Click to upload image</p>
-                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                          </div>
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload(e, setHomeCarouselForm, 'image', 'imagePreview')}
-                          />
-                        </label>
-                      </div>
-                    )}
+
+                  {/* ── Media Type Toggle ── */}
+                  <div className="flex gap-2 p-1 bg-gray-800 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHomeCarouselForm(prev => ({
+                          ...prev,
+                          mediaType: 'image',
+                          // clear video selection when switching
+                          video: null,
+                          videoPreview: ''
+                        }));
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        homeCarouselForm.mediaType === 'image'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      <ImageIcon size={16} />
+                      Image
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHomeCarouselForm(prev => ({
+                          ...prev,
+                          mediaType: 'video',
+                          // clear image selection when switching
+                          image: null,
+                          imagePreview: ''
+                        }));
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        homeCarouselForm.mediaType === 'video'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      <Film size={16} />
+                      Video
+                    </button>
                   </div>
+
+                  {/* ── Image Upload ── */}
+                  {homeCarouselForm.mediaType === 'image' && (
+                    <div>
+                      <Label>Image</Label>
+                      {homeCarouselForm.imagePreview ? (
+                        <div className="relative mt-2">
+                          <img
+                            src={homeCarouselForm.imagePreview}
+                            alt="Preview"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleRemoveFile(setHomeCarouselForm, 'image', 'imagePreview')
+                            }
+                            className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mt-2">
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                              <p className="mb-2 text-sm text-gray-400">Click to upload image</p>
+                              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleFileUpload(e, setHomeCarouselForm, 'image', 'imagePreview')
+                              }
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Video Upload ── */}
+                  {homeCarouselForm.mediaType === 'video' && (
+                    <div>
+                      <Label>Video</Label>
+                      {homeCarouselForm.videoPreview ? (
+                        <div className="relative mt-2">
+                          <video
+                            src={homeCarouselForm.videoPreview}
+                            className="w-full h-48 object-cover rounded-lg"
+                            controls
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleRemoveFile(setHomeCarouselForm, 'video', 'videoPreview')
+                            }
+                            className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mt-2">
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-700">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <Film className="w-8 h-8 mb-2 text-gray-400" />
+                              <p className="mb-2 text-sm text-gray-400">Click to upload video</p>
+                              <p className="text-xs text-gray-500">MP4, MOV, WEBM up to 100MB</p>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="video/*"
+                              onChange={(e) =>
+                                handleFileUpload(e, setHomeCarouselForm, 'video', 'videoPreview')
+                              }
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <Label>Active</Label>
                     <Switch
                       checked={homeCarouselForm.active}
-                      onCheckedChange={(checked) => setHomeCarouselForm({ ...homeCarouselForm, active: checked })}
+                      onCheckedChange={(checked) =>
+                        setHomeCarouselForm({ ...homeCarouselForm, active: checked })
+                      }
                     />
                   </div>
+
                   <Button
                     onClick={handleAddHomeCarousel}
                     disabled={loadingBanner}
@@ -2304,31 +2442,58 @@ export default function CMS() {
             </Dialog>
           </div>
 
+          {/* ── Carousel List ── */}
           <div className="space-y-3">
             {homeCarousel.map((slide, index) => (
-              <div key={slide._id} className="bg-[#2a2a2a] rounded-lg shadow-sm p-4 flex gap-4 border border-gray-700">
-                <div className="w-32 h-20 rounded-md overflow-hidden flex-shrink-0">
-                  <img
-                    src={slide.image.url}
-                    alt="Hero Banner"
-                    className="w-full h-full object-cover"
-                  />
-
+              <div
+                key={slide._id}
+               className="bg-[#2a2a2a] rounded-lg shadow-sm p-3 flex gap-2 sm:gap-4 border border-gray-700 min-w-0"
+              >
+                {/* Thumbnail: show image or video depending on mediaType */}
+                <div className="w-20 h-14 sm:w-32 sm:h-20 rounded-md overflow-hidden flex-shrink-0 bg-gray-800">
+                  {slide.mediaType === 'video' ? (
+                    <video
+                      src={slide.video?.url}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                      preload="metadata"
+                    />
+                  ) : (
+                    <img
+                      src={slide.image?.url}
+                      alt="Hero Banner"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                 </div>
+
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
-                    {/* <div>
-                      <h4 className="font-semibold text-white mb-1">{slide.title}</h4>
-                      <p className="text-sm text-gray-300">{slide.description}</p>
-                    </div> */}
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${slide.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}
-                    >
-                      {slide.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      {/* Media type badge */}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full w-fit ${
+                        slide.mediaType === 'video'
+                          ? 'bg-purple-900 text-purple-300'
+                          : 'bg-blue-900 text-blue-300'
+                      }`}>
+                        {slide.mediaType === 'video'
+                          ? <><Film size={10} /> Video</>
+                          : <><ImageIcon size={10} /> Image</>
+                        }
+                      </span>
+
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full w-fit ${
+                        slide.isActive
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {slide.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => moveHomeCarouselSlide(slide._id, 'up')}
@@ -2357,11 +2522,9 @@ export default function CMS() {
         </TabsContent>
 
 
-
-
-
-        {/* About Us Tab */}
-
+        {/* ═══════════════════════════════════════════════════════════════════
+            ABOUT US TAB  (unchanged)
+        ════════════════════════════════════════════════════════════════════ */}
         <TabsContent value="about" className="space-y-6">
           {/* HERO TITLE CARD */}
           <div className="bg-[#2a2a2a] rounded-lg border border-gray-700 p-6">
@@ -2495,15 +2658,6 @@ export default function CMS() {
               className="bg-gray-800 border-gray-700 text-white"
             />
 
-            {/* <Input
-              placeholder="Heading"
-              value={knowMore.heading}
-              onChange={(e) =>
-                setKnowMore({ ...knowMore, heading: e.target.value })
-              }
-              className="bg-gray-800 border-gray-700 text-white"
-            /> */}
-
             <Input
               placeholder="Image Heading (Text inside image)"
               value={knowMore.imageHeading}
@@ -2580,12 +2734,9 @@ export default function CMS() {
         </TabsContent>
 
 
-
-
-
-
-
-        {/* Blog Tab */}
+        {/* ═══════════════════════════════════════════════════════════════════
+            BLOG TAB  (unchanged)
+        ════════════════════════════════════════════════════════════════════ */}
         <TabsContent value="blog" className="space-y-6">
 
           <div className="flex justify-between items-center">
@@ -2782,8 +2933,6 @@ export default function CMS() {
                           ⭐ Featured
                         </span>
                       )}
-
-
                     </div>
 
                     <div className="flex gap-2 mt-3">
@@ -2818,10 +2967,9 @@ export default function CMS() {
         </TabsContent>
 
 
-
-
-
-        {/* Home Videos Tab - No Edit Option */}
+        {/* ═══════════════════════════════════════════════════════════════════
+            HOME VIDEOS TAB  (unchanged)
+        ════════════════════════════════════════════════════════════════════ */}
         <TabsContent value="homeVideos" className="space-y-6">
 
           <div className="flex justify-between items-center">
@@ -2840,24 +2988,6 @@ export default function CMS() {
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-
-                  {/* <Input
-            placeholder="Title"
-            className="bg-gray-800"
-            value={videoForm.title}
-            onChange={(e) =>
-              setVideoForm({ ...videoForm, title: e.target.value })
-            }
-          /> */}
-
-                  {/* <Textarea
-            placeholder="Description"
-            className="bg-gray-800"
-            value={videoForm.description}
-            onChange={(e) =>
-              setVideoForm({ ...videoForm, description: e.target.value })
-            }
-          /> */}
 
                   {videoForm.videoPreview && (
                     <video
@@ -2911,15 +3041,12 @@ export default function CMS() {
                   key={video._id}
                   className="bg-[#2a2a2a] rounded-xl border border-gray-700 overflow-hidden relative"
                 >
-
-                  {/* VIDEO */}
                   <video
                     src={video.videoUrl}
                     className="h-48 w-full object-cover"
                     controls
                   />
 
-                  {/* DELETE BUTTON */}
                   <button
                     onClick={() => handleDeleteVideoCMS(video._id)}
                     className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 p-2 rounded-full"
@@ -2927,7 +3054,6 @@ export default function CMS() {
                     <Trash2 size={16} className="text-white" />
                   </button>
 
-                  {/* STATUS SECTION */}
                   <div className="p-4 flex items-center justify-between">
 
                     <span
@@ -2959,18 +3085,19 @@ export default function CMS() {
           )}
         </TabsContent>
 
-        {/* ================= FAQ TAB ================= */}
+        {/* ═══════════════════════════════════════════════════════════════════
+            FAQ TAB  (unchanged)
+        ════════════════════════════════════════════════════════════════════ */}
         <TabsContent value="faq" className="space-y-6">
 
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Manage FAQs</h3>
 
-            <Dialog 
-              open={faqDialogOpen} 
+            <Dialog
+              open={faqDialogOpen}
               onOpenChange={(open) => {
                 setFaqDialogOpen(open);
                 if (!open) {
-                  // Reset both form and editing state when dialog closes
                   setFaqForm({
                     question: "",
                     answer: "",
@@ -2994,15 +3121,6 @@ export default function CMS() {
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-                  {/* 
-                <Input
-                  placeholder="Category (e.g. PRODUCT INFORMATION)"
-                  className="bg-gray-800"
-                  value={faqForm.category}
-                  onChange={(e) =>
-                    setFaqForm({ ...faqForm, category: e.target.value })
-                  }
-                /> */}
 
                   <Input
                     placeholder="Question"
