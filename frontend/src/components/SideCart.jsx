@@ -1490,7 +1490,7 @@ export default function SideCart() {
           position: fixed;
           inset: 0;
           background: rgba(0,0,0,.6);
-          z-index: 998;
+          z-index: 1000;
           opacity: ${openSideCart ? "1" : "0"};
           pointer-events: ${openSideCart ? "auto" : "none"};
           transition: opacity 0.3s ease;
@@ -1510,7 +1510,7 @@ export default function SideCart() {
           background: #2a2a2a;
           transform: translateX(${openSideCart ? "0" : "100%"});
           transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-          z-index: 999;
+          z-index: 1005;
           display: flex;
           flex-direction: column;
           overscroll-behavior: contain;

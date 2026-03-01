@@ -1,59 +1,39 @@
-/* ================= BASE ================= */
+/* ================= MAIN PAGE ================= */
+
 .aboutPage {
-  background-color: #2a2a2a;
-  color: white;
-  min-height: 100vh;
+  background: #0f0f0f;
+  color: #ffffff;
+  overflow-x: hidden;
 }
 
-/* ================= HERO ================= */
+/* ================= HERO SECTION ================= */
+
 .heroSection {
-  padding: 60px 20px;
-}
-
-.heroContent {
+  padding: 100px 20px 60px;
   text-align: center;
-  margin-bottom: 30px;
+  position: relative;
+  background: radial-gradient(circle at top, #1c1c1c 0%, #0f0f0f 60%);
 }
-
-/* .heroTitle {
-  font-size: 70px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  transform: scaleY(1.4);
-} */
-
 
 .heroTitle {
-  font-size: 70px;
-  font-weight: 900;
-  color: white;
-  letter-spacing: 2px;
-   text-align: center;
-  margin-bottom: 50px;
-  /* margin: 0; */
-  text-transform: uppercase;
-  transform: scaleY(1.5);
-   margin-top: 10px;
-   padding-bottom: 20px;
-  
+  font-size: clamp(32px, 5vw, 60px);
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
+  background: linear-gradient(90deg, #ffffff, #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* ================= HIGHLIGHTS SCROLL ================= */
+/* ================= MARQUEE ================= */
+
 .featuresBanner {
-  background-color: #FFD700;
   overflow: hidden;
-  padding: 22px 0;
-  width: 100%;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  width: 100vw;
+  margin: 25px 0;
+  background: #111;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
 }
-
-
 
 .marquee {
   width: 100%;
@@ -61,213 +41,171 @@
 }
 
 .marqueeTrack {
-  display: inline-flex;
-  align-items: center;
-  gap: 40px;
+  display: flex;
+  gap: 60px;
   white-space: nowrap;
-  animation: marquee 18s linear infinite;
+  animation: scrollLeft 30s linear infinite;
 }
 
 .marqueeReverse {
-  animation: marqueeReverse 18s linear infinite;
+  animation: scrollRight 30s linear infinite;
 }
 
 .marqueeItem {
-  font-weight: 900;
   font-size: 16px;
-  color: #2a2a2a;
-  letter-spacing: 1px;
+  font-weight: 500;
+  color: #aaa;
 }
 
 .divider {
-  margin-left: 40px;
-  font-weight: 400;
+  margin-left: 60px;
+  color: #FFD700;
 }
 
-@keyframes marquee {
+@keyframes scrollLeft {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
 
-@keyframes marqueeReverse {
+@keyframes scrollRight {
   from { transform: translateX(-50%); }
   to { transform: translateX(0); }
 }
 
 /* ================= VIDEO CARDS ================= */
+
 .productCards {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 25px;
-  justify-content: center;
-  margin: 90px 0;
-  flex-wrap: wrap;
+  margin: 50px auto;
+  max-width: 1200px;
+  padding: 0 20px;
 }
 
 .productCard {
-  width: 240px;
-  height: 360px;
-  border-radius: 14px;
-  border: 3px solid #FFD700;
-  background: linear-gradient(180deg, #6B3410 0%, #4A2408 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 20px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #111;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .productCard:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 10px 20px rgba(255,215,0,0.4);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(255, 215, 0, 0.3);
 }
 
 .productVideo {
-  width: 85%;
-  height: auto;
+  width: 100%;
+  height: 350px;
   object-fit: cover;
-  transform: rotate(-15deg);
-  pointer-events: none;
+  display: block;
 }
 
-/* ================= KNOW MORE ================= */
+/* ================= KNOW MORE SECTION ================= */
+
 .knowMoreSection {
-  padding: 80px 40px;
+  padding: 100px 20px;
+  background: #141414;
 }
 
 .sectionTitle {
-  font-size: 48px;
-  font-weight: 900;
   text-align: center;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
   margin-bottom: 60px;
-  letter-spacing: 2px;
+  color: #FFD700;
 }
+
+/* ================= GRID ================= */
 
 .contentGrid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 60px;
-  max-width: 1400px;
-  margin: 0 auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
   align-items: center;
+  max-width: 1200px;
+  margin: auto;
 }
 
 /* ================= IMAGE CARD ================= */
+
 .showcaseCard {
   position: relative;
-  width: 100%;
-  max-width: 450px;
-  height: 500px;
-  border-radius: 16px;
-  border: 4px solid #FFD700;
-  background: linear-gradient(180deg, #6B3410, #4A2408);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 25px;
   overflow: hidden;
+  background: #1b1b1b;
+  padding: 20px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
 }
 
-/* 🔥 IMAGE HEADING INSIDE IMAGE */
 .imageHeading {
   position: absolute;
-  top: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 48px;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-align: center;
-  z-index: 3;
-  text-shadow: 3px 3px 6px rgba(0,0,0,0.6);
-  pointer-events: none;
+  top: 20px;
+  left: 20px;
+  background: rgba(0,0,0,0.7);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  backdrop-filter: blur(10px);
+  color: #FFD700;
 }
 
-/* IMAGE */
 .showcaseImage {
-  width: 220px;
-  transform: rotate(-15deg);
-  z-index: 2;
+  width: 100%;
+  border-radius: 20px;
+  object-fit: cover;
 }
+
+/* ================= DESCRIPTION ================= */
 
 .descriptionText {
-  color: #d1d1d1;
+  font-size: 18px;
   line-height: 1.8;
-  font-size: 16px;
+  color: #cccccc;
+  letter-spacing: 0.3px;
 }
 
 /* ================= RESPONSIVE ================= */
-@media (max-width: 1024px) {
-  .heroTitle {
-    font-size: 56px;
-  }
+
+@media (max-width: 992px) {
 
   .contentGrid {
     grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .descriptionText {
+    font-size: 16px;
     text-align: center;
   }
 
-  .showcaseCard {
-    margin: auto;
-  }
-
   .imageHeading {
-    font-size: 40px;
+    font-size: 12px;
   }
 }
 
-@media (max-width: 768px) {
-  .heroTitle {
-    font-size: 42px;
+@media (max-width: 600px) {
+
+  .heroSection {
+    padding: 80px 15px 40px;
   }
 
-  .marqueeTrack,
-  .marqueeReverse {
-    animation-duration: 30s;
+  .productVideo {
+    height: 250px;
   }
 
   .marqueeItem {
     font-size: 14px;
   }
 
-  .productCard {
-    width: 220px;
-    height: 320px;
+  .divider {
+    margin-left: 40px;
   }
 
   .sectionTitle {
-    font-size: 32px;
-  }
-
-  .knowMoreSection {
-    padding: 60px 20px;
-  }
-
-  .imageHeading {
-    font-size: 34px;
-    top: 30px;
-  }
-}
-
-@media (max-width: 480px) {
-  .heroTitle {
-    font-size: 32px;
-  }
-
-  .productCard {
-    width: 200px;
-    height: 300px;
-  }
-
-  .sectionTitle {
-    font-size: 28px;
-  }
-
-  .marqueeItem {
-    font-size: 12px;
-  }
-
-  .imageHeading {
-    font-size: 26px;
-    top: 24px;
+    margin-bottom: 40px;
   }
 }
