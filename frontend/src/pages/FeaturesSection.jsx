@@ -665,11 +665,13 @@ export default function FeaturesSection() {
         scrollTrigger: {
           trigger: sectionRef.current,
           start: `top top+=${NAVBAR_HEIGHT}`,
-          end: "+=3200",
-          scrub: 1.4,            // buttery smooth scrub
+          // Responsive scroll distance: shorter on mobile so it doesn't feel endless
+          end: () => `+=${window.innerWidth <= 480 ? 1800 : window.innerWidth <= 768 ? 2400 : 3200}`,
+          scrub: 1.4,
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,
+          invalidateOnRefresh: true, // recalculates end on window resize
           onUpdate: (self) => {
             if (scrollHintRef.current) {
               scrollHintRef.current.style.opacity = self.progress < 0.02 ? "1" : "0";
@@ -707,7 +709,6 @@ export default function FeaturesSection() {
         chars.forEach((charEl, ci) => {
           if (!charEl) return;
           const distFromCenter = Math.abs(ci - midIndex);
-          // Center letters animate first, edge letters slightly after
           const charOffset = boxStart + 0.04 + distFromCenter * 0.014;
 
           tl.fromTo(
@@ -803,7 +804,6 @@ export default function FeaturesSection() {
           outline-offset: -1px;
           overflow: hidden;
           will-change: transform;
-          /* perspective makes rotateX on chars feel 3-D */
           perspective: 500px;
         }
 
@@ -821,12 +821,11 @@ export default function FeaturesSection() {
           white-space: nowrap;
         }
 
-        /* ── Char clip wrapper: hides char sliding in from below ── */
+        /* ── Char clip wrapper ── */
         .spylt-char-wrap {
           display: inline-block;
           overflow: hidden;
           vertical-align: top;
-          /* extra padding so descenders don't get clipped */
           padding-bottom: 0.1em;
           margin-bottom: -0.1em;
         }
@@ -897,7 +896,7 @@ export default function FeaturesSection() {
 
         /* ══ RESPONSIVE ══ */
         @media (min-width: 1400px) {
-          .spylt-split-word { font-size: clamp(60px, 5.5vw, 100px); }
+          .spylt-split-word { font-size: clamp(75px, 5.5vw, 100px); }
         }
         @media (max-width: 1024px) {
           .spylt-split-word { font-size: clamp(24px, 7vw, 75px); }
@@ -905,7 +904,7 @@ export default function FeaturesSection() {
         }
         @media (max-width: 768px) {
           .spylt-split-word {
-            font-size: clamp(20px, 8vw, 60px);
+            font-size: clamp(55px, 8vw, 60px);
             padding: 0.06em 0.22em 0.15em;
             letter-spacing: -0.015em;
           }
@@ -913,22 +912,25 @@ export default function FeaturesSection() {
           .spylt-intro-label  { font-size: clamp(12px, 1.8vw, 15px); top: 5%; }
           .spylt-bottom-label { font-size: clamp(12px, 1.8vw, 15px); bottom: 5%; }
         }
+
+        /* ── Mobile: tighten spacing so section feels compact ── */
         @media (max-width: 480px) {
           .spylt-split-word {
-            font-size: clamp(18px, 9vw, 44px);
+            font-size: clamp(45px, 9vw, 44px);
             padding: 0.07em 0.18em 0.13em;
             letter-spacing: -0.01em;
           }
           .spylt-box-wrapper  { outline-width: 2px; }
           .spylt-heading-row  { width: 98vw; }
-          .spylt-boxes-stack  { gap: 3px; }
-          .spylt-intro-label  { font-size: 12px; top: 4%; line-height: 1.7; padding: 0 16px; }
-          .spylt-bottom-label { font-size: 12px; bottom: 4%; }
-          .spylt-scroll-hint  { bottom: 14px; }
+          .spylt-boxes-stack  { gap: 2px; margin-top: 0; }
+          .spylt-intro-label  { font-size: 11px; top: 3%; line-height: 1.5; padding: 0 16px; }
+          .spylt-bottom-label { font-size: 11px; bottom: 3%; }
+          .spylt-scroll-hint  { bottom: 10px; }
         }
+
         @media (max-width: 360px) {
           .spylt-split-word {
-            font-size: clamp(15px, 10vw, 36px);
+            font-size: clamp(30px, 10vw, 36px);
             padding: 0.07em 0.14em 0.12em;
           }
         }
@@ -945,7 +947,7 @@ export default function FeaturesSection() {
         {/* Intro subtitle */}
         <p className="spylt-intro-label" ref={introLabelRef}>
           Unlock the Advantages:<br />
-          Explore the Key Benefits of Choosing Mpact
+          Explore the Key Benefits of Choosing SPYLT
         </p>
 
         {/* Letter-split boxes */}
