@@ -38,7 +38,7 @@
 //   const fileInputRef = useRef(null);
 //   const [previewImage, setPreviewImage] = useState(null);
 //   const [uploading, setUploading] = useState(false);
-  
+
 //   const [formData, setFormData] = useState({
 //     name: "",
 //     phone: "",
@@ -465,7 +465,7 @@
 //           transform: translateY(-1px);
 //         }
 
-        
+
 
 //         /* Form Sections */
 //         .form-section {
@@ -988,11 +988,11 @@
 //           .profile-main {
 //             padding: 1.75rem;
 //           }
-          
+
 //           .profile-card, .form-section {
 //             padding: 1.75rem;
 //           }
-          
+
 //           .wishlist-grid {
 //             gap: 1.5rem;
 //           }
@@ -1002,26 +1002,26 @@
 //           .profile-main {
 //             padding: 1.5rem;
 //           }
-          
+
 //           .profile-card, .form-section {
 //             padding: 1.5rem;
 //             margin-bottom: 2rem;
 //           }
-          
+
 //           .wishlist-grid {
 //             grid-template-columns: repeat(2, 1fr);
 //           }
-          
+
 //           .avatar {
 //             width: 110px;
 //             height: 110px;
 //           }
-          
+
 //           .avatar-icon {
 //             width: 52px;
 //             height: 52px;
 //           }
-          
+
 //           .profile-name {
 //             font-size: 1.6rem;
 //           }
@@ -1031,34 +1031,34 @@
 //           .profile-main {
 //             padding: 1.25rem;
 //           }
-          
+
 //           .profile-card, .form-section {
 //             padding: 1.5rem;
 //             border-radius: 0.625rem;
 //           }
-          
+
 //           .profile-header {
 //             gap: 1.5rem;
 //           }
-          
+
 //           .profile-info {
 //             gap: 1.5rem;
 //           }
-          
+
 //           .avatar {
 //             width: 100px;
 //             height: 100px;
 //           }
-          
+
 //           .camera-btn {
 //             width: 36px;
 //             height: 36px;
 //           }
-          
+
 //           .form-title {
 //             font-size: 1.375rem;
 //           }
-          
+
 //           .tabs-container {
 //             gap: 0.875rem;
 //             margin-bottom: 1.75rem;
@@ -1069,36 +1069,36 @@
 //           .profile-container {
 //             padding-top: 84px;
 //           }
-          
+
 //           .profile-main {
 //             padding: 1.5rem;
 //           }
-          
+
 //           .profile-header {
 //             flex-direction: column;
 //             align-items: stretch;
 //             gap: 1.5rem;
 //           }
-          
+
 //           .profile-info {
 //             flex-direction: row;
 //             align-items: center;
 //             gap: 1.25rem;
 //           }
-          
+
 //           .edit-btn {
 //             width: 100%;
 //             justify-content: center;
 //           }
-          
+
 //           .form-grid {
 //             gap: 1.25rem;
 //           }
-          
+
 //           .order-card {
 //             padding: 1.5rem;
 //           }
-          
+
 //           .wishlist-grid {
 //             grid-template-columns: repeat(2, 1fr);
 //             gap: 1.25rem;
@@ -1109,65 +1109,65 @@
 //           .profile-container {
 //             padding-top: 76px;
 //           }
-          
+
 //           .profile-main {
 //             padding: 1.25rem;
 //           }
-          
+
 //           .profile-card, .form-section {
 //             padding: 1.5rem;
 //             margin-bottom: 1.75rem;
 //           }
-          
+
 //           .profile-info {
 //             flex-direction: column;
 //             align-items: center;
 //             text-align: center;
 //             gap: 1.5rem;
 //           }
-          
+
 //           .profile-details {
 //             align-items: center;
 //             text-align: center;
 //           }
-          
+
 //           .avatar {
 //             width: 100px;
 //             height: 100px;
 //           }
-          
+
 //           .avatar-icon {
 //             width: 48px;
 //             height: 48px;
 //           }
-          
+
 //           .profile-name {
 //             font-size: 1.5rem;
 //           }
-          
+
 //           .form-grid {
 //             grid-template-columns: 1fr;
 //           }
-          
+
 //           .tabs-container {
 //             margin-bottom: 1.5rem;
 //           }
-          
+
 //           .tab-btn {
 //             padding: 0.75rem 1rem;
 //           }
-          
+
 //           .order-actions {
 //             flex-direction: column;
 //             align-items: stretch;
 //             gap: 1rem;
 //           }
-          
+
 //           .view-details-btn, .order-price {
 //             width: 100%;
 //             text-align: center;
 //           }
-          
+
 //           .wishlist-grid {
 //             grid-template-columns: 1fr;
 //             gap: 1.5rem;
@@ -1178,62 +1178,62 @@
 //           .profile-container {
 //             padding-top: 72px;
 //           }
-          
+
 //           .profile-main {
 //             padding: 1rem;
 //           }
-          
+
 //           .profile-card, .form-section {
 //             padding: 1.25rem;
 //             margin-bottom: 1.5rem;
 //             border-radius: 0.5rem;
 //           }
-          
+
 //           .profile-name {
 //             font-size: 1.375rem;
 //           }
-          
+
 //           .profile-email {
 //             font-size: 0.95rem;
 //           }
-          
+
 //           .avatar {
 //             width: 90px;
 //             height: 90px;
 //           }
-          
+
 //           .avatar-icon {
 //             width: 44px;
 //             height: 44px;
 //           }
-          
+
 //           .camera-btn {
 //             width: 34px;
 //             height: 34px;
 //           }
-          
+
 //           .camera-icon {
 //             width: 16px;
 //             height: 16px;
 //           }
-          
+
 //           .wishlist-image-container {
 //             height: 200px;
 //           }
-          
+
 //           .form-title {
 //             font-size: 1.25rem;
 //           }
-          
+
 //           .settings-card, .settings-card-danger {
 //             padding: 1.25rem;
 //           }
-          
+
 //           .status-badge {
 //             align-self: flex-start;
 //             min-width: 110px;
 //           }
-          
+
 //           .edit-btn, .update-password-btn, .delete-account-btn, .view-details-btn, .add-to-cart-btn {
 //             padding: 0.75rem 1.5rem;
 //           }
@@ -1243,73 +1243,73 @@
 //           .profile-container {
 //             padding-top: 68px;
 //           }
-          
+
 //           .profile-main {
 //             padding: 0.875rem;
 //           }
-          
+
 //           .profile-card, .form-section {
 //             padding: 1rem;
 //             margin-bottom: 1.25rem;
 //           }
-          
+
 //           .avatar {
 //             width: 80px;
 //             height: 80px;
 //           }
-          
+
 //           .avatar-icon {
 //             width: 40px;
 //             height: 40px;
 //           }
-          
+
 //           .camera-btn {
 //             width: 32px;
 //             height: 32px;
 //             padding: 0.4rem;
 //           }
-          
+
 //           .camera-icon {
 //             width: 14px;
 //             height: 14px;
 //           }
-          
+
 //           .profile-name {
 //             font-size: 1.25rem;
 //           }
-          
+
 //           .profile-email {
 //             font-size: 0.9rem;
 //           }
-          
+
 //           .profile-member {
 //             font-size: 0.8125rem;
 //           }
-          
+
 //           .tab-btn {
 //             padding: 0.625rem 0.875rem;
 //             font-size: 0.875rem;
 //             gap: 0.5rem;
 //           }
-          
+
 //           .order-content {
 //             flex-direction: column;
 //             align-items: flex-start;
 //           }
-          
+
 //           .wishlist-product-name {
 //             font-size: 1rem;
 //           }
-          
+
 //           .wishlist-price {
 //             font-size: 1.25rem;
 //           }
-          
+
 //           .form-input, .form-textarea {
 //             padding: 0.875rem;
 //             font-size: 0.95rem;
 //           }
-          
+
 //           .empty-state {
 //             font-size: 1rem;
 //             padding: 2rem 1rem;
@@ -1320,35 +1320,35 @@
 //           .profile-main {
 //             padding: 0.75rem;
 //           }
-          
+
 //           .profile-card, .form-section {
 //             padding: 0.875rem;
 //           }
-          
+
 //           .avatar {
 //             width: 70px;
 //             height: 70px;
 //           }
-          
+
 //           .profile-name {
 //             font-size: 1.125rem;
 //           }
-          
+
 //           .tab-btn {
 //             padding: 0.5rem;
 //             font-size: 0.8125rem;
 //           }
-          
+
 //           .update-password-btn, .delete-account-btn, .view-details-btn, .add-to-cart-btn {
 //             padding: 0.625rem 1rem;
 //             font-size: 0.875rem;
 //           }
-          
+
 //           .remove-btn {
 //             width: 40px;
 //             height: 40px;
 //           }
-          
+
 //           .order-image {
 //             width: 60px;
 //             height: 60px;
@@ -1426,15 +1426,15 @@
 //             padding: 1.5rem;
 //             border-radius: 0.75rem;
 //           }
-          
+
 //           .modal-title {
 //             font-size: 1.25rem;
 //           }
-          
+
 //           .modal-buttons {
 //             flex-direction: column;
 //           }
-          
+
 //           .modal-buttons button {
 //             width: 100%;
 //           }
@@ -1508,7 +1508,7 @@
 //                   <p className="profile-member">
 //                     Member since {new Date(user.createdAt).toLocaleDateString()}
 //                   </p>
-                  
+
 //                 </div>
 //               </div>
 
@@ -1545,7 +1545,7 @@
 //                 <Edit size={20} />
 //                 {isEditing ? "Save Profile" : "Edit Profile"}
 //               </button>
-              
+
 //               {/* Dashboard Button - Only show for admin */}
 //           {isAdmin && (
 //             <button
@@ -1599,7 +1599,7 @@
 //               <Settings size={20} />
 //               Settings
 //             </button>
-          
+
 //           </div>
 
 //           {/* Personal Information */}
@@ -2140,7 +2140,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -3559,13 +3559,12 @@ export default function ProfilePage() {
 
                       <div className="order-actions">
                         <span
-                          className={`status-badge ${
-                            order.paymentStatus === "pending"
-                              ? "transit"
-                              : order.orderStatus === "delivered"
-                                ? "delivered"
-                                : "transit"
-                          }`}
+                          className={`status-badge ${order.paymentStatus === "pending"
+                            ? "transit"
+                            : order.orderStatus === "delivered"
+                              ? "delivered"
+                              : "transit"
+                            }`}
                         >
                           {order.paymentStatus === "pending" ? "Payment Pending" : order.orderStatus}
                         </span>
@@ -3601,7 +3600,12 @@ export default function ProfilePage() {
               ) : (
                 <div className="wishlist-grid">
                   {wishlist.map((item) => (
-                    <div className="wishlist-card" key={item._id}>
+                    <div
+                      className="wishlist-card"
+                      key={item._id}
+                      onClick={() => navigate(`/productspec/${item._id}`)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <div className="wishlist-image-container">
                         <img
                           src={item.images?.[0]?.url}
@@ -3618,7 +3622,10 @@ export default function ProfilePage() {
                           {item.countInStock > 0 ? (
                             <button
                               className="add-to-cart-btn"
-                              onClick={() => handleAddToCart(item._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(item._id);
+                              }}
                             >
                               Add to Cart
                             </button>
@@ -3630,7 +3637,8 @@ export default function ProfilePage() {
 
                           <button
                             className="remove-btn"
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.stopPropagation();
                               try {
                                 await api.delete(`/api/wishlist/${item._id}`);
                                 toast.success("Removed from wishlist");

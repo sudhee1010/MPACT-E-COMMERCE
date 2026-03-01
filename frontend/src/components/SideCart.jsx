@@ -1998,6 +1998,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { updateCartItemApi, removeCartItemApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 export default function SideCart() {
   const {
@@ -2011,6 +2012,7 @@ export default function SideCart() {
 
   const [navbarHeight, setNavbarHeight] = useState(80);
   const [stockErrors, setStockErrors] = useState({});
+  const navigate = useNavigate();
 
   // Dynamically measure the full header height (announcement bar + navbar combined)
   // using getBoundingClientRect().bottom so we always get the true bottom edge

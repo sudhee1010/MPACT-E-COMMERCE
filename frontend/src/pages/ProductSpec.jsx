@@ -2541,7 +2541,7 @@ const ProductPage = () => {
       gap: 14,
       marginBottom: 34,
     },
-  
+
     descriptionContainer: {
       marginBottom: 34,
       padding: "16px 0",
@@ -3253,7 +3253,8 @@ const ProductPage = () => {
               {relatedProducts.map((item) => (
                 <div
                   key={item._id}
-                  style={styles.rangeCard}
+                  style={{ ...styles.rangeCard, cursor: "pointer" }}
+                  onClick={() => navigate(`/productspec/${item._id}`)}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "scale(1.05)";
                     e.currentTarget.style.boxShadow =
@@ -3289,9 +3290,15 @@ const ProductPage = () => {
                       </span>
                     </div>
 
-                    <Link to={`/productspec/${item._id}`}>
-                      <button style={styles.rangeCardButton}>BUY NOW</button>
-                    </Link>
+                    <button
+                      style={styles.rangeCardButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/productspec/${item._id}`);
+                      }}
+                    >
+                      BUY NOW
+                    </button>
                   </div>
                 </div>
               ))}

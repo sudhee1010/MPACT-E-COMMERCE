@@ -523,16 +523,16 @@
 //     margin-top: 60px;
 //     padding: 0 16px;
 //   }
-  
+
 //   .empty-state svg {
 //     margin-bottom: 20px;
 //   }
-  
+
 //   .empty-state h2 {
 //     font-size: 1.5rem;
 //     margin-bottom: 12px;
 //   }
-  
+
 //   .empty-state p {
 //     font-size: 1rem;
 //     max-width: 400px;
@@ -543,18 +543,18 @@
 //   .empty-state {
 //     margin-top: 40px;
 //   }
-  
+
 //   .empty-state svg {
 //     width: 60px;
 //     height: 60px;
 //     margin-bottom: 16px;
 //   }
-  
+
 //   .empty-state h2 {
 //     font-size: 1.25rem;
 //     margin-bottom: 10px;
 //   }
-  
+
 //   .empty-state p {
 //     font-size: 0.875rem;
 //     max-width: 300px;
@@ -728,7 +728,7 @@
 // /* ================= ACTION BUTTON ================= */
 // .action-buttons {
 //   padding: 12px;
-  
+
 // }
 
 // .add-to-cart-btn {
@@ -1015,13 +1015,13 @@ import api from "../api/axios";
 import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
-
+import { useNavigate } from "react-router-dom";
 
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState([]);
   const { refreshCart, setOpenSideCart } = useCart();
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
 
   /* ================= FETCH WISHLIST ================= */
   useEffect(() => {
@@ -1739,7 +1739,11 @@ export default function WishlistPage() {
             {wishlist.length > 0 && (
               <div className="product-grid" style={{ marginTop: "32px" }}>
                 {wishlist.map((product) => (
-                  <div className="product-card" key={product._id}>
+                  <div
+                    className="product-card"
+                    key={product._id}
+                    onClick={() => navigate(`/productspec/${product._id}`)}
+                  >
                     {/* DISCOUNT */}
                     <div
                       className={`discount-badge ${product.discountPercent ? "show" : "hide"
@@ -1753,7 +1757,10 @@ export default function WishlistPage() {
                     {/* ❤️ REMOVE */}
                     <button
                       className="favorite-btn active"
-                      onClick={() => removeFromWishlist(product._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFromWishlist(product._id);
+                      }}
                     >
                       <Heart />
                     </button>
@@ -1801,7 +1808,10 @@ export default function WishlistPage() {
                       {product.countInStock > 0 ? (
                         <button
                           className="add-to-cart-btn"
-                          onClick={() => handleAddToCart(product._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(product._id);
+                          }}
                         >
                           🛒 MOVE TO CART
                         </button>
