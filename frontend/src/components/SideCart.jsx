@@ -1350,6 +1350,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { updateCartItemApi, removeCartItemApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 export default function SideCart() {
   const {
@@ -1362,6 +1363,7 @@ export default function SideCart() {
   } = useCart();
 
   const [stockErrors, setStockErrors] = useState({});
+  const navigate = useNavigate();
 
   // 🔥 ONLY NEW ADDITION (CRASH FIX)
   const safeCartItems = cartItems.filter(
@@ -1882,7 +1884,15 @@ export default function SideCart() {
             const product = item.product;
 
             return (
-              <div className="item" key={product._id}>
+              <div
+                className="item"
+                key={product._id}
+                style={{ cursor: "pointer" }}
+                onClick={() => {
+                  navigate(`/productspec/${product._id}`);
+                  setOpenSideCart(false);
+                }}
+              >
                 <img
                   src={
                     product.images?.[0]?.url || "/images/Product1.png"
@@ -1915,9 +1925,10 @@ export default function SideCart() {
 
                   <div className="qty">
                     <button
-                      onClick={() =>
-                        decreaseQty(product._id, item.quantity)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        decreaseQty(product._id, item.quantity);
+                      }}
                     >
                       −
                     </button>
@@ -1925,13 +1936,14 @@ export default function SideCart() {
                     <span>{item.quantity}</span>
 
                     <button
-                      onClick={() =>
+                      onClick={(e) => {
+                        e.stopPropagation();
                         increaseQty(
                           product._id,
                           item.quantity,
                           product.countInStock || 0
-                        )
-                      }
+                        );
+                      }}
                       disabled={isMaxStock(product._id, item.quantity)}
                     >
                       +
@@ -1941,7 +1953,10 @@ export default function SideCart() {
 
                 <span
                   className="remove"
-                  onClick={() => removeItem(product._id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeItem(product._id);
+                  }}
                 >
                   Remove
                 </span>
