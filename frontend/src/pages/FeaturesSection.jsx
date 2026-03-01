@@ -945,7 +945,7 @@ export default function FeaturesSection() {
         {/* Intro subtitle */}
         <p className="spylt-intro-label" ref={introLabelRef}>
           Unlock the Advantages:<br />
-          Explore the Key Benefits of Choosing SPYLT
+          Explore the Key Benefits of Choosing Mpact
         </p>
 
         {/* Letter-split boxes */}
