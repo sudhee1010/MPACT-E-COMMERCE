@@ -87,7 +87,7 @@ const MPACTBlog = () => {
   const totalArticles = featuredArticles.length + latestArticles.length;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen #0f0f0f text-white">
       <style>{`
         /* Mobile First - Base Styles (0-640px) */
         * {

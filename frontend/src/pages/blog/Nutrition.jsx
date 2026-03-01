@@ -62,7 +62,7 @@ const BlogArticlePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+      <div className="min-h-screen #0f0f0f text-white flex items-center justify-center">
         <div className="spinner"></div>
         <style>{`
           .spinner {
@@ -84,7 +84,7 @@ const BlogArticlePage = () => {
 
   if (!blog) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
+      <div className="min-h-screen #0f0f0f text-white flex flex-col items-center justify-center">
         <h2 className="text-2xl mb-4">Blog not found</h2>
         <button 
           onClick={() => navigate('/blog')}
@@ -97,7 +97,7 @@ const BlogArticlePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen #0f0f0f text-white">
       <style>{`
         /* Global Styles - Mobile First (0-640px) */
         * {
@@ -114,7 +114,7 @@ const BlogArticlePage = () => {
 
         .page-container {
           min-height: 100vh;
-          background-color: #111827;
+          background-color:#0f0f0f ;
           color: #fff;
         }
 
@@ -123,6 +123,7 @@ const BlogArticlePage = () => {
           max-width: 1280px;
           margin: 0 auto;
           padding: 0 1rem;
+          // background-color:#111827;
         }
 
         /* ARTICLE HEADER SECTION */
