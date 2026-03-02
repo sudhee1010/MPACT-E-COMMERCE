@@ -100,7 +100,7 @@ const MPACTBlog = () => {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
         }
 
-        .container {
+        .blog-container {
           width: 100%;
           padding-left: 1rem;
           padding-right: 1rem;
@@ -335,7 +335,7 @@ const MPACTBlog = () => {
 
         /* Tablet Styles (641px - 1024px) */
         @media (min-width: 641px) {
-          .container {
+          .blog-container {
             padding-left: 2rem;
             padding-right: 2rem;
             max-width: 1280px;
@@ -411,7 +411,7 @@ const MPACTBlog = () => {
 
         /* Extra Large Desktop (1280px+) */
         @media (min-width: 1280px) {
-          .container {
+          .blog-container {
             max-width: 1280px;
           }
 
@@ -421,14 +421,14 @@ const MPACTBlog = () => {
         }
 
         /* Search Bar */
-        .search-wrapper {
+        .blog-search-wrapper{
           position: relative;
           max-width: 42rem;
           margin: 0 auto;
           margin-bottom: 1.5rem;
         }
 
-        .search-icon {
+        .blog-search-icon  {
           position: absolute;
           left: 1rem;
           top: 50%;
@@ -436,7 +436,7 @@ const MPACTBlog = () => {
           color: #9ca3af;
         }
 
-        .search-input {
+        .blog-search-input {
           width: 100%;
           background-color: #1f2937;
           border: 2px solid #4b5563;
@@ -447,11 +447,11 @@ const MPACTBlog = () => {
           transition: border-color 0.2s ease;
         }
 
-        .search-input::placeholder {
+        .blog-search-input::placeholder {
           color: #6b7280;
         }
 
-        .search-input:focus {
+        .blog-search-input:focus {
           border-color: #facc15;
         }
 
@@ -504,14 +504,14 @@ const MPACTBlog = () => {
         </p>
 
         {/* Search Bar */}
-        <div className="search-wrapper">
-          <Search className="search-icon" size={20} />
+        <div className="blog-search-wrapper">
+          <Search className="blog-search-icon" size={20} />
           <input
             type="text"
             placeholder="Search articles, topics, or tags..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
+            className="blog-search-input"
           />
         </div>
 
@@ -533,7 +533,7 @@ const MPACTBlog = () => {
         </p>
       </section>
 
-      <div className="container" style={{ paddingBottom: "4rem" }}>
+      <div className="blog-container" style={{ paddingBottom: "4rem" }}>
         {loading ? (
           <div className="loading-spinner">
             <div className="spinner"></div>
