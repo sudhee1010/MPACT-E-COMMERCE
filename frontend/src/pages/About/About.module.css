@@ -30,7 +30,7 @@
 .featuresBanner {
   overflow: hidden;
   margin: 25px 0;
-  background: #111;
+  background: #FFD700;
   border-top: 1px solid #222;
   border-bottom: 1px solid #222;
 }
@@ -54,12 +54,12 @@
 .marqueeItem {
   font-size: 16px;
   font-weight: 500;
-  color: #aaa;
+  color: black;
 }
 
 .divider {
   margin-left: 60px;
-  color: #FFD700;
+  color: black;
 }
 
 @keyframes scrollLeft {
