@@ -6,7 +6,8 @@ import {
   getStockMovements,
   getLowStockItems,
   getOutOfStockItems,
-  getInventoryAlerts
+  getInventoryAlerts,
+  deleteInventory
 } from "../controllers/inventoryController.js";
 
 import { protect } from "../middlewares/authMiddleware.js";
@@ -21,6 +22,7 @@ router.post("/adjust", protect, isAdmin, adjustStock);
 router.get("/low-stock", protect, isAdmin, getLowStockItems);
 router.get("/out-of-stock", protect, isAdmin, getOutOfStockItems);
 router.get("/alerts", protect, isAdmin, getInventoryAlerts);
+router.delete("/:id",protect, isAdmin, deleteInventory);
 
 
 

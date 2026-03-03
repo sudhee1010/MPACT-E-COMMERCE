@@ -8,6 +8,7 @@ import {
   Edit,
   History,
 } from 'lucide-react';
+import { Trash } from "lucide-react";
 import { Button } from '../components/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/Dialog';
 import { Label } from '../components/ui/Label';
@@ -213,6 +214,34 @@ export function Inventory() {
     });
     setIsAdjustOpen(true);
   };
+
+
+const handleDeleteInventory = async (id) => {
+  try {
+    await api.delete(`/inventory/${id}`);
+
+    const [inventoryRes, movementsRes] = await Promise.all([
+      api.get('/inventory'),
+      api.get('/inventory/movements')
+    ]);
+
+    setInventory(inventoryRes.data);
+    setMovements(movementsRes.data);
+
+    showAlert({
+      title: 'Deleted',
+      message: 'Inventory item deleted successfully!',
+      type: 'success'
+    });
+
+  } catch (error) {
+    showAlert({
+      title: 'Error',
+      message: error.response?.data?.message || 'Delete failed',
+      type: 'error'
+    });
+  }
+};
 
   if (loading) {
     return (
@@ -610,14 +639,31 @@ export function Inventory() {
                       <p className="text-xs text-gray-500">{formatINR(item.unitCost)} / unit</p>
                     </td>
 
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => openAdjustDialog(item)}
-                        className="p-2 text-yellow-400 hover:bg-yellow-400 rounded-md transition-colors"
-                      >
-                        <Edit size={16} />
-                      </button>
-                    </td>
+                 
+<td className="py-3 px-4 flex gap-2">
+  {/* Edit Button */}
+  <button
+    onClick={() => openAdjustDialog(item)}
+    className="p-2 text-yellow-400 hover:bg-yellow-400 rounded-md transition-colors"
+  >
+    <Edit size={16} />
+  </button>
+
+  {/* Delete Button */}
+  <button
+    onClick={() =>
+      showAlert({
+        title: "Confirm Delete",
+        message: "Are you sure you want to delete this inventory item? This action cannot be undone.",
+        type: "confirm",
+        onConfirm: () => handleDeleteInventory(item.id)
+      })
+    }
+    className="p-2 text-red-400 hover:bg-red-500 rounded-md transition-colors"
+  >
+    <Trash size={16} />
+  </button>
+</td>
                   </tr>
                 ))}
               </tbody>

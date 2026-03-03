@@ -335,3 +335,27 @@ export const getInventoryAlerts = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch inventory alerts" });
   }
 };
+
+/**
+ * DELETE /api/inventory/:id
+ * Delete inventory item (only inventory row)
+ */
+export const deleteInventory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const inventory = await Inventory.findById(id);
+    if (!inventory) {
+      return res.status(404).json({ message: "Inventory not found" });
+    }
+
+    // ✅ Only delete inventory document
+    await Inventory.findByIdAndDelete(id);
+
+    res.json({ message: "Inventory deleted successfully" });
+
+  } catch (error) {
+    console.error("Delete inventory error:", error);
+    res.status(500).json({ message: "Failed to delete inventory" });
+  }
+};
