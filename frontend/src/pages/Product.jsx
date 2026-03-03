@@ -1,5 +1,4 @@
-
-// import { useState, useEffect } from "react";
+// import { useState, useEffect, useRef } from "react";
 // import { Link } from "react-router-dom";
 // import { Heart } from "lucide-react";
 // import Footer from "../components/Footer";
@@ -9,6 +8,159 @@
 // import toast from "react-hot-toast";
 // import { useCart } from "../context/CartContext";
 // import OfferScrollBar from "../components/OfferScrollBar";
+
+// /* ================= CAROUSEL HOOK ================= */
+// function useProductCarousel(images = []) {
+//   const [activeIndex, setActiveIndex] = useState(0);
+//   const [isHovered, setIsHovered] = useState(false);
+//   const intervalRef = useRef(null);
+
+//   const startCarousel = () => {
+//     if (images.length <= 1) return;
+//     setIsHovered(true);
+//     intervalRef.current = setInterval(() => {
+//       setActiveIndex((prev) => (prev + 1) % images.length);
+//     }, 3000);
+//   };
+
+//   const stopCarousel = () => {
+//     setIsHovered(false);
+//     clearInterval(intervalRef.current);
+//     intervalRef.current = null;
+//     setActiveIndex(0);
+//   };
+
+//   useEffect(() => {
+//     return () => clearInterval(intervalRef.current);
+//   }, []);
+
+//   return { activeIndex, isHovered, startCarousel, stopCarousel };
+// }
+
+// /* ================= PRODUCT CARD WITH CAROUSEL ================= */
+// function ProductCard({ product, wishlist, toggleWishlist, handleAddToCart, navigate }) {
+//   const images = product.images?.length > 0 ? product.images : [{ url: "/images/Product1.png" }];
+//   const { activeIndex, isHovered, startCarousel, stopCarousel } = useProductCarousel(images);
+
+//   return (
+//     <div
+//       className="product-card"
+//       key={product._id}
+//       onClick={() => navigate(`/productspec/${product._id}`)}
+//       onMouseEnter={startCarousel}
+//       onMouseLeave={stopCarousel}
+//     >
+//       <div
+//         className={`discount-badge ${product.discountPercent ? "show" : "hide"
+//           }`}
+//       >
+//         {product.discountPercent
+//           ? `${product.discountPercent}% OFF`
+//           : ""}
+//       </div>
+
+//       {/* ❤️ WISHLIST */}
+//       <button
+//         className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
+//           }`}
+//         onClick={(e) => {
+//           e.stopPropagation();
+//           toggleWishlist(product._id);
+//         }}
+//       >
+//         <Heart />
+//       </button>
+
+//       <div className="product-image-container">
+//         {/* Carousel dots — only show when multiple images exist and card is hovered */}
+//         {images.length > 1 && isHovered && (
+//           <div className="carousel-dots">
+//             {images.map((_, i) => (
+//               <span
+//                 key={i}
+//                 className={`carousel-dot ${i === activeIndex ? "active" : ""}`}
+//               />
+//             ))}
+//           </div>
+//         )}
+
+//         <img
+//           src={images[activeIndex]?.url || "/images/Product1.png"}
+//           alt={product.name}
+//           className={isHovered && images.length > 1 ? "carousel-transition" : ""}
+//         />
+//       </div>
+
+//       <div className="product-title">{product.name}</div>
+
+//       <div className="specs">
+//         {product.highlights?.map((spec, i) => (
+//           <span className="spec" key={i}>
+//             {spec}
+//           </span>
+//         ))}
+//       </div>
+
+//       {/* Description - Hidden on mobile via CSS */}
+//       <p
+//         style={{
+//           fontSize: "10px",
+//           color: "#9ca3af",
+//           marginBottom: "0.5rem",
+//           padding: "0 12px",
+//         }}
+//       >
+//         {product.description}
+//       </p>
+
+//       <div className="rating">
+//         {"★".repeat(Math.round(product.rating || 0))}
+//         {"☆".repeat(5 - Math.round(product.rating || 0))}
+//       </div>
+//       <div className="reviews">({product.numReviews || 0})</div>
+//       {product.originalPrice && (
+//         <div className="price-box">
+//           <span className="old-price">
+//             ₹{product.originalPrice}
+//           </span>
+//         </div>
+//       )}
+//       <div className="price">₹{product.price}</div>
+
+//       <div className="action-buttons">
+//         {product.countInStock > 0 ? (
+//           <>
+//             <button
+//               className="add-to-cart-btn"
+//               onClick={(e) => {
+//                 e.stopPropagation();
+//                 handleAddToCart(product._id);
+//               }}
+//             >
+//               🛒 Add to Cart
+//             </button>
+
+//             <Link
+//               to={`/productspec/${product._id}`}
+//               className="action-link"
+//               onClick={(e) => e.stopPropagation()}
+//             >
+//               <button className="buy-btn">BUY</button>
+//             </Link>
+//           </>
+//         ) : (
+//           <button
+//             className="add-to-cart-btn-disabled"
+//             disabled
+//             style={{ width: "100%" }}
+//           >
+//             OUT OF STOCK
+//           </button>
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
 
 // export default function Products() {
 //   const [categories, setCategories] = useState([]);
@@ -285,6 +437,7 @@
 //   width: 100%;
 //   height: 360px;
 //   overflow: hidden;
+//   position: relative;
 // }
 
 // .product-card img {
@@ -296,6 +449,40 @@
 
 // .product-card:hover img {
 //   transform: scale(1.06);
+// }
+
+// /* ================= CAROUSEL ================= */
+// .product-card img.carousel-transition {
+//   animation: carouselFade 0.5s ease-in-out;
+// }
+
+// @keyframes carouselFade {
+//   0%   { opacity: 0.4; transform: scale(1.04); }
+//   100% { opacity: 1;   transform: scale(1.06); }
+// }
+
+// .carousel-dots {
+//   position: absolute;
+//   bottom: 8px;
+//   left: 50%;
+//   transform: translateX(-50%);
+//   display: flex;
+//   gap: 5px;
+//   z-index: 5;
+//   pointer-events: none;
+// }
+
+// .carousel-dot {
+//   width: 6px;
+//   height: 6px;
+//   border-radius: 50%;
+//   background: rgba(255, 255, 255, 0.45);
+//   transition: background 0.3s ease, transform 0.3s ease;
+// }
+
+// .carousel-dot.active {
+//   background: #ffeb00;
+//   transform: scale(1.4);
 // }
 
 // /* ================= TITLE ================= */
@@ -884,107 +1071,14 @@
 
 //               <div className="product-grid">
 //                 {productsByCategory[categoryName].slice(0, 4).map((product) => (
-//                   <div
-//                     className="product-card"
+//                   <ProductCard
 //                     key={product._id}
-//                     onClick={() => navigate(`/productspec/${product._id}`)}
-//                   >
-//                     <div
-//                       className={`discount-badge ${product.discountPercent ? "show" : "hide"
-//                         }`}
-//                     >
-//                       {product.discountPercent
-//                         ? `${product.discountPercent}% OFF`
-//                         : ""}
-//                     </div>
-
-//                     {/* ❤️ WISHLIST */}
-//                     <button
-//                       className={`favorite-btn ${wishlist.includes(product._id) ? "active" : ""
-//                         }`}
-//                       onClick={(e) => {
-//                         e.stopPropagation();
-//                         toggleWishlist(product._id);
-//                       }}
-//                     >
-//                       <Heart />
-//                     </button>
-
-//                     <div className="product-image-container">
-//                       <img
-//                         src={product.images?.[0]?.url || "/images/Product1.png"}
-//                         alt={product.name}
-//                       />
-//                     </div>
-
-//                     <div className="product-title">{product.name}</div>
-
-//                     <div className="specs">
-//                       {product.highlights?.map((spec, i) => (
-//                         <span className="spec" key={i}>
-//                           {spec}
-//                         </span>
-//                       ))}
-//                     </div>
-
-//                     {/* Description - Hidden on mobile via CSS */}
-//                     <p
-//                       style={{
-//                         fontSize: "10px",
-//                         color: "#9ca3af",
-//                         marginBottom: "0.5rem",
-//                         padding: "0 12px",
-//                       }}
-//                     >
-//                       {product.description}
-//                     </p>
-
-//                     <div className="rating">
-//                       {"★".repeat(Math.round(product.rating || 0))}
-//                       {"☆".repeat(5 - Math.round(product.rating || 0))}
-//                     </div>
-//                     <div className="reviews">({product.numReviews || 0})</div>
-//                     {product.originalPrice && (
-//                       <div className="price-box">
-//                         <span className="old-price">
-//                           ₹{product.originalPrice}
-//                         </span>
-//                       </div>
-//                     )}
-//                     <div className="price">₹{product.price}</div>
-
-//                     <div className="action-buttons">
-//                       {product.countInStock > 0 ? (
-//                         <>
-//                           <button
-//                             className="add-to-cart-btn"
-//                             onClick={(e) => {
-//                               e.stopPropagation();
-//                               handleAddToCart(product._id);
-//                             }}
-//                           >
-//                             🛒 Add to Cart
-//                           </button>
-
-//                           <Link
-//                             to={`/productspec/${product._id}`}
-//                             className="action-link"
-//                             onClick={(e) => e.stopPropagation()}
-//                           >
-//                             <button className="buy-btn">BUY</button>
-//                           </Link>
-//                         </>
-//                       ) : (
-//                         <button
-//                           className="add-to-cart-btn-disabled"
-//                           disabled
-//                           style={{ width: "100%" }}
-//                         >
-//                           OUT OF STOCK
-//                         </button>
-//                       )}
-//                     </div>
-//                   </div>
+//                     product={product}
+//                     wishlist={wishlist}
+//                     toggleWishlist={toggleWishlist}
+//                     handleAddToCart={handleAddToCart}
+//                     navigate={navigate}
+//                   />
 //                 ))}
 //               </div>
 //               {/* SEE MORE */}
@@ -1047,17 +1141,16 @@ function useProductCarousel(images = []) {
   const intervalRef = useRef(null);
 
   const startCarousel = () => {
-    if (images.length <= 1) return;
     setIsHovered(true);
-    intervalRef.current = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
+    if (images.length > 1) {
+      setActiveIndex(1);
+    } else {
+      setActiveIndex(0);
+    }
   };
 
   const stopCarousel = () => {
     setIsHovered(false);
-    clearInterval(intervalRef.current);
-    intervalRef.current = null;
     setActiveIndex(0);
   };
 
@@ -1103,18 +1196,6 @@ function ProductCard({ product, wishlist, toggleWishlist, handleAddToCart, navig
       </button>
 
       <div className="product-image-container">
-        {/* Carousel dots — only show when multiple images exist and card is hovered */}
-        {images.length > 1 && isHovered && (
-          <div className="carousel-dots">
-            {images.map((_, i) => (
-              <span
-                key={i}
-                className={`carousel-dot ${i === activeIndex ? "active" : ""}`}
-              />
-            ))}
-          </div>
-        )}
-
         <img
           src={images[activeIndex]?.url || "/images/Product1.png"}
           alt={product.name}

@@ -1,5 +1,4 @@
-
-// import React, { useState, useMemo, useEffect } from "react";
+// import React, { useState, useMemo, useEffect, useRef } from "react";
 // import Footer from "../components/Footer";
 // import { Heart } from "lucide-react";
 // import { useSearchParams } from "react-router-dom";
@@ -1217,6 +1216,41 @@
 //           }
 //         }
 
+//         /* ================= CAROUSEL DOTS ================= */
+
+//         .carousel-dots {
+//           position: absolute;
+//           bottom: 8px;
+//           left: 50%;
+//           transform: translateX(-50%);
+//           display: flex;
+//           gap: 5px;
+//           z-index: 5;
+//           opacity: 0;
+//           transition: opacity 0.3s ease;
+//         }
+
+//         .imageWrap:hover .carousel-dots {
+//           opacity: 1;
+//         }
+
+//         .carousel-dot {
+//           width: 6px;
+//           height: 6px;
+//           border-radius: 50%;
+//           background: rgba(255, 255, 255, 0.45);
+//           border: none;
+//           padding: 0;
+//           cursor: pointer;
+//           transition: background 0.25s ease, transform 0.25s ease;
+//           flex-shrink: 0;
+//         }
+
+//         .carousel-dot.active {
+//           background: #ffeb00;
+//           transform: scale(1.35);
+//         }
+
 //         /* ================= RESPONSIVE OVERRIDES ================= */
 
 //         /* -------- Tablets portrait (768px–1024px) -------- */
@@ -1585,6 +1619,30 @@
 //   const navigate = useNavigate();
 //   // const [showLoginModal, setShowLoginModal] = useState(false);
 
+//   // ── Carousel state (new) ──────────────────────────────────────────────────
+//   const images = product.images?.length > 0 ? product.images : [{ url: "/images/Product1.png" }];
+//   const [carouselIndex, setCarouselIndex] = useState(0);
+//   const [isHovered, setIsHovered] = useState(false);
+//   const carouselRef = useRef(null);
+
+//   // Auto-advance every 3 s while the card is hovered and there are multiple images
+//   useEffect(() => {
+//     if (!isHovered || images.length <= 1) return;
+//     carouselRef.current = setInterval(() => {
+//       setCarouselIndex((prev) => (prev + 1) % images.length);
+//     }, 3000);
+//     return () => clearInterval(carouselRef.current);
+//   }, [isHovered, images.length]);
+
+//   // Reset to first image when cursor leaves
+//   const handleMouseEnter = () => setIsHovered(true);
+//   const handleMouseLeave = () => {
+//     setIsHovered(false);
+//     setCarouselIndex(0);
+//     clearInterval(carouselRef.current);
+//   };
+//   // ─────────────────────────────────────────────────────────────────────────
+
 //   const handleAddToCart = async (productId) => {
 //     try {
 //       await addToCartApi(productId, qty);
@@ -1626,17 +1684,46 @@
 //     <div
 //       className="card"
 //       onClick={() => navigate(`/productspec/${product._id}`)}
+//       onMouseEnter={handleMouseEnter}
+//       onMouseLeave={handleMouseLeave}
 //     >
 //       <div className="imageWrap">
 //         {product.discountPercent > 0 && (
 //           <span className="discount">{product.discountPercent}% OFF</span>
 //         )}
 
+//         {/* ── Carousel image (replaces the original single <img>) ── */}
 //         <img
-//           src={product.images?.[0]?.url || "/images/Product1.png"}
+//           src={images[carouselIndex]?.url || "/images/Product1.png"}
 //           alt={product.name}
 //           loading="lazy"
+//           style={{ transition: "opacity 0.4s ease, transform 0.4s ease" }}
 //         />
+
+//         {/* ── Dot indicators (only shown when there are multiple images) ── */}
+//         {images.length > 1 && (
+//           <div className="carousel-dots">
+//             {images.map((_, i) => (
+//               <button
+//                 key={i}
+//                 className={`carousel-dot${i === carouselIndex ? " active" : ""}`}
+//                 onClick={(e) => {
+//                   e.stopPropagation();
+//                   setCarouselIndex(i);
+//                   // restart the 3-s timer from this dot
+//                   clearInterval(carouselRef.current);
+//                   if (isHovered) {
+//                     carouselRef.current = setInterval(() => {
+//                       setCarouselIndex((prev) => (prev + 1) % images.length);
+//                     }, 3000);
+//                   }
+//                 }}
+//                 aria-label={`Go to image ${i + 1}`}
+//               />
+//             ))}
+//           </div>
+//         )}
+//         {/* ─────────────────────────────────────────────────────────── */}
 
 //         <button
 //           className={`fav ${wishlistIds.has(product._id) ? "active" : ""}`}
@@ -1775,7 +1862,6 @@
 //     <line x1="21" y1="21" x2="16.65" y2="16.65" />
 //   </svg>
 // );
-
 
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
@@ -2694,11 +2780,12 @@ export default function ProductPage() {
 
         .products {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(280px, 291.51px));
           gap: 18px;
+          justify-content: center;
           max-width: 1380px;
-          margin: 28px auto;
-          padding: 0 20px;
+          margin: 30px auto;
+          padding: 0 8px;
         }
 
         /* ===== CARD ===== */
@@ -2711,6 +2798,7 @@ export default function ProductPage() {
           transition: transform 0.3s ease, box-shadow 0.3s ease;
           overflow: hidden;
           width: 100%;
+          min-height: 600px;
         }
 
         .card:hover {
@@ -2721,7 +2809,8 @@ export default function ProductPage() {
         .imageWrap {
           position: relative;
           width: 100%;
-          padding-top: 75%; /* 4:3 aspect ratio */
+          height: 360px;
+          padding-top: 0; /* override aspect ratio sizing to match Product card */
           overflow: hidden;
         }
 
@@ -3058,6 +3147,18 @@ export default function ProductPage() {
           .sort {
             max-width: 220px;
           }
+          
+          /* Match Product card sizing */
+          .products {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+          }
+          .card {
+            min-height: 550px;
+          }
+          .imageWrap {
+            height: 280px;
+          }
         }
 
         /* -------- Tablets portrait (601px–767px) -------- */
@@ -3072,8 +3173,8 @@ export default function ProductPage() {
 
           .products {
             grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            padding: 0 16px;
+            gap: 12px;
+            padding: 0 4px;
           }
 
           .topControls {
@@ -3091,6 +3192,13 @@ export default function ProductPage() {
 
           .count {
             display: none;
+          }
+          /* Match Product card sizing for <=768px */
+          .card {
+            min-height: 400px;
+          }
+          .imageWrap {
+            height: 180px;
           }
         }
 
@@ -3179,13 +3287,18 @@ export default function ProductPage() {
           /* 2-column grid on mobile */
           .products {
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            padding: 0 10px;
-            margin: 14px auto;
+            gap: 8px;
+            padding: 0 4px;
+            margin: 20px auto;
           }
 
           .imageWrap {
-            padding-top: 80%;
+            height: 150px;
+            padding-top: 0;
+          }
+          
+          .card {
+            min-height: 340px;
           }
 
           .discount {
@@ -3334,7 +3447,8 @@ export default function ProductPage() {
           }
 
           .imageWrap {
-            padding-top: 85%;
+            height: 130px;
+            padding-top: 0;
           }
 
           .info {
@@ -3405,21 +3519,19 @@ const ProductCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const carouselRef = useRef(null);
 
-  // Auto-advance every 3 s while the card is hovered and there are multiple images
+  // Hover should only switch to the second image; no auto-advance
   useEffect(() => {
-    if (!isHovered || images.length <= 1) return;
-    carouselRef.current = setInterval(() => {
-      setCarouselIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
-    return () => clearInterval(carouselRef.current);
-  }, [isHovered, images.length]);
+    return () => {};
+  }, []);
 
   // Reset to first image when cursor leaves
-  const handleMouseEnter = () => setIsHovered(true);
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    setCarouselIndex(images.length > 1 ? 1 : 0);
+  };
   const handleMouseLeave = () => {
     setIsHovered(false);
     setCarouselIndex(0);
-    clearInterval(carouselRef.current);
   };
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -3480,30 +3592,7 @@ const ProductCard = ({
           style={{ transition: "opacity 0.4s ease, transform 0.4s ease" }}
         />
 
-        {/* ── Dot indicators (only shown when there are multiple images) ── */}
-        {images.length > 1 && (
-          <div className="carousel-dots">
-            {images.map((_, i) => (
-              <button
-                key={i}
-                className={`carousel-dot${i === carouselIndex ? " active" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCarouselIndex(i);
-                  // restart the 3-s timer from this dot
-                  clearInterval(carouselRef.current);
-                  if (isHovered) {
-                    carouselRef.current = setInterval(() => {
-                      setCarouselIndex((prev) => (prev + 1) % images.length);
-                    }, 3000);
-                  }
-                }}
-                aria-label={`Go to image ${i + 1}`}
-              />
-            ))}
-          </div>
-        )}
-        {/* ─────────────────────────────────────────────────────────── */}
+        
 
         <button
           className={`fav ${wishlistIds.has(product._id) ? "active" : ""}`}

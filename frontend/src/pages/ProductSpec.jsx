@@ -4,17 +4,12 @@
 // import { useParams } from "react-router-dom";
 // import api from "../services/api.js";
 // import toast from "react-hot-toast";
-// import { Package } from "lucide-react";
-// // import {  toast } from "react-toastify";
-// // import "react-toastify/dist/ReactToastify.css";
+// import { Package, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 // import { addToCartApi } from "../api/cartApi";
 // import { useCart } from "../context/CartContext";
 // import { useAuth } from "../context/AuthContext";
 // import { useNavigate } from "react-router-dom";
 // import Navbar from "../components/Navbar";
-
-
-
 
 // const ProductPage = () => {
 //   const [qty, setQty] = useState(1);
@@ -37,18 +32,15 @@
 //   const { user } = useAuth();
 //   const navigate = useNavigate();
 //   const [showLoginModal, setShowLoginModal] = useState(false);
-//   // const user = JSON.parse(localStorage.getItem("user"));
-//   // const { user } = useCart();
 
+//   // Custom Modal State
+//   const [showCustomModal, setShowCustomModal] = useState(false);
+//   const [modalConfig, setModalConfig] = useState({
+//     type: "", // 'success', 'error', 'warning'
+//     title: "",
+//     message: "",
+//   });
 
-//   // const images = [
-//   //   "/images/stawberry.png",
-//   //   "/images/grapes.png",
-//   //   "/images/pista.png",
-//   //   "/images/mango.png",
-//   // ];
-
-//   // const [activeImage, setActiveImage] = useState(images[0]);
 //   const [activeImage, setActiveImage] = useState("");
 
 //   useEffect(() => {
@@ -99,7 +91,7 @@
 
 //         const { data } = await api.get(`/reviews/${product._id}`);
 
-//         setReviews(data); // approved reviews only
+//         setReviews(data);
 //       } catch (err) {
 //         console.error("Failed to load reviews", err);
 //       } finally {
@@ -110,39 +102,36 @@
 //     if (product?._id) fetchReviews();
 //   }, [product]);
 
+//   const showNotification = (type, title, message) => {
+//     setModalConfig({ type, title, message });
+//     setShowCustomModal(true);
+//   };
 
 //   const handleAddToCart = async (productId) => {
 //     try {
 //       await addToCartApi(productId, 1);
 //       await refreshCart();
 //       setOpenSideCart(true);
-//       toast.success("Product added to cart 🛒");
+//       showNotification("success", "Success!", "Product added to cart 🛒");
 //     } catch (error) {
 //       const message = error.response?.data?.message;
 
-//       // ✅ If stock error → just show toast
 //       if (message && message.toLowerCase().includes("stock")) {
-//         toast.error(message);
-//         return; // ❗ DO NOT open login modal
+//         showNotification("error", "Out of Stock", message);
+//         return;
 //       }
 
-//       // ✅ If unauthorized → show login modal
 //       if (error.response?.status === 401) {
-//         toast.error("Please login to add to cart");
+//         showNotification("error", "Login Required", "Please login to add to cart");
 //         setShowLoginModal(true);
 //         return;
 //       }
 
-//       // fallback
-//       toast.error(message || "Something went wrong");
+//       showNotification("error", "Error", message || "Something went wrong");
 //     }
 //   };
 
-
 //   const handleBuyNow = () => {
-//     console.log("BUY NOW CLICKED AUTH USER:", user);
-
-//     // ⛔ Wait until auth is resolved
 //     if (loading) return;
 
 //     if (!user || !user._id) {
@@ -164,7 +153,6 @@
 //     });
 //   };
 
-
 //   const submitReviewHandler = async () => {
 //     try {
 //       setSubmittingReview(true);
@@ -177,23 +165,42 @@
 //         formData.append("images", img);
 //       });
 
-//       await api.post(`/reviews/${product._id}`, formData, {
+//       const { data } = await api.post(`/reviews/${product._id}`, formData, {
 //         headers: {
 //           "Content-Type": "multipart/form-data",
 //         },
 //       });
 
-//       // ✅ SHOW SUCCESS MESSAGE
-//       toast.success(
-//         "Review submitted successfully! It will be visible after admin approval.",
+//       showNotification(
+//         "success",
+//         "Review Submitted!",
+//         "Your review has been posted successfully and is now visible to everyone."
 //       );
 
 //       setShowReviewPopup(false);
 //       setRating(0);
 //       setComment("");
 //       setReviewImages([]);
+
+//       // Refresh reviews
+//       const reviewsRes = await api.get(`/reviews/${product._id}`);
+//       setReviews(reviewsRes.data);
+
+//       // Refresh product to update rating
+//       const productRes = await api.get(`/products/${id}`);
+//       setProduct(productRes.data);
 //     } catch (error) {
-//       console.error(error);
+//       const message = error.response?.data?.message;
+
+//       if (message === "You can review only purchased products") {
+//         showNotification(
+//           "warning",
+//           "Purchase Required",
+//           "You can only review products you have purchased and received."
+//         );
+//       } else {
+//         showNotification("error", "Error", message || "Failed to submit review");
+//       }
 //     } finally {
 //       setSubmittingReview(false);
 //     }
@@ -222,8 +229,9 @@
 //     },
 //     mainImage: {
 //       width: "100%",
-//       height: 570,
-//       objectFit: "cover",
+//       height: "100%",
+//       objectFit: "fill",
+//       display: "block",
 //     },
 //     thumbnailsContainer: {
 //       marginTop: 16,
@@ -360,22 +368,17 @@
 //       alignItems: "center",
 //       justifyContent: "center",
 //       gap: 10,
-
 //       background: "#2f2f2f",
 //       color: "#fff",
-
 //       padding: "0 20px",
 //       fontSize: 23,
 //       fontWeight: 900,
-
 //       borderRadius: 11,
 //       border: "2px solid #ffeb00",
-
 //       cursor: "pointer",
 //       textTransform: "uppercase",
 //       letterSpacing: 1,
 //       transition: "all 0.25s ease",
-
 //       fontFamily: "'Jersey 25', sans-serif",
 //       textDecoration: "none",
 //       boxSizing: "border-box",
@@ -383,26 +386,21 @@
 
 //     buyNowButton: {
 //       flex: 1,
-//       height: 67, // 🔑 SAME height
+//       height: 67,
 //       display: "flex",
 //       alignItems: "center",
 //       justifyContent: "center",
-
 //       background: "#ffeb00",
 //       color: "#000",
-
-//       padding: "0 20px", // 🔑 SAME padding
+//       padding: "0 20px",
 //       fontSize: 23,
 //       fontWeight: 900,
-
 //       borderRadius: 11,
 //       border: "2px solid #ffeb00",
-
 //       cursor: "pointer",
 //       textTransform: "uppercase",
 //       letterSpacing: 1,
 //       transition: "all 0.25s ease",
-
 //       fontFamily: "'Jersey 25', sans-serif",
 //       textDecoration: "none",
 //       boxSizing: "border-box",
@@ -413,11 +411,11 @@
 //       height: 26,
 //     },
 //     recommendedSection: {
-//       padding: "20px 0", // ⬅️ reduced gap (was 40px)
+//       padding: "20px 0",
 //     },
 
 //     recommendedTitle: {
-//       marginBottom: 12, // ⬅️ reduced (was 24)
+//       marginBottom: 12,
 //       fontWeight: 700,
 //       textAlign: "left",
 //       marginLeft: 185,
@@ -511,18 +509,17 @@
 //       color: "#fff",
 //     },
 
-
 //     /* ================= REVIEWS SECTION ================= */
 
 //     reviewsSection: {
 //       maxWidth: 1200,
 //       margin: "0 auto",
-//       padding: "20px 40px", // ⬅️ reduced top/bottom (was 40)
+//       padding: "20px 40px",
 //       color: "#fff",
 //     },
 
 //     reviewsHeader: {
-//       marginBottom: 12, // ⬅️ reduced (was 24)
+//       marginBottom: 12,
 //       fontWeight: 700,
 //       textAlign: "left",
 //     },
@@ -531,7 +528,7 @@
 //       display: "flex",
 //       gap: 16,
 //       marginTop: 10,
-//       marginLeft: "auto", // ⬅️ keeps buttons on right
+//       marginLeft: "auto",
 //       alignItems: "center",
 //     },
 
@@ -700,7 +697,6 @@
 //       display: "flex",
 //       flexDirection: "column",
 //       gap: 10,
-//       // marginLeft: -15
 //     },
 //     reviewCardWithImage: {
 //       border: "1px solid #ffe600",
@@ -749,13 +745,10 @@
 
 //     reviewStars: {
 //       color: "#ffe600",
-//       // margin: "6px 0"
 //       fontSize: 18,
 //       marginBottom: 8,
 //     },
 //     reviewText: {
-//       // fontSize: 13,
-//       // lineHeight: 1.6
 //       color: "#ddd",
 //       fontSize: 15,
 //       lineHeight: "1.5",
@@ -880,6 +873,30 @@
 //       marginBottom: 34,
 //     },
 
+//     descriptionContainer: {
+//       marginBottom: 34,
+//       padding: "16px 0",
+//       borderTop: "1px solid rgba(255, 230, 0, 0.2)",
+//       borderBottom: "1px solid rgba(255, 230, 0, 0.2)",
+//     },
+
+//     descriptionTitle: {
+//       fontSize: 16,
+//       fontWeight: 700,
+//       marginBottom: 12,
+//       letterSpacing: "0.5px",
+//       textTransform: "uppercase",
+//       color: "#ffe600",
+//     },
+
+//     descriptionText: {
+//       fontSize: 14,
+//       lineHeight: 1.6,
+//       color: "#ddd",
+//       margin: 0,
+//       whiteSpace: "pre-line", // This preserves line breaks
+//     },
+
 //     highlightTag: {
 //       border: "2px solid #ffe600",
 //       padding: "10px 18px",
@@ -915,9 +932,7 @@
 //       fontWeight: 700,
 //       color: "#00ff88",
 //     },
-
 //   };
-
 
 //   const images = Array.isArray(product?.images)
 //     ? product.images.map((img) => img.url)
@@ -927,7 +942,6 @@
 //     ? reviews.filter((r) => r.rating >= 4)
 //     : reviews;
 
-//   // 🔹 Split reviews for layout
 //   const imageReviews = filteredReviews.filter((r) => r.images?.length > 0);
 //   const textReviews = filteredReviews.filter(
 //     (r) => !r.images || r.images.length === 0,
@@ -936,10 +950,9 @@
 //   return (
 //     <>
 //       <Navbar />
-//       {/* <ToastContainer position="top-center" autoClose={3000} /> */}
 //       <style>{`
 //         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
-
+        
 //         /* ================= LUXURY LOADER ================= */
 //         .loader-overlay {
 //           position: fixed;
@@ -958,7 +971,6 @@
 //           color: #ffeb00;
 //         }
 
-//         /* Rotating ring */
 //         .ring {
 //           width: 120px;
 //           height: 120px;
@@ -974,14 +986,12 @@
 //           filter: drop-shadow(0 0 10px #ffeb00);
 //         }
 
-//         /* Center icon glow */
 //         .icon-wrapper {
 //           color: #ffeb00;
 //           animation: floatPulse 1.6s infinite ease-in-out;
 //           filter: drop-shadow(0 0 18px #ffeb00);
 //         }
 
-//         /* Shimmer text */
 //         .shimmer-text {
 //           margin-top: 40px;
 //           font-family: "Jersey 25", cursive;
@@ -999,7 +1009,6 @@
 //           animation: shimmer 2s linear infinite;
 //         }
 
-//         /* Animations */
 //         @keyframes spin {
 //           100% {
 //             transform: translateX(-50%) rotate(360deg);
@@ -1056,7 +1065,6 @@
 //           opacity: 0.85;
 //         }
 
-//         /* Retry Button */
 //         .retry-btn {
 //           height: 46px;
 //           width: 100%;
@@ -1077,7 +1085,6 @@
 //           transform: translateY(-2px);
 //         }
 
-//         /* Animations */
 //         @keyframes shake {
 //           0%, 100% { transform: translateX(0); }
 //           25% { transform: translateX(-4px); }
@@ -1095,8 +1102,7 @@
 //             opacity: 1;
 //           }
 //         }
-
-//         /* ✅ MOBILE RESPONSIVE STYLES */
+        
 //         @media (max-width: 768px) {
 //           .product-section {
 //             grid-template-columns: 1fr !important;
@@ -1104,83 +1110,83 @@
 //             padding: 30px 20px !important;
 //             margin-left: 0 !important;
 //           }
-
+          
 //           .main-image-container {
 //             height: 300px !important;
 //             margin-left: 0 !important;
 //           }
-
+          
 //           .main-image {
 //             height: 300px !important;
 //           }
-
+          
 //           .thumbnails-container {
 //             margin-left: 0 !important;
 //             grid-template-columns: repeat(4, 1fr) !important;
 //           }
-
+          
 //           .thumbnail-image {
 //             height: 80px !important;
 //           }
-
+          
 //           .details-container {
 //             max-width: 100% !important;
 //           }
-
+          
 //           .title {
 //             font-size: 28px !important;
 //           }
-
+          
 //           .current-price {
 //             font-size: 24px !important;
 //           }
-
+          
 //           .action-buttons {
 //             flex-direction: column !important;
 //           }
-
+          
 //           .action-buttons button {
 //             width: 100% !important;
 //             font-size: 18px !important;
 //           }
-
+          
 //           .reviews-section {
 //             padding: 20px 20px !important;
 //           }
-
+          
 //           .reviews-header {
 //             margin-left: 0 !important;
 //           }
-
+          
 //           .reviews-grid {
 //             grid-template-columns: 1fr !important;
 //           }
-
+          
 //           .range-grid {
 //             grid-template-columns: repeat(2, 1fr) !important;
 //             gap: 16px !important;
 //             padding: 0 20px !important;
 //           }
-
+          
 //           .range-title {
 //             font-size: 32px !important;
 //           }
-
+          
 //           .reviews-buttons {
 //             flex-direction: column !important;
 //             width: 100% !important;
 //           }
-
+          
 //           .reviews-buttons button {
 //             width: 100% !important;
 //           }
-
+          
 //           .popup-content {
 //             padding: 20px !important;
 //             max-height: calc(100vh - 32px) !important;
 //           }
 //         }
-
+        
 //         @media (max-width: 480px) {
 //           .range-grid {
 //             grid-template-columns: 1fr !important;
@@ -1188,7 +1194,6 @@
 //         }
 //       `}</style>
 
-//       {/* ✅ LOADING STATE */}
 //       {loading && (
 //         <div className="loader-overlay">
 //           <div className="luxury-loader">
@@ -1201,7 +1206,6 @@
 //         </div>
 //       )}
 
-//       {/* ✅ ERROR STATE */}
 //       {!loading && error && (
 //         <div className="loader-overlay">
 //           <div className="error-box">
@@ -1218,7 +1222,6 @@
 //         </div>
 //       )}
 
-//       {/* ✅ CONTENT - Only show when NOT loading and NO error */}
 //       {!loading && !error && product && (
 //         <div style={styles.container}>
 //           <section style={styles.productSection} className="product-section">
@@ -1280,24 +1283,21 @@
 //               </div>
 
 //               <div style={styles.priceBlock}>
-//                 {/* Current Price */}
 //                 <span style={styles.currentPrice} className="current-price">₹{product.price}</span>
 
-//                 {/* Original Price (cut) */}
 //                 {product.originalPrice > product.price && (
 //                   <span style={styles.originalPrice}>
 //                     ₹{product.originalPrice}
 //                   </span>
 //                 )}
 
-//                 {/* Discount */}
 //                 {product.discountPercent > 0 && (
 //                   <span style={styles.discountText}>
 //                     {product.discountPercent}% OFF
 //                   </span>
 //                 )}
 //               </div>
-
+//               {/* // In the details section, add this after the highlightsContainer div */}
 //               <div>
 //                 <div style={styles.highlightsContainer}>
 //                   {product.highlights?.map((item, i) => (
@@ -1306,6 +1306,14 @@
 //                     </span>
 //                   ))}
 //                 </div>
+
+//                 {/* Add Description Section Here */}
+//                 {product.description && (
+//                   <div style={styles.descriptionContainer}>
+//                     <h3 style={styles.descriptionTitle}>Description</h3>
+//                     <p style={styles.descriptionText}>{product.description}</p>
+//                   </div>
+//                 )}
 //               </div>
 
 //               <div style={styles.quantityContainer}>
@@ -1333,15 +1341,13 @@
 //                   <div style={styles.quantityValue}>{qty}</div>
 
 //                   <button
-//                     // onClick={() => setQty(qty + 1)}
 //                     onClick={() => {
 //                       if (qty < product.countInStock) {
 //                         setQty(qty + 1);
 //                       } else {
-//                         toast.error(`Only ${product.countInStock} item available`);
+//                         showNotification("warning", "Stock Limit", `Only ${product.countInStock} items available`);
 //                       }
 //                     }}
-
 //                     onMouseEnter={(e) => {
 //                       e.currentTarget.style.background = "#ffe600";
 //                       e.currentTarget.style.color = "#000";
@@ -1439,10 +1445,6 @@
 //                   style={styles.popupContent}
 //                   className="popup-content"
 //                 >
-//                   {/* <h2 style={styles.popupTitle}>
-//                   PROTEIN WAFERS – VARIETY PACK OF 10
-//                 </h2> */}
-
 //                   <div style={styles.popupUser}>
 //                     <div style={styles.popupUser}>
 //                       <div style={styles.popupAvatar}>
@@ -1531,7 +1533,6 @@
 
 //                 {imageReviews.map((review) => (
 //                   <div key={review._id} style={styles.reviewCardWithImage}>
-//                     {/* Header */}
 //                     <div style={styles.reviewHeader}>
 //                       <div style={styles.reviewAvatar}>
 //                         {review.user?.name?.charAt(0).toUpperCase()}
@@ -1539,20 +1540,17 @@
 //                       <div style={styles.reviewUserName}>{review.user?.name}</div>
 //                     </div>
 
-//                     {/* Image */}
 //                     <img
 //                       src={review.images[0].url}
 //                       alt="Review"
 //                       style={styles.reviewImage}
 //                     />
 
-//                     {/* Stars */}
 //                     <div style={styles.reviewStars}>
 //                       {"★".repeat(review.rating)}
 //                       {"☆".repeat(5 - review.rating)}
 //                     </div>
 
-//                     {/* Comment */}
 //                     <p style={styles.reviewText}>{review.comment}</p>
 //                   </div>
 //                 ))}
@@ -1586,7 +1584,8 @@
 //               {relatedProducts.map((item) => (
 //                 <div
 //                   key={item._id}
-//                   style={styles.rangeCard}
+//                   style={{ ...styles.rangeCard, cursor: "pointer" }}
+//                   onClick={() => navigate(`/productspec/${item._id}`)}
 //                   onMouseEnter={(e) => {
 //                     e.currentTarget.style.transform = "scale(1.05)";
 //                     e.currentTarget.style.boxShadow =
@@ -1622,9 +1621,15 @@
 //                       </span>
 //                     </div>
 
-//                     <Link to={`/productspec/${item._id}`}>
-//                       <button style={styles.rangeCardButton}>BUY NOW</button>
-//                     </Link>
+//                     <button
+//                       style={styles.rangeCardButton}
+//                       onClick={(e) => {
+//                         e.stopPropagation();
+//                         navigate(`/productspec/${item._id}`);
+//                       }}
+//                     >
+//                       BUY NOW
+//                     </button>
 //                   </div>
 //                 </div>
 //               ))}
@@ -1656,6 +1661,53 @@
 //             </div>
 //           )}
 
+//           {/* Custom Notification Modal */}
+//           {showCustomModal && (
+//             <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[9999] p-4">
+//               <div className="bg-[#1a1a1a] border-2 border-yellow-400 rounded-2xl p-8 max-w-md w-full animate-[popIn_0.3s_ease]">
+//                 {/* Icon */}
+//                 <div className="flex justify-center mb-4">
+//                   {modalConfig.type === "success" && (
+//                     <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
+//                       <CheckCircle className="w-8 h-8 text-green-500" />
+//                     </div>
+//                   )}
+//                   {modalConfig.type === "error" && (
+//                     <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+//                       <XCircle className="w-8 h-8 text-red-500" />
+//                     </div>
+//                   )}
+//                   {modalConfig.type === "warning" && (
+//                     <div className="w-16 h-16 rounded-full bg-yellow-500/20 flex items-center justify-center">
+//                       <AlertCircle className="w-8 h-8 text-yellow-500" />
+//                     </div>
+//                   )}
+//                 </div>
+
+//                 {/* Title */}
+//                 <h3 className="text-2xl font-bold text-center text-yellow-400 mb-3 font-mono">
+//                   {modalConfig.title}
+//                 </h3>
+
+//                 {/* Message */}
+//                 <p className="text-center text-gray-300 mb-6">
+//                   {modalConfig.message}
+//                 </p>
+
+//                 {/* OK Button */}
+//                 <button
+//                   className="w-full px-6 py-3 bg-yellow-400 text-black rounded-xl font-semibold hover:bg-yellow-500 transition-all"
+//                   onClick={() => {
+//                     setShowCustomModal(false);
+//                     setModalConfig({ type: "", title: "", message: "" });
+//                   }}
+//                 >
+//                   OK
+//                 </button>
+//               </div>
+//             </div>
+//           )}
+
 //           <Footer />
 //         </div>
 //       )}
@@ -1664,7 +1716,6 @@
 // };
 
 // export default ProductPage;
-
 
 
 import React, { useState, useEffect } from "react";
@@ -2452,12 +2503,14 @@ const ProductPage = () => {
       lineHeight: "1.00",
     },
     rangeGrid: {
-      maxWidth: 1230,
+      maxWidth: 1380,
       margin: "0 auto",
       display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
-      gap: 28,
-      padding: "0 32px",
+      gridTemplateColumns: "repeat(auto-fill, minmax(280px, 291.51px))",
+      gap: 18,
+      padding: "0 8px",
+      justifyContent: "center",
+      alignItems: "stretch",
     },
     rangeCard: {
       background: "#3a3a3a",
@@ -2833,8 +2886,8 @@ const ProductPage = () => {
           
           .range-grid {
             grid-template-columns: repeat(2, 1fr) !important;
-            gap: 16px !important;
-            padding: 0 20px !important;
+            gap: 12px !important;
+            padding: 0 4px !important;
           }
           
           .range-title {
@@ -2858,7 +2911,9 @@ const ProductPage = () => {
         
         @media (max-width: 480px) {
           .range-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+            padding: 0 8px !important;
           }
         }
       `}</style>

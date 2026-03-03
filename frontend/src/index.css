@@ -1,9 +1,9 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
 /* ==== Custom Fonts ==== */
-@font-face {
+/* @font-face {
   font-family: 'Dimitri';
   src: url('./assets/fonts/DIMITRI-Regular.ttf.TTF') format('truetype');
   font-weight: normal;
@@ -15,10 +15,10 @@
   src: url('./assets/fonts/DIMITRI-Swank-Regular.ttf.TTF') format('truetype');
   font-weight: normal;
   font-style: normal;
-}
+} */
 
 /* ==== Apply Globally ==== */
-@layer base {
+/* @layer base {
   body {
     @apply font-dimitri;
     margin: 0;
@@ -41,6 +41,37 @@
 
 code {
   font-family: monospace;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #e5dc3b !important;
+} */
+
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Default global styles */
+body {
+  margin: 0;
+  background: #000; /* keep your black theme */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas,
+    'Courier New', monospace;
 }
 
 input:focus,
