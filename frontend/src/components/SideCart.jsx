@@ -2593,7 +2593,12 @@ export default function SideCart() {
           )}
 
           {cartItems.map((item) => (
-            <div className="sc-item" key={item.product._id}>
+            <div className="sc-item" key={item.product._id} style={{ cursor: "pointer" }}
+              onClick={() => {
+                navigate(`/productspec/${item.product._id}`);
+                setOpenSideCart(false);
+              }}
+            >
               <img
                 src={item.product.images?.[0]?.url || "/images/Product1.png"}
                 alt={item.product.name}
@@ -2622,26 +2627,30 @@ export default function SideCart() {
 
                 <div className="sc-qty">
                   <button
-                    onClick={() => decreaseQty(item.product._id, item.quantity)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      decreaseQty(item.product._id, item.quantity)
+                    }}
                     aria-label="Decrease quantity"
                   >
                     −
                   </button>
                   <span>{item.quantity}</span>
                   <button
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.stopPropagation();
                       increaseQty(
                         item.product._id,
                         item.quantity,
                         item.product.countInStock,
                       )
-                    }
+                    }}
                     disabled={isMaxStock(item.product._id, item.quantity)}
                     aria-label="Increase quantity"
                     title={
                       isMaxStock(item.product._id, item.quantity)
                         ? stockErrors[item.product._id] ||
-                          "Maximum stock reached"
+                        "Maximum stock reached"
                         : "Add one more"
                     }
                   >
@@ -2652,7 +2661,10 @@ export default function SideCart() {
 
               <span
                 className="sc-remove"
-                onClick={() => removeItem(item.product._id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeItem(item.product._id)
+                }}
               >
                 Remove
               </span>
