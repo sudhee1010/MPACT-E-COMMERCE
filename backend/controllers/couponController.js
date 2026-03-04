@@ -33,136 +33,260 @@ export const createCoupon = async (req, res) => {
    - Applies to only ONE UNIT even if qty > 1
    - Global / Product / First-order only
 ========================================================= */
+// export const applyCouponOnOrder = async (req, res) => {
+//   try {
+//     const { orderId, code } = req.body;
+
+//     /* ===== FETCH ORDER ===== */
+//     const order = await Order.findById(orderId);
+//     if (!order) {
+//       return res.status(404).json({ message: "Order not found" });
+//     }
+
+//     /* 🔒 ORDER LEVEL LOCK */
+//     if (order.couponApplied) {
+//       return res.status(400).json({
+//         message: "Coupon already applied on this order"
+//       });
+//     }
+
+//     /* ===== FETCH COUPON ===== */
+//     const coupon = await Coupon.findOne({
+//       code: code.toUpperCase(),
+//       isActive: true,
+//       expiryDate: { $gte: new Date() }
+//     });
+
+//     if (!coupon) {
+//       return res.status(400).json({ message: "Invalid or expired coupon" });
+//     }
+
+//     /* 🔐 ONE-TIME PER USER */
+//     if (
+//       coupon.usersUsed.some(
+//         (id) => id.toString() === req.user._id.toString()
+//       )
+//     ) {
+//       return res.status(400).json({
+//         message: "You have already used this coupon"
+//       });
+//     }
+
+//     /* 🧠 FIRST ORDER ONLY */
+//     if (coupon.isFirstOrderOnly) {
+//       const previousOrder = await Order.findOne({ user: req.user._id, paymentStatus: "paid" });
+//       if (previousOrder) {
+//         return res.status(400).json({
+//           message: "Coupon valid only for first order"
+//         });
+//       }
+//     }
+
+//     /* 🌍 GLOBAL USAGE LIMIT */
+//     if (
+//       coupon.maxRedemptions > 0 &&
+//       coupon.usedCount >= coupon.maxRedemptions
+//     ) {
+//       return res.status(400).json({
+//         message: "Coupon usage limit reached"
+//       });
+//     }
+
+//     /* ===== CALCULATIONS ===== */
+//     let subtotal = 0;
+//     let discount = 0;
+//     let applied = false;
+
+//     for (const item of order.orderItems) {
+//       subtotal += item.price * item.quantity;
+
+//       if (applied) continue;
+
+//       /* 🎯 PRODUCT SPECIFIC */
+//       if (coupon.applicableProducts.length > 0) {
+//         const allowed = coupon.applicableProducts.some(
+//           (p) => p.product.toString() === item.product.toString()
+//         );
+//         if (!allowed) continue;
+//       }
+
+//       /* ✅ APPLY TO ONLY ONE UNIT */
+//       const oneUnitPrice = item.price;
+
+//       discount =
+//         coupon.discountType === "percentage"
+//           ? (oneUnitPrice * coupon.discountValue) / 100
+//           : Math.min(coupon.discountValue, oneUnitPrice);
+
+//       applied = true;
+//     }
+
+//     if (!applied) {
+//       return res.status(400).json({
+//         message: "Coupon not applicable to this order"
+//       });
+//     }
+
+//     /* ===== FINAL TOTAL ===== */
+//     const TAX_RATE = 0.05;
+//     const taxableAmount = subtotal - discount;
+//     const taxAmount = taxableAmount * TAX_RATE;
+//     const totalAmount = taxableAmount + taxAmount;
+
+//     /* ===== SAVE ORDER ===== */
+//     order.subtotal = subtotal;
+//     order.discount = discount;
+//     order.taxAmount = taxAmount;
+//     order.totalAmount = totalAmount;
+//     order.couponApplied = true;
+
+//     order.appliedCoupon = {
+//       code: coupon.code,
+//       discount
+//     };
+
+//     /* 🔐 GLOBAL LOCKS */
+//     // coupon.usedCount += 1;
+//     // coupon.usersUsed.push(req.user._id);
+
+//     await order.save();
+//     // await coupon.save();
+
+//     res.json({
+//       message: "Coupon applied successfully",
+//       subtotal,
+//       discount,
+//       taxAmount,
+//       totalAmount
+//     });
+//   } catch (error) {
+//     console.error("Apply Coupon Error:", error);
+//     res.status(500).json({ message: "Failed to apply coupon" });
+//   }
+// };
+
+
 export const applyCouponOnOrder = async (req, res) => {
-  try {
-    const { orderId, code } = req.body;
+try {
 
-    /* ===== FETCH ORDER ===== */
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
+const { orderId, code } = req.body;
 
-    /* 🔒 ORDER LEVEL LOCK */
-    if (order.couponApplied) {
-      return res.status(400).json({
-        message: "Coupon already applied on this order"
-      });
-    }
+const order = await Order.findById(orderId);
 
-    /* ===== FETCH COUPON ===== */
-    const coupon = await Coupon.findOne({
-      code: code.toUpperCase(),
-      isActive: true,
-      expiryDate: { $gte: new Date() }
-    });
+if (!order)
+return res.status(404).json({ message: "Order not found" });
 
-    if (!coupon) {
-      return res.status(400).json({ message: "Invalid or expired coupon" });
-    }
+if (order.couponApplied)
+return res.status(400).json({ message: "Coupon already applied" });
 
-    /* 🔐 ONE-TIME PER USER */
-    if (
-      coupon.usersUsed.some(
-        (id) => id.toString() === req.user._id.toString()
-      )
-    ) {
-      return res.status(400).json({
-        message: "You have already used this coupon"
-      });
-    }
+const coupon = await Coupon.findOne({
+code: code.toUpperCase(),
+isActive: true,
+expiryDate: { $gte: new Date() }
+});
 
-    /* 🧠 FIRST ORDER ONLY */
-    if (coupon.isFirstOrderOnly) {
-      const previousOrder = await Order.findOne({ user: req.user._id, paymentStatus: "paid" });
-      if (previousOrder) {
-        return res.status(400).json({
-          message: "Coupon valid only for first order"
-        });
-      }
-    }
+if (!coupon)
+return res.status(400).json({ message: "Invalid coupon" });
 
-    /* 🌍 GLOBAL USAGE LIMIT */
-    if (
-      coupon.maxRedemptions > 0 &&
-      coupon.usedCount >= coupon.maxRedemptions
-    ) {
-      return res.status(400).json({
-        message: "Coupon usage limit reached"
-      });
-    }
+/* USER ALREADY USED CHECK */
 
-    /* ===== CALCULATIONS ===== */
-    let subtotal = 0;
-    let discount = 0;
-    let applied = false;
+if (
+coupon.usersUsed.some(
+(id) => id.toString() === req.user._id.toString()
+)
+) {
+return res.status(400).json({
+message: "You already used this coupon"
+});
+}
 
-    for (const item of order.orderItems) {
-      subtotal += item.price * item.quantity;
+/* GLOBAL LIMIT CHECK */
 
-      if (applied) continue;
+if (
+coupon.maxRedemptions > 0 &&
+coupon.usedCount >= coupon.maxRedemptions
+) {
+return res.status(400).json({
+message: "Coupon usage limit reached"
+});
+}
 
-      /* 🎯 PRODUCT SPECIFIC */
-      if (coupon.applicableProducts.length > 0) {
-        const allowed = coupon.applicableProducts.some(
-          (p) => p.product.toString() === item.product.toString()
-        );
-        if (!allowed) continue;
-      }
+/* CALCULATE DISCOUNT */
 
-      /* ✅ APPLY TO ONLY ONE UNIT */
-      const oneUnitPrice = item.price;
+let subtotal = 0;
+let discount = 0;
+let applied = false;
 
-      discount =
-        coupon.discountType === "percentage"
-          ? (oneUnitPrice * coupon.discountValue) / 100
-          : Math.min(coupon.discountValue, oneUnitPrice);
+for (const item of order.orderItems) {
 
-      applied = true;
-    }
+subtotal += item.price * item.quantity;
 
-    if (!applied) {
-      return res.status(400).json({
-        message: "Coupon not applicable to this order"
-      });
-    }
+if (applied) continue;
 
-    /* ===== FINAL TOTAL ===== */
-    const TAX_RATE = 0.05;
-    const taxableAmount = subtotal - discount;
-    const taxAmount = taxableAmount * TAX_RATE;
-    const totalAmount = taxableAmount + taxAmount;
+if (coupon.applicableProducts.length > 0) {
 
-    /* ===== SAVE ORDER ===== */
-    order.subtotal = subtotal;
-    order.discount = discount;
-    order.taxAmount = taxAmount;
-    order.totalAmount = totalAmount;
-    order.couponApplied = true;
+const allowed = coupon.applicableProducts.some(
+(p) => p.product.toString() === item.product.toString()
+);
 
-    order.appliedCoupon = {
-      code: coupon.code,
-      discount
-    };
+if (!allowed) continue;
+}
 
-    /* 🔐 GLOBAL LOCKS */
-    // coupon.usedCount += 1;
-    // coupon.usersUsed.push(req.user._id);
+const oneUnitPrice = item.price;
 
-    await order.save();
-    // await coupon.save();
+discount =
+coupon.discountType === "percentage"
+? (oneUnitPrice * coupon.discountValue) / 100
+: Math.min(coupon.discountValue, oneUnitPrice);
 
-    res.json({
-      message: "Coupon applied successfully",
-      subtotal,
-      discount,
-      taxAmount,
-      totalAmount
-    });
-  } catch (error) {
-    console.error("Apply Coupon Error:", error);
-    res.status(500).json({ message: "Failed to apply coupon" });
-  }
+applied = true;
+
+}
+
+if (!applied)
+return res.status(400).json({
+message: "Coupon not applicable"
+});
+
+const TAX_RATE = 0.05;
+
+const taxable = subtotal - discount;
+
+const taxAmount = taxable * TAX_RATE;
+
+const totalAmount = taxable + taxAmount;
+
+/* SAVE ORDER */
+
+order.subtotal = subtotal;
+order.discount = discount;
+order.taxAmount = taxAmount;
+order.totalAmount = totalAmount;
+
+order.couponApplied = true;
+
+order.appliedCoupon = {
+code: coupon.code,
+discount
+};
+
+await order.save();
+
+res.json({
+message: "Coupon applied",
+subtotal,
+discount,
+taxAmount,
+totalAmount
+});
+
+} catch (error) {
+
+console.error(error);
+
+res.status(500).json({ message: "Coupon apply failed" });
+
+}
 };
 
 /* =========================================================
