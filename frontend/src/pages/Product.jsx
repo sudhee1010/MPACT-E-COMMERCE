@@ -1133,6 +1133,7 @@ import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import OfferScrollBar from "../components/OfferScrollBar";
+import { useAuth } from "../context/AuthContext";
 
 /* ================= CAROUSEL HOOK ================= */
 function useProductCarousel(images = []) {
@@ -1283,6 +1284,7 @@ export default function Products() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
   const { refreshCart, setOpenSideCart } = useCart();
+  const { user } = useAuth();
 
   /* ================= FETCH CATEGORIES ================= */
   useEffect(() => {
@@ -1357,35 +1359,94 @@ export default function Products() {
     }
   };
 
+
+
+  // const handleAddToCart = async (productId) => {
+  //   try {
+  //     await addToCartApi(productId, 1);
+  //     await refreshCart();
+  //     setOpenSideCart(true);
+  //     toast.success("Product added to cart 🛒");
+  //   } catch (error) {
+
+  //     const status = error.response?.status;
+  //     const message = error.response?.data?.message;
+
+  //     // ✅ STOCK ERROR (400)
+  //     if (status === 400) {
+  //       toast.error(message || "Stock not available");
+  //       return; // 🚫 STOP here, DO NOT open login modal
+  //     }
+
+  //     // ✅ LOGIN ERROR (401)
+  //     if (status === 401) {
+  //       toast.error("Please login to add to cart");
+  //       setShowLoginModal(true);
+  //       return;
+  //     }
+
+  //     // ✅ fallback
+  //     toast.error("Something went wrong");
+  //   }
+  // };
+
   const handleAddToCart = async (productId) => {
+
     try {
-      await addToCartApi(productId, 1);
-      await refreshCart();
-      setOpenSideCart(true);
-      toast.success("Product added to cart 🛒");
-    } catch (error) {
 
-      const status = error.response?.status;
-      const message = error.response?.data?.message;
+      /* -------------------------
+         GUEST USER CART
+      -------------------------- */
 
-      // ✅ STOCK ERROR (400)
-      if (status === 400) {
-        toast.error(message || "Stock not available");
-        return; // 🚫 STOP here, DO NOT open login modal
-      }
+      if (!user) {
 
-      // ✅ LOGIN ERROR (401)
-      if (status === 401) {
-        toast.error("Please login to add to cart");
-        setShowLoginModal(true);
+        const guestCart =
+          JSON.parse(localStorage.getItem("guestCart")) || [];
+
+        const existingItem = guestCart.find(
+          (item) => item.productId === productId
+        );
+
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          guestCart.push({
+            productId,
+            quantity: 1
+          });
+        }
+
+        localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
+
+        setOpenSideCart(true);
+
+        toast.success("Product added to cart 🛒");
+
         return;
       }
 
-      // ✅ fallback
-      toast.error("Something went wrong");
-    }
-  };
+      /* -------------------------
+         LOGGED USER CART
+      -------------------------- */
 
+      await addToCartApi(productId, 1);
+
+      await refreshCart();
+
+      setOpenSideCart(true);
+
+      toast.success("Product added to cart 🛒");
+
+    } catch (error) {
+
+      const message = error.response?.data?.message;
+
+      toast.error(message || "Something went wrong");
+
+    }
+
+  };
 
   if (loading) {
     return (

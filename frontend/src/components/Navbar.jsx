@@ -2676,9 +2676,14 @@ export default function Navbar() {
           <div
             className="nav-icon-btn"
             onClick={() => {
-              if (!user) { setShowLoginModal(true); return; }
-              if (cartCount === 0) { toast.error("Your cart is empty"); return; }
+
+              if (cartCount === 0) {
+                toast.error("Your cart is empty");
+                return;
+              }
+
               setOpenSideCart(true);
+
             }}
             role="button" tabIndex={0}
           >
@@ -2766,7 +2771,7 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {user && <SideCart />}
+      <SideCart />
 
       {/* LOGIN MODAL */}
       {showLoginModal && (

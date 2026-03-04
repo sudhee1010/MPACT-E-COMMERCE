@@ -1999,6 +1999,7 @@ import { Link } from "react-router-dom";
 import { updateCartItemApi, removeCartItemApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function SideCart() {
   const {
@@ -2013,7 +2014,8 @@ export default function SideCart() {
   const [navbarHeight, setNavbarHeight] = useState(80);
   const [stockErrors, setStockErrors] = useState({});
   const navigate = useNavigate();
-
+  const { user } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   // Dynamically measure the full header height (announcement bar + navbar combined)
   // using getBoundingClientRect().bottom so we always get the true bottom edge
   // of whatever fixed header stack is at the top of the page.
@@ -2099,6 +2101,20 @@ export default function SideCart() {
       refreshCart();
     }
   };
+
+
+  const handleProceed = () => {
+
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    setOpenSideCart(false);
+    navigate("/cart");
+
+  };
+
 
   const decreaseQty = async (productId, currentQty) => {
     try {
@@ -2697,13 +2713,49 @@ export default function SideCart() {
             </div>
 
             <div className="sc-footer">
-              <Link to="/cart" onClick={() => setOpenSideCart(false)}>
+              <button
+                onClick={handleProceed}
+                style={{
+                  width: "100%",
+                  background: "#ffeb00",
+                  color: "#000",
+                  padding: "12px",
+                  fontWeight: "900",
+                  borderRadius: "8px",
+                  border: "none",
+                  cursor: "pointer"
+                }}
+              >
                 PLACE ORDER
-              </Link>
+              </button>
             </div>
           </>
         )}
       </div>
+      {showLoginModal && (
+  <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
+    <div className="login-modal" onClick={(e) => e.stopPropagation()}>
+      <h2>Login Required</h2>
+      <p>Please login to continue.</p>
+
+      <div className="modal-actions">
+        <button
+          className="buy-btn"
+          onClick={() => navigate("/login")}
+        >
+          LOGIN
+        </button>
+
+        <button
+          className="add-to-cart-btn"
+          onClick={() => setShowLoginModal(false)}
+        >
+          CANCEL
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </>
   );
 }
