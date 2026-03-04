@@ -85,7 +85,9 @@ export default function VerifyEmail() {
           <>
             <div style={styles.inputGroup}>
               <input
-                type="text"
+                type="number"
+                inputMode="numeric"
+                maxLength="6"
                 placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
