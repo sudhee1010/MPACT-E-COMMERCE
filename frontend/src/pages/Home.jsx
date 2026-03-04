@@ -3994,7 +3994,7 @@ function SeeMoreDripButton({ onClick, isMobile }) {
           color: "black",
           fontWeight: "bold",
           padding: "0.75rem 2rem",
-          borderRadius: "0.25rem",
+          borderRadius: "25px",
           marginTop: "20px",
           border: "none",
           cursor: "pointer",
