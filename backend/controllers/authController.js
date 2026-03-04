@@ -10,6 +10,7 @@ import cloudinary from "../config/cloudinary.js";
    EMAIL REGISTER LOGIN
 =========================== */
 
+
 // export const registerUser = async (req, res) => {
 //   try {
 //     const { name, email, password, phone } = req.body;
@@ -30,18 +31,8 @@ import cloudinary from "../config/cloudinary.js";
 //       role: "customer",
 //     });
 
-//     const token = generateToken(user._id);
-
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "strict",
-//       maxAge: 7 * 24 * 60 * 60 * 1000,
-//     });
-
 //     res.status(201).json({
-//       message: "Registered successfully. Please verify email.",
-//       user,
+//       message: "Registered successfully. Please verify your email via OTP.",
 //     });
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
@@ -52,25 +43,60 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(400).json({ message: "User already exists" });
+    let user = await User.findOne({ email });
+
+    const otp = generateOTP();
+
+    /* USER ALREADY EXISTS */
+
+    if (user) {
+
+      // If already verified → block signup
+      if (user.isEmailVerified) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      // If NOT verified → update OTP and resend
+      user.otp = otp.toString();
+      user.otpExpiry = Date.now() + 10 * 60 * 1000;
+      await user.save();
+
+      await sendEmail({
+        to: email,
+        subject: "Your OTP Code",
+        text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
+      });
+
+      return res.json({
+        message: "User already registered but not verified. OTP resent.",
+      });
     }
+
+    /* NEW USER */
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    user = await User.create({
       name,
       email,
       password: hashedPassword,
       phone,
       isEmailVerified: false,
       role: "customer",
+      otp: otp.toString(),
+      otpExpiry: Date.now() + 10 * 60 * 1000,
+    });
+
+    await sendEmail({
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
     });
 
     res.status(201).json({
-      message: "Registered successfully. Please verify your email via OTP.",
+      message: "Registered successfully. OTP sent to email.",
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -230,6 +256,10 @@ export const sendOTP = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email already verified" });
     }
 
     const otp = generateOTP();
