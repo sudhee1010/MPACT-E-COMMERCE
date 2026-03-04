@@ -4578,7 +4578,6 @@
 
 // export default MPACTLandingPage;
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios"
@@ -4627,22 +4626,28 @@ function SeeMoreDripButton({ onClick, isMobile }) {
     lottieRef.current.stop();
   };
 
+    const handleButtonEnter = () => {
+    if (!lottieRef.current || isTouchDev) return;
+  lottieRef.current.setSpeed(5); 
+  lottieRef.current.goToAndPlay(0, true);
+};
+
   return (
-    
     <div
       style={{ position: "relative", display: "inline-block" }}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
-    {/* Original button — exact same inline style as before */}
+      {/* Original button — exact same inline style as before */}
       <button
         onClick={onClick}
+        onMouseEnter={handleButtonEnter}
         style={{
           backgroundColor: hovered ? "#ffd500" : "#facc15",
           color: "black",
           fontWeight: "bold",
           padding: "0.75rem 2rem",
-          borderRadius: "0.25rem",
+          borderRadius: "25px",
           marginTop: "20px",
           border: "none",
           cursor: "pointer",
@@ -4652,34 +4657,34 @@ function SeeMoreDripButton({ onClick, isMobile }) {
           zIndex: 1,
         }}
       >
-          {/* Drip Lottie — floats above the button, desktop only */}
-          {!isMobile && (
-            <div style={{
-              position: "absolute",
-              /* Centre the drip above the button */
-              width: "160px",
-              height: "172px",
-              top: "-57px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              pointerEvents: "none",
-              zIndex: 10,
-            }}>
-              <Lottie
-                lottieRef={lottieRef}
-                animationData={DRIP_ANIMATION}
-                loop={false}
-                autoplay={false}
-                style={{ width: "100%", height: "100%" }}
-              />
-            </div>
-          )}
+        {/* Drip Lottie — floats above the button, desktop only */}
+        {!isMobile && (
+          <div style={{
+            position: "absolute",
+            /* Centre the drip above the button */
+            width: "160px",
+            height: "172px",
+            top: "-57px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            pointerEvents: "none",
+            zIndex: 10,
+          }}>
+            <Lottie
+              lottieRef={lottieRef}
+              animationData={DRIP_ANIMATION}
+              loop={false}
+              autoplay={false}
+              speed={5}
+              style={{ width: "100%", height: "100%" }}
+            />
+          </div>
+        )}
         SEE MORE →
       </button>
     </div>
   );
 }
-
 /* ================= CAROUSEL HOOK ================= */
 function useProductCarousel(images = []) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -4687,26 +4692,26 @@ function useProductCarousel(images = []) {
   const intervalRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
 
-const startCarousel = () => {
-  hoverTimeoutRef.current = setTimeout(() => {
-    setIsHovered(true);
+  const startCarousel = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovered(true);
 
-    if (images.length > 1) {
-      setActiveIndex(1);
+      if (images.length > 1) {
+        setActiveIndex(1);
 
-      intervalRef.current = setInterval(() => {
-        setActiveIndex((prev) => {
-          if (prev >= images.length - 1) {
-            clearInterval(intervalRef.current); // stop at last image
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 30000);
-    }
+        intervalRef.current = setInterval(() => {
+          setActiveIndex((prev) => {
+            if (prev >= images.length - 1) {
+              clearInterval(intervalRef.current); // stop at last image
+              return prev;
+            }
+            return prev + 1;
+          });
+        }, 30000);
+      }
 
-  }, 1000);
-};
+    }, 1000);
+  };
   const stopCarousel = () => {
     setIsHovered(false);
     clearInterval(intervalRef.current);
