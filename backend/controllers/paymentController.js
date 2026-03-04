@@ -138,6 +138,63 @@ export const verifyPayment = async (req, res) => {
 
     await order.save();
 
+/* ================= COUPON REDEEM ================= */
+
+if (order.appliedCoupon?.code) {
+
+  const coupon = await Coupon.findOne({
+    code: order.appliedCoupon.code
+  });
+
+  if (coupon) {
+
+    const userId = order.user._id;
+
+    /* USER ONE TIME COUPON */
+
+    if (
+      !coupon.usersUsed.some(
+        id => id.toString() === userId.toString()
+      )
+    ) {
+      coupon.usersUsed.push(userId);
+    }
+
+    /* GLOBAL COUNT */
+
+    coupon.usedCount = (coupon.usedCount || 0) + 1;
+
+    /* PRODUCT LEVEL LOCK */
+
+    for (const item of order.orderItems) {
+
+      const rule = coupon.applicableProducts.find(
+        r => r.product.toString() === item.product.toString()
+      );
+
+      if (rule) {
+
+        if (!Array.isArray(rule.usedBy))
+          rule.usedBy = [];
+
+        if (
+          !rule.usedBy.some(
+            id => id.toString() === userId.toString()
+          )
+        ) {
+          rule.usedBy.push(userId);
+        }
+
+      }
+
+    }
+
+    await coupon.save();
+
+  }
+
+}
+
 
     // 📧 Send email (must NOT break payment)
     try {

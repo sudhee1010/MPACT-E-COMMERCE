@@ -160,7 +160,7 @@ export function Reports() {
             <Download size={20} style={{ marginRight: '0.5rem' }} />
             Export CSV
           </button>
-          <button
+          {/* <button
             onClick={() => setShowUpload(!showUpload)}
             style={{
               display: 'flex',
@@ -178,7 +178,7 @@ export function Reports() {
           >
             <Upload size={20} style={{ marginRight: '0.5rem' }} />
             Upload Report
-          </button>
+          </button> */}
         </div>
       </div>
 
