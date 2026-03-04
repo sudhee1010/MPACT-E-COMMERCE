@@ -140,6 +140,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["customer", "admin"]
     },
+    
+    otp: {
+      type: String,
+      select: false
+    },
+
+    otpExpiry: Date,
+
+    otpAttempts: {
+      type: Number,
+      default: 0
+    },
+
+    otpResendAfter: Date,
+
     isBanned: {
       type: Boolean,
       default: false

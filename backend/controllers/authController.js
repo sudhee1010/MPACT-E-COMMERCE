@@ -5,6 +5,8 @@ import { generateOTP } from "../utils/sendOTP.js";
 import sendEmail from "../utils/sendEmail.js";
 import { verifyGoogleToken } from "../utils/googleVerify.js";
 import cloudinary from "../config/cloudinary.js";
+import { generateSecureOTP } from "../utils/otpHelper.js";
+
 
 /* ===========================
    EMAIL REGISTER LOGIN
@@ -249,51 +251,88 @@ export const loginUser = async (req, res) => {
 /* ===========================
    SEND EMAIL OTP
 =========================== */
+// export const sendOTP = async (req, res) => {
+//   try {
+//     const { email } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     if (user.isEmailVerified) {
+//       return res.status(400).json({ message: "Email already verified" });
+//     }
+
+//     const otp = generateOTP();
+
+//     user.otp = otp.toString();
+//     user.otpExpiry = Date.now() + 10 * 60 * 1000;
+//     await user.save();
+
+//     await sendEmail({
+//       to: email,
+//       subject: "Your OTP Code",
+//       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
+//     });
+
+//     res.json({ message: "OTP sent successfully" });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // ❌ prevent sending OTP if already verified
     if (user.isEmailVerified) {
       return res.status(400).json({ message: "Email already verified" });
     }
 
+    // generate OTP
     const otp = generateOTP();
 
-    user.otp = otp.toString();
-    user.otpExpiry = Date.now() + 10 * 60 * 1000;
+    // 🔐 hash OTP before saving
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
+    user.otp = hashedOTP;
+    user.otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
+    // send email
     await sendEmail({
       to: email,
-      subject: "Your OTP Code",
+      subject: "MPACT Email Verification OTP",
       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
     });
 
     res.json({ message: "OTP sent successfully" });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 
 /* ===========================
    VERIFY EMAIL OTP
 =========================== */
+
 // export const verifyOTP = async (req, res) => {
 //   try {
 //     const { email, otp } = req.body;
 
 //     const user = await User.findOne({ email });
 
-//     if (
-//       !user ||
-//       user.otp !== otp.toString() ||
-//       user.otpExpiry < Date.now()
-//     ) {
+//     if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
 //       return res.status(400).json({ message: "Invalid or expired OTP" });
 //     }
 
@@ -302,59 +341,67 @@ export const sendOTP = async (req, res) => {
 //     user.otpExpiry = null;
 //     await user.save();
 
-//     // res.json({
-//     //   message: "Email verified",
-//     //   token: generateToken(user._id)
-//     // });
 //     const token = generateToken(user._id);
 
 //     res.cookie("token", token, {
 //       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "strict",
+//       // secure: process.env.NODE_ENV === "production",
+//       // sameSite: "none",
+//       sameSite: "lax",
+//       secure: true,
 //       maxAge: 7 * 24 * 60 * 60 * 1000,
 //     });
 
 //     res.json({
-//       message: "Email verified",
+//       message: "Email verified & logged in",
 //       user,
 //     });
-
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
 // };
-
 export const verifyOTP = async (req, res) => {
   try {
+
     const { email, otp } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+otp");
 
-    if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.otp || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // ✅ compare hashed OTP
+    const isMatch = await bcrypt.compare(otp, user.otp);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid OTP" });
     }
 
     user.isEmailVerified = true;
     user.otp = null;
     user.otpExpiry = null;
+
     await user.save();
 
     const token = generateToken(user._id);
 
     res.cookie("token", token, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production",
-      // sameSite: "none",
       sameSite: "lax",
       secure: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.json({
-      message: "Email verified & logged in",
-      user,
+      message: "Email verified successfully",
+      user
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
