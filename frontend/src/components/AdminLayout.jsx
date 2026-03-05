@@ -15,6 +15,7 @@ import {
   LogOut,
   HelpingHandIcon,
    Star,
+   Tag,
 } from "lucide-react";
 
 export function AdminLayout() {
@@ -53,7 +54,7 @@ export function AdminLayout() {
     { label: "Help Support", path: "/help-support", icon: HelpingHandIcon },
     { label: "Reviews", path: "/reviews", icon: Star },
     { label: "Subscribers", path: "/admin-subscribers", icon: Star },
-
+    { label: "Top Offer", path: "/admin-top-offers", icon: Tag }, 
 
   ];
 

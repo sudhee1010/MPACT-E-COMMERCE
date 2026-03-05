@@ -68,6 +68,7 @@ import { AdsBanner } from "./components/AdsBanner.jsx";
 import { Settings } from "./components/Settings.jsx";
 import { PersonalSettings } from "./components/PersonalSettings.jsx";
 import { AdminHelpSupport } from "./components/AdminHelpSupport.jsx"
+import AdminTopOffer from "./components/AdminTopoffer.jsx";
 
 /* UI demo pages */
 import { Menubar } from "./components/ui/Menubar.jsx";
@@ -146,6 +147,7 @@ function App() {
     "/reviews",
     "/carouselvideosadmin",
     "/admin-subscribers",
+    "/admin-top-offers", 
   ].some((path) => location.pathname.startsWith(path));
 
   return (
@@ -252,6 +254,7 @@ function App() {
             <Route path="/reviews" element={<AdminReviews />} />
             <Route path="/carouselvideosadmin" element={<Carouselvideosadmin />} />
             <Route path="/admin-subscribers" element={<AdminSubscribers />} />
+            <Route path="/admin-top-offers" element={<AdminTopOffer />} />
           </Route>
 
           {/* UI DEMOS */}

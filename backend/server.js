@@ -35,6 +35,7 @@ import reportRoutes from "./routes/reportRoutes.js";
 import faqRoutes from "./routes/faqRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
 import subscriberRoutes from "./routes/subscriberRoutes.js";
+import topOfferRoutes from "./routes/topOfferRoutes.js";
 
 
 dotenv.config();
@@ -94,6 +95,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/faqs", faqRoutes);
 app.use("/api/help", helpRoutes);
 app.use("/api/subscribe",subscriberRoutes);
+app.use("/api/topoffers",topOfferRoutes);
 
 const PORT = process.env.PORT || 5000;
 

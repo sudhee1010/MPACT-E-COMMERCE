@@ -1882,6 +1882,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [promoIndex, setPromoIndex] = useState(0);
+   const [promoMessages, setPromoMessages] = useState([]);
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1980,16 +1981,43 @@ export default function Navbar() {
   }, [showMobileSearch]);
 
   // PROMO CAROUSEL (auto-advance every 6s)
-  const promoMessages = [
-    "Get 3% Additional Prepaid bonus 🥳",
-    "Get up to 35% off on all orders 🥳",
-  ];
+  // const promoMessages = [
+  //   "Get 3% Additional Prepaid bonus 🥳",
+  //   "Get up to 35% off on all orders 🥳",
+  // ];
+
+  // useEffect(() => {
+  //   const id = setInterval(() => {
+  //     setPromoIndex((i) => (i + 1) % promoMessages.length);
+  //   }, 6000);
+  //   return () => clearInterval(id);
+  // }, []);
+
+  // ── FETCH PROMO MESSAGES FROM API ────────────────────────────────
   useEffect(() => {
+    const fetchPromos = async () => {
+      try {
+        const { data } = await api.get("/api/topoffers");
+        if (data && data.length > 0) {
+          setPromoMessages(data.map((o) => o.text));
+        }
+      } catch {
+        // Silently fail — promo bar simply won't show if fetch errors
+      }
+    };
+    fetchPromos();
+  }, []);
+
+  // PROMO CAROUSEL (auto-advance every 6s)
+  useEffect(() => {
+    if (promoMessages.length === 0) return;
     const id = setInterval(() => {
       setPromoIndex((i) => (i + 1) % promoMessages.length);
     }, 6000);
     return () => clearInterval(id);
-  }, []);
+  }, [promoMessages]);
+
+
   const nextPromo = () => setPromoIndex((i) => (i + 1) % promoMessages.length);
   const prevPromo = () => setPromoIndex((i) => (i - 1 + promoMessages.length) % promoMessages.length);
 
@@ -2556,20 +2584,22 @@ export default function Navbar() {
         }
       `}</style>
 
-      {/* PROMO BAR */}
-      <div className="promo-bar">
-        <div className="promo-inner">
-          <button className="promo-arrow" aria-label="Previous" onClick={prevPromo}>
-            <ChevronLeft size={18} />
-          </button>
-          <Link to="/product" className="promo-text">
-            {promoMessages[promoIndex]} <span aria-hidden>→</span>
-          </Link>
-          <button className="promo-arrow" aria-label="Next" onClick={nextPromo}>
-            <ChevronRight size={18} />
-          </button>
+      {/* PROMO BAR — only rendered when there are offers */}
+      {promoMessages.length > 0 && (
+        <div className="promo-bar">
+          <div className="promo-inner">
+            <button className="promo-arrow" aria-label="Previous" onClick={prevPromo}>
+              <ChevronLeft size={18} />
+            </button>
+            <Link to="/product" className="promo-text">
+              {promoMessages[promoIndex]} <span aria-hidden>→</span>
+            </Link>
+            <button className="promo-arrow" aria-label="Next" onClick={nextPromo}>
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ═══════════════ NAVBAR ═══════════════ */}
       <nav className="navbar">
