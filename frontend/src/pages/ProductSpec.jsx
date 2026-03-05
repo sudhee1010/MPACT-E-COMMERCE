@@ -952,7 +952,7 @@
 //       <Navbar />
 //       <style>{`
 //         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
-        
+
 //         /* ================= LUXURY LOADER ================= */
 //         .loader-overlay {
 //           position: fixed;
@@ -1102,7 +1102,7 @@
 //             opacity: 1;
 //           }
 //         }
-        
+
 //         @media (max-width: 768px) {
 //           .product-section {
 //             grid-template-columns: 1fr !important;
@@ -1110,83 +1110,83 @@
 //             padding: 30px 20px !important;
 //             margin-left: 0 !important;
 //           }
-          
+
 //           .main-image-container {
 //             height: 300px !important;
 //             margin-left: 0 !important;
 //           }
-          
+
 //           .main-image {
 //             height: 300px !important;
 //           }
-          
+
 //           .thumbnails-container {
 //             margin-left: 0 !important;
 //             grid-template-columns: repeat(4, 1fr) !important;
 //           }
-          
+
 //           .thumbnail-image {
 //             height: 80px !important;
 //           }
-          
+
 //           .details-container {
 //             max-width: 100% !important;
 //           }
-          
+
 //           .title {
 //             font-size: 28px !important;
 //           }
-          
+
 //           .current-price {
 //             font-size: 24px !important;
 //           }
-          
+
 //           .action-buttons {
 //             flex-direction: column !important;
 //           }
-          
+
 //           .action-buttons button {
 //             width: 100% !important;
 //             font-size: 18px !important;
 //           }
-          
+
 //           .reviews-section {
 //             padding: 20px 20px !important;
 //           }
-          
+
 //           .reviews-header {
 //             margin-left: 0 !important;
 //           }
-          
+
 //           .reviews-grid {
 //             grid-template-columns: 1fr !important;
 //           }
-          
+
 //           .range-grid {
 //             grid-template-columns: repeat(2, 1fr) !important;
 //             gap: 16px !important;
 //             padding: 0 20px !important;
 //           }
-          
+
 //           .range-title {
 //             font-size: 32px !important;
 //           }
-          
+
 //           .reviews-buttons {
 //             flex-direction: column !important;
 //             width: 100% !important;
 //           }
-          
+
 //           .reviews-buttons button {
 //             width: 100% !important;
 //           }
-          
+
 //           .popup-content {
 //             padding: 20px !important;
 //             max-height: calc(100vh - 32px) !important;
 //           }
 //         }
-        
+
 //         @media (max-width: 480px) {
 //           .range-grid {
 //             grid-template-columns: 1fr !important;
@@ -1827,29 +1827,99 @@ const ProductPage = () => {
     setShowCustomModal(true);
   };
 
+  // const handleAddToCart = async (productId) => {
+  //   try {
+  //     await addToCartApi(productId, 1);
+  //     await refreshCart();
+  //     setOpenSideCart(true);
+  //     showNotification("success", "Success!", "Product added to cart 🛒");
+  //   } catch (error) {
+  //     const message = error.response?.data?.message;
+
+  //     if (message && message.toLowerCase().includes("stock")) {
+  //       showNotification("error", "Out of Stock", message);
+  //       return;
+  //     }
+
+  //     if (error.response?.status === 401) {
+  //       showNotification("error", "Login Required", "Please login to add to cart");
+  //       setShowLoginModal(true);
+  //       return;
+  //     }
+
+  //     showNotification("error", "Error", message || "Something went wrong");
+  //   }
+  // };
+
+
   const handleAddToCart = async (productId) => {
     try {
-      await addToCartApi(productId, 1);
-      await refreshCart();
+
+      // ✅ IF USER LOGGED IN → SERVER CART
+      if (user && user._id) {
+        await addToCartApi(productId, qty);
+        await refreshCart();
+        setOpenSideCart(true);
+
+        showNotification("success", "Success!", "Product added to cart 🛒");
+        return;
+      }
+
+      // ✅ GUEST CART → LOCAL STORAGE
+      const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+
+      const existing = guestCart.find((item) => item.productId === productId);
+
+      // if (existing) {
+      //   existing.quantity += qty;
+      // } else {
+      //   guestCart.push({
+      //     productId,
+      //     name: product.name,
+      //     price: product.price,
+      //     originalPrice: product.originalPrice,
+      //     image: product.images?.[0]?.url,
+      //     quantity: qty
+      //   });
+      // }
+
+
+      if (existing) {
+
+        existing.quantity += qty;
+
+        // ⭐ ensure originalPrice always exists
+        if (!existing.originalPrice && product.originalPrice) {
+          existing.originalPrice = product.originalPrice;
+        }
+
+      } else {
+
+        guestCart.push({
+          productId,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          image: product.images?.[0]?.url,
+          quantity: qty
+        });
+
+      }
+      localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
       setOpenSideCart(true);
-      showNotification("success", "Success!", "Product added to cart 🛒");
+
+      showNotification(
+        "success",
+        "Added to Cart",
+        "Product added to cart 🛒"
+      );
+
     } catch (error) {
-      const message = error.response?.data?.message;
-
-      if (message && message.toLowerCase().includes("stock")) {
-        showNotification("error", "Out of Stock", message);
-        return;
-      }
-
-      if (error.response?.status === 401) {
-        showNotification("error", "Login Required", "Please login to add to cart");
-        setShowLoginModal(true);
-        return;
-      }
-
-      showNotification("error", "Error", message || "Something went wrong");
+      showNotification("error", "Error", "Something went wrong");
     }
   };
+
 
   const handleBuyNow = () => {
     if (loading) return;

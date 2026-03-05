@@ -1247,7 +1247,7 @@ function ProductCard({ product, wishlist, toggleWishlist, handleAddToCart, navig
               className="add-to-cart-btn"
               onClick={(e) => {
                 e.stopPropagation();
-                handleAddToCart(product._id);
+                handleAddToCart(product);
               }}
             >
               🛒 Add to Cart
@@ -1390,7 +1390,7 @@ export default function Products() {
   //   }
   // };
 
-  const handleAddToCart = async (productId) => {
+  const handleAddToCart = async (product) => {
 
     try {
 
@@ -1404,14 +1404,26 @@ export default function Products() {
           JSON.parse(localStorage.getItem("guestCart")) || [];
 
         const existingItem = guestCart.find(
-          (item) => item.productId === productId
+          (item) => item.productId === product._id
         );
 
         if (existingItem) {
           existingItem.quantity += 1;
         } else {
+          // guestCart.push({
+          //   productId: product._id,
+          //   name: product.name,
+          //   price: product.price,
+          //   image: product.images?.[0]?.url,
+          //   quantity: 1
+          // });
+
           guestCart.push({
-            productId,
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            originalPrice: product.originalPrice || product.price,
+            image: product.images?.[0]?.url,
             quantity: 1
           });
         }
@@ -1430,8 +1442,8 @@ export default function Products() {
          LOGGED USER CART
       -------------------------- */
 
-      await addToCartApi(productId, 1);
-
+      // await addToCartApi(productId, 1);
+      await addToCartApi(product._id, 1);
       await refreshCart();
 
       setOpenSideCart(true);
