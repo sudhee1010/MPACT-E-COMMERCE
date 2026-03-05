@@ -269,7 +269,9 @@ export default function CreateAccount() {
       );
 
       toast.success("Account created. Please verify your email.");
-      navigate("/verify-email");
+      navigate("/verify-email", {
+        state: { email: formData.email }
+      });
 
     } catch (error) {
       toast.error(error.response?.data?.message || "Signup failed");

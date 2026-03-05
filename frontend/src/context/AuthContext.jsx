@@ -12,7 +12,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-    // const { setCartItems } = useCart();
+  // const { setCartItems } = useCart();
 
 
   /* =========================
@@ -21,42 +21,42 @@ export const AuthProvider = ({ children }) => {
 
 
   useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await api.get("/api/auth/profile");
-      setUser(res.data);
-    } catch (error) {
-      if (error.response?.status !== 401) {
-        console.log("Profile fetch error:", error);
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/auth/profile");
+        setUser(res.data);
+      } catch (error) {
+        if (error.response?.status !== 401) {
+          console.log("Profile fetch error:", error);
+        }
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    fetchProfile();
+  }, []);
+
+
+
+  const logout = async () => {
+    try {
+      await api.post("/api/auth/logout");
       setUser(null);
-    } finally {
-      setLoading(false);
+      toast.success("Logged out successfully");
+      window.location.href = "/";
+      // 🔥 CLEAR CART IMMEDIATELY
+      // setCartItems([]);
+    } catch (error) {
+      console.log("Logout error", error);
+      toast.error("Logout failed");
     }
   };
 
-  fetchProfile();
-}, []);
-
-
-
-const logout = async () => {
-  try {
-    await api.post("/api/auth/logout");
-    toast.success("Logged out successfully");
-    setUser(null);
-
-    // 🔥 CLEAR CART IMMEDIATELY
-    // setCartItems([]);
-  } catch (error) {
-    console.log("Logout error", error);
-    toast.error("Logout failed");
-  }
-};
-
-useEffect(() => {
-  if (!user) return;
-}, [user]);
+  useEffect(() => {
+    if (!user) return;
+  }, [user]);
 
 
 

@@ -1,42 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mail, ShieldCheck } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 
 export default function VerifyEmail() {
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+const location = useLocation();
+const navigate = useNavigate();
 
-  const navigate = useNavigate();
+const passedEmail = location.state?.email || "";
+const [email, setEmail] = useState(passedEmail);
+const [step, setStep] = useState(2);
+const [otp, setOtp] = useState("");
+const [loading, setLoading] = useState(false);
+
+  // const navigate = useNavigate();
 
   /* ======================
      SEND OTP
   ====================== */
-  const sendOtp = async () => {
-    if (!email) {
-      toast.error("Please enter email");
-      return;
-    }
+ const sendOtp = async () => {
+  if (!email) {
+    toast.error("Please enter email");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      await api.post("/api/auth/send-otp", { email });
-      toast.success("OTP sent to your email");
-      setStep(2);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to send OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+
+    await api.post("/api/auth/send-otp", { email });
+
+    toast.success("OTP sent to your email");
+
+    setStep(2);
+
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Failed to send OTP");
+  } finally {
+    setLoading(false);
+  }
+};
 
   /* ======================
      VERIFY OTP
   ====================== */
+  const { setUser } = useAuth();
+
   const verifyOtp = async () => {
     if (!otp) {
       toast.error("Please enter OTP");
@@ -45,9 +56,20 @@ export default function VerifyEmail() {
 
     try {
       setLoading(true);
+
+      // verify OTP
       await api.post("/api/auth/verify-otp", { email, otp });
+
+      // fetch logged in user
+      const res = await api.get("/api/auth/profile");
+
+      // update AuthContext
+      setUser(res.data);
+
       toast.success("Email verified successfully");
+
       navigate("/");
+
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid OTP");
     } finally {

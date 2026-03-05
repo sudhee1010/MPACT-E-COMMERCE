@@ -17,25 +17,60 @@ import { generateSecureOTP } from "../utils/otpHelper.js";
 //   try {
 //     const { name, email, password, phone } = req.body;
 
-//     const exists = await User.findOne({ email });
-//     if (exists) {
-//       return res.status(400).json({ message: "User already exists" });
+//     let user = await User.findOne({ email });
+
+//     const otp = generateOTP();
+
+//     /* USER ALREADY EXISTS */
+
+//     if (user) {
+
+//       // If already verified → block signup
+//       if (user.isEmailVerified) {
+//         return res.status(400).json({ message: "User already exists" });
+//       }
+
+//       // If NOT verified → update OTP and resend
+//       user.otp = otp.toString();
+//       user.otpExpiry = Date.now() + 10 * 60 * 1000;
+//       await user.save();
+
+//       await sendEmail({
+//         to: email,
+//         subject: "Your OTP Code",
+//         text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
+//       });
+
+//       return res.json({
+//         message: "User already registered but not verified. OTP resent.",
+//       });
 //     }
+
+//     /* NEW USER */
 
 //     const hashedPassword = await bcrypt.hash(password, 10);
 
-//     const user = await User.create({
+//     user = await User.create({
 //       name,
 //       email,
 //       password: hashedPassword,
 //       phone,
 //       isEmailVerified: false,
 //       role: "customer",
+//       otp: otp.toString(),
+//       otpExpiry: Date.now() + 10 * 60 * 1000,
+//     });
+
+//     await sendEmail({
+//       to: email,
+//       subject: "Your OTP Code",
+//       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
 //     });
 
 //     res.status(201).json({
-//       message: "Registered successfully. Please verify your email via OTP.",
+//       message: "Registered successfully. OTP sent to email.",
 //     });
+
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
@@ -48,18 +83,14 @@ export const registerUser = async (req, res) => {
     let user = await User.findOne({ email });
 
     const otp = generateOTP();
-
-    /* USER ALREADY EXISTS */
+    const hashedOTP = await bcrypt.hash(otp, 10);
 
     if (user) {
-
-      // If already verified → block signup
       if (user.isEmailVerified) {
         return res.status(400).json({ message: "User already exists" });
       }
 
-      // If NOT verified → update OTP and resend
-      user.otp = otp.toString();
+      user.otp = hashedOTP;
       user.otpExpiry = Date.now() + 10 * 60 * 1000;
       await user.save();
 
@@ -74,8 +105,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    /* NEW USER */
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
     user = await User.create({
@@ -85,7 +114,7 @@ export const registerUser = async (req, res) => {
       phone,
       isEmailVerified: false,
       role: "customer",
-      otp: otp.toString(),
+      otp: hashedOTP,
       otpExpiry: Date.now() + 10 * 60 * 1000,
     });
 
@@ -100,9 +129,11 @@ export const registerUser = async (req, res) => {
     });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
+
 
 /* ===========================
    EMAIL REGISTER ADMIN
@@ -155,6 +186,7 @@ export const registerAdmin = async (req, res) => {
 
 
 
+
 // export const loginUser = async (req, res) => {
 //   try {
 //     const { email, password } = req.body;
@@ -164,6 +196,15 @@ export const registerAdmin = async (req, res) => {
 //       return res.status(401).json({ message: "Invalid credentials" });
 //     }
 
+//     // 🚫 BLOCK BANNED USER
+//     if (user.isBanned) {
+//       return res.status(403).json({
+//         message: "Your account has been banned",
+//         reason: user.banReason || "No reason provided",
+//       });
+//     }
+
+//     // ❌ EMAIL NOT VERIFIED
 //     if (!user.isEmailVerified) {
 //       return res.status(403).json({ message: "Email not verified" });
 //     }
@@ -178,30 +219,41 @@ export const registerAdmin = async (req, res) => {
 //     // ✅ SET COOKIE
 //     res.cookie("token", token, {
 //       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       sameSite: "strict",
+//       // secure: process.env.NODE_ENV === "production",
+//       // sameSite: "strict",
+//       // sameSite: "none",
+//       sameSite: "lax",
+//       secure: true,
 //       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 //     });
 
+//     // ✅ SEND SAFE USER DATA ONLY
 //     res.json({
 //       message: "Login successful",
-//       user,
+//       user: {
+//         _id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//         isBanned: user.isBanned,
+//       },
 //     });
 //   } catch (error) {
-//     res.status(500).json({ message: error.message });
+//     res.status(500).json({ message: "Login failed" });
 //   }
 // };
+
 
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select("+password");
+
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // 🚫 BLOCK BANNED USER
     if (user.isBanned) {
       return res.status(403).json({
         message: "Your account has been banned",
@@ -209,30 +261,25 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // ❌ EMAIL NOT VERIFIED
     if (!user.isEmailVerified) {
       return res.status(403).json({ message: "Email not verified" });
     }
 
     const match = await bcrypt.compare(password, user.password);
+
     if (!match) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const token = generateToken(user._id);
 
-    // ✅ SET COOKIE
     res.cookie("token", token, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production",
-      // sameSite: "strict",
-      // sameSite: "none",
       sameSite: "lax",
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // ✅ SEND SAFE USER DATA ONLY
     res.json({
       message: "Login successful",
       user: {
@@ -243,7 +290,9 @@ export const loginUser = async (req, res) => {
         isBanned: user.isBanned,
       },
     });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Login failed" });
   }
 };
@@ -251,36 +300,48 @@ export const loginUser = async (req, res) => {
 /* ===========================
    SEND EMAIL OTP
 =========================== */
+
+
 // export const sendOTP = async (req, res) => {
 //   try {
 //     const { email } = req.body;
 
 //     const user = await User.findOne({ email });
+
 //     if (!user) {
 //       return res.status(404).json({ message: "User not found" });
 //     }
 
+//     // ❌ prevent sending OTP if already verified
 //     if (user.isEmailVerified) {
 //       return res.status(400).json({ message: "Email already verified" });
 //     }
 
+//     // generate OTP
 //     const otp = generateOTP();
 
-//     user.otp = otp.toString();
-//     user.otpExpiry = Date.now() + 10 * 60 * 1000;
+//     // 🔐 hash OTP before saving
+//     const hashedOTP = await bcrypt.hash(otp, 10);
+
+//     user.otp = hashedOTP;
+//     user.otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
 //     await user.save();
 
+//     // send email
 //     await sendEmail({
 //       to: email,
-//       subject: "Your OTP Code",
+//       subject: "MPACT Email Verification OTP",
 //       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
 //     });
 
 //     res.json({ message: "OTP sent successfully" });
+
 //   } catch (error) {
-//     res.status(500).json({ message: error.message });
+//     console.error(error);
+//     res.status(500).json({ message: "Failed to send OTP" });
 //   }
 // };
+
 
 export const sendOTP = async (req, res) => {
   try {
@@ -292,26 +353,29 @@ export const sendOTP = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ❌ prevent sending OTP if already verified
     if (user.isEmailVerified) {
       return res.status(400).json({ message: "Email already verified" });
     }
 
-    // generate OTP
-    const otp = generateOTP();
+    if (user.otpExpiry && user.otpExpiry > Date.now() - 60000) {
+      return res.status(429).json({
+        message: "Please wait before requesting another OTP"
+      });
+    }
 
-    // 🔐 hash OTP before saving
+    const otp = generateOTP();
     const hashedOTP = await bcrypt.hash(otp, 10);
 
     user.otp = hashedOTP;
-    user.otpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.otpExpiry = Date.now() + 10 * 60 * 1000;
+
     await user.save();
 
-    // send email
     await sendEmail({
       to: email,
       subject: "MPACT Email Verification OTP",
       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
+      // text:otp,
     });
 
     res.json({ message: "OTP sent successfully" });
@@ -328,38 +392,52 @@ export const sendOTP = async (req, res) => {
 
 // export const verifyOTP = async (req, res) => {
 //   try {
+
 //     const { email, otp } = req.body;
 
-//     const user = await User.findOne({ email });
+//     const user = await User.findOne({ email }).select("+otp");
 
-//     if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
-//       return res.status(400).json({ message: "Invalid or expired OTP" });
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     if (!user.otp || user.otpExpiry < Date.now()) {
+//       return res.status(400).json({ message: "OTP expired" });
+//     }
+
+//     // ✅ compare hashed OTP
+//     const isMatch = await bcrypt.compare(otp, user.otp);
+
+//     if (!isMatch) {
+//       return res.status(400).json({ message: "Invalid OTP" });
 //     }
 
 //     user.isEmailVerified = true;
 //     user.otp = null;
 //     user.otpExpiry = null;
+
 //     await user.save();
 
 //     const token = generateToken(user._id);
 
 //     res.cookie("token", token, {
 //       httpOnly: true,
-//       // secure: process.env.NODE_ENV === "production",
-//       // sameSite: "none",
 //       sameSite: "lax",
 //       secure: true,
 //       maxAge: 7 * 24 * 60 * 60 * 1000,
 //     });
 
 //     res.json({
-//       message: "Email verified & logged in",
-//       user,
+//       message: "Email verified successfully",
+//       user
 //     });
+
 //   } catch (error) {
 //     res.status(500).json({ message: error.message });
 //   }
 // };
+
+
 export const verifyOTP = async (req, res) => {
   try {
 
@@ -375,7 +453,6 @@ export const verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    // ✅ compare hashed OTP
     const isMatch = await bcrypt.compare(otp, user.otp);
 
     if (!isMatch) {
@@ -393,7 +470,7 @@ export const verifyOTP = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -403,6 +480,7 @@ export const verifyOTP = async (req, res) => {
     });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -410,18 +488,49 @@ export const verifyOTP = async (req, res) => {
 /* ===========================
    FORGOT PASSWORD
 =========================== */
+// export const forgotPassword = async (req, res) => {
+//   try {
+//     const { email } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     const otp = generateOTP();
+//     user.otp = otp.toString();
+//     user.otpExpiry = Date.now() + 10 * 60 * 1000;
+//     await user.save();
+
+//     await sendEmail({
+//       to: email,
+//       subject: "Password Reset OTP",
+//       text: `Your password reset OTP is ${otp}`,
+//     });
+
+//     res.json({ message: "OTP sent to email" });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const forgotPassword = async (req, res) => {
   try {
+
     const { email } = req.body;
 
     const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const otp = generateOTP();
-    user.otp = otp.toString();
+    const hashedOTP = await bcrypt.hash(otp, 10);
+
+    user.otp = hashedOTP;
     user.otpExpiry = Date.now() + 10 * 60 * 1000;
+
     await user.save();
 
     await sendEmail({
@@ -431,31 +540,66 @@ export const forgotPassword = async (req, res) => {
     });
 
     res.json({ message: "OTP sent to email" });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
 
+
 /* ===========================
    RESET PASSWORD
 =========================== */
+// export const resetPassword = async (req, res) => {
+//   try {
+//     const { email, otp, newPassword } = req.body;
+
+//     const user = await User.findOne({ email }).select("+password");
+
+//     if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
+//       return res.status(400).json({ message: "Invalid or expired OTP" });
+//     }
+
+//     user.password = await bcrypt.hash(newPassword, 10);
+//     user.otp = null;
+//     user.otpExpiry = null;
+//     await user.save();
+
+//     res.json({ message: "Password reset successful" });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+
 export const resetPassword = async (req, res) => {
   try {
+
     const { email, otp, newPassword } = req.body;
 
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select("+password +otp");
 
-    if (!user || user.otp !== otp.toString() || user.otpExpiry < Date.now()) {
+    if (!user || user.otpExpiry < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const isMatch = await bcrypt.compare(otp, user.otp);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid OTP" });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
     user.otp = null;
     user.otpExpiry = null;
+
     await user.save();
 
     res.json({ message: "Password reset successful" });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
