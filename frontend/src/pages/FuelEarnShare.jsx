@@ -28,7 +28,7 @@ const FuelEarnShare = () => {
             <div className="max-w-4xl mx-auto">
 
                 <h1 className="text-3xl text-yellow-400 font-bold mb-6 text-center">
-                    Fuel • Earn • Share
+                    Fuel • Share • Earn
                 </h1>
 
                 {/* INPUT */}
