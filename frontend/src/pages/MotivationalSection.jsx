@@ -210,6 +210,8 @@
 //   );
 // }
 
+
+
 // MotivationalSection.jsx - Single File Component
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
@@ -307,11 +309,11 @@ const MotivationalSection = () => {
 
         :root {
           --black: #222123;
-          --dark-brown: #523122;
-          --milk: #faeade;
-          --middle-brown: #a26833;
-          --light-brown: #e3a458;
-          --red: #a02128;
+          --dark-brown: #020202;
+          --milk: #fdd830;
+          --middle-brown: #000000;
+          --light-brown: #ffd500;
+          --red: #0e0e0e;
           --white: white;
         }
 
@@ -325,7 +327,7 @@ const MotivationalSection = () => {
 
         /* ── SECTION ── */
         .section-2-wrapper {
-          background-color: #7f3b2d;
+          background-color: #000000;
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -402,8 +404,8 @@ const MotivationalSection = () => {
         /* ── FUEL UP BOX ── */
         .fuel-up_wrapper {
           z-index: 10;
-          background-color: #e3a458;
-          outline: clamp(2px, 0.5vw, 8px) solid #7f3b2d;
+          background-color: #000000;
+          outline: clamp(2px, 0.5vw, 8px) solid #ffd500;
           outline-offset: 0px;
           display: inline-flex;
           flex: none;
@@ -415,7 +417,7 @@ const MotivationalSection = () => {
         }
 
         .heading-1.faeade {
-          color: #faeade;
+          color: #f7ed3a;
           font-family: 'Antonio', 'Arial Black', 'Helvetica Bold', sans-serif;
           font-weight: 700;
           font-size: clamp(2rem, 7.9vw, 9rem);
@@ -429,7 +431,7 @@ const MotivationalSection = () => {
         }
 
         .heading-1.faeade._2 {
-          color: #7f3b2d;
+          color: #ffd500;
           letter-spacing: -0.04em;
           padding: 0 0.85vw 0.12em 0.8vw;
         }
