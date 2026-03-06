@@ -1463,7 +1463,7 @@ export default function Products() {
   if (loading) {
     return (
       <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
-        Loading products...
+        Loading...
       </p>
     );
   }

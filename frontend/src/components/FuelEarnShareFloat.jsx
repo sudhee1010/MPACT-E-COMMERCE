@@ -60,7 +60,7 @@ const FuelEarnShareFloat = () => {
           transition: "all 0.35s ease"
         }}
       >
-        Fuel • Earn • Share
+        Fuel • Share • Earn
       </div>
 
       {/* Pulse Animation */}
