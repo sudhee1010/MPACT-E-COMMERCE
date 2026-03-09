@@ -4763,7 +4763,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
             position: "absolute", top: 8, left: 8,
             background: "#ff0000", color: "white",
             padding: isMobile ? "3px 6px" : "4px 8px",
-            fontSize: isMobile ? "9px" : "13px",
+            fontSize: isMobile ? "13px" : "15px",
             fontWeight: 800, borderRadius: "6px", zIndex: 2,
           }}>
             {product.discountPercent}% OFF
@@ -4818,7 +4818,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
           </h3>
         )}
 
-        <p style={{ fontSize: "0.7rem", color: "#9ca3af", textAlign: "center", marginBottom: "0.5rem" }}>
+        <p style={{ fontSize: "1.5rem", color: "white", textAlign: "center", marginBottom: "0.5rem",fontSize: isMobile ? "17px" : "23px" }}>
           {product.name}
         </p>
 
@@ -4826,7 +4826,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
           const isLong = isMobile && product.description?.length > 60;
           const isExpanded = expandedDesc[product._id];
           return (
-            <p style={{ fontSize: "10px", color: "#9ca3af", marginBottom: "0.5rem" }}>
+            <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "0.5rem" }}>
               {isLong && !isExpanded ? product.description.slice(0, 30) + "..." : product.description}
               {isLong && (
                 <span
@@ -4848,7 +4848,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
             {Array.isArray(product.highlights) && product.highlights.map((item, i) => (
               <div key={i} style={{
                 border: "1px solid rgba(202,138,4,0.5)", borderRadius: "0.25rem",
-                padding: "0.125rem 0.375rem", fontSize: "9px",
+                padding: "0.125rem 0.375rem", fontSize: "12px",
                 fontWeight: "bold", textAlign: "center", color: "#facc15",
               }}>
                 {item}
@@ -4860,13 +4860,13 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
         <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", marginBottom: "0.5rem" }}>
           <div>
             {"★".repeat(Math.round(product.rating || 0)).split("").map((_, i) => (
-              <span key={i} style={{ color: "#facc15", fontSize: "0.75rem" }}>★</span>
+              <span key={i} style={{ color: "#facc15", fontSize: "1rem" }}>★</span>
             ))}
             {"☆".repeat(5 - Math.round(product.rating || 0)).split("").map((_, i) => (
-              <span key={i} style={{ color: "#4b5563", fontSize: "0.75rem" }}>☆</span>
+              <span key={i} style={{ color: "#4b5563", fontSize: "1rem" }}>☆</span>
             ))}
           </div>
-          <span style={{ fontSize: "10px", color: "#9ca3af" }}>
+          <span style={{ fontSize: "13px", color: "#9ca3af" }}>
             {product.numReviews || 0} Reviews
           </span>
         </div>
@@ -4874,16 +4874,16 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
         <div style={{ marginTop: "auto" }}>
           {product.originalPrice > product.price && (
             <div style={{ marginBottom: "0.25rem" }}>
-              <span style={{ fontSize: "10px", color: "#6b7280", textDecoration: "line-through" }}>
+              <span style={{ fontSize: "25px", color: "#6b7280", textDecoration: "line-through" }}>
                 ₹{product.originalPrice}
               </span>
-              <span style={{ fontSize: "10px", color: "#4ade80", marginLeft: "0.25rem", fontWeight: "bold" }}>
+              <span style={{ fontSize: "20px", color: "#4ade80", marginLeft: "0.25rem", fontWeight: "bold",fontSize: isMobile ? "13px" : "23px" }}>
                 {product.discountPercent}% OFF
               </span>
             </div>
           )}
 
-          <div style={{ fontSize: "1.1rem", fontWeight: 900, marginBottom: "0.75rem", color: "white" }}>
+          <div style={{ fontSize: "1.4rem", fontWeight: 900, marginBottom: "0.75rem", color: "white" }}>
             RS : {product.price}
           </div>
 

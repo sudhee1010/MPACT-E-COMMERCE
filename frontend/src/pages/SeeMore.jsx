@@ -2895,7 +2895,7 @@ export default function ProductPage() {
         }
 
         .info h3 {
-          font-size: 13px;
+          font-size: 20px;
           font-weight: 700;
           line-height: 1.35;
           margin: 0;
@@ -2909,7 +2909,7 @@ export default function ProductPage() {
         }
 
         .specs span {
-          font-size: 10px;
+          font-size: 13px;
           border: 1px solid #ffeb00;
           padding: 2px 5px;
           border-radius: 4px;
@@ -2926,11 +2926,11 @@ export default function ProductPage() {
         .rating span {
           color: #888;
           margin-left: 4px;
-          font-size: 11px;
+          font-size: 13px;
         }
 
         .price {
-          font-size: 12px;
+          font-size: 18px;
           color: #888;
           line-height: 1.3;
           margin: 0;
@@ -2938,7 +2938,7 @@ export default function ProductPage() {
 
         .price strong {
           color: #ffeb00;
-          font-size: 17px;
+          font-size: 22px;
           display: block;
           margin-top: 2px;
         }
@@ -3302,7 +3302,7 @@ export default function ProductPage() {
           }
 
           .discount {
-            font-size: 9px;
+            font-size: 13px;
             padding: 3px 6px;
             border-radius: 4px;
             top: 6px;
@@ -3327,7 +3327,7 @@ export default function ProductPage() {
           }
 
           .info h3 {
-            font-size: 11px;
+            font-size: 16px;
             line-height: 1.25;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -3340,19 +3340,19 @@ export default function ProductPage() {
           }
 
           .rating {
-            font-size: 9px;
+            font-size: 12px;
           }
 
           .rating span {
-            font-size: 9px;
+            font-size: 12px;
           }
 
           .price {
-            font-size: 10px;
+            font-size: 18px;
           }
 
           .price strong {
-            font-size: 13px;
+            font-size: 20px;
           }
 
           .stock-warning {
@@ -3457,11 +3457,11 @@ export default function ProductPage() {
           }
 
           .info h3 {
-            font-size: 10px;
+            font-size: 14px;
           }
 
           .price strong {
-            font-size: 12px;
+            font-size: 18px;
           }
 
           .qty button {

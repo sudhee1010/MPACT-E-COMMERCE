@@ -2995,7 +2995,7 @@ const ProductPage = () => {
             <div className="icon-wrapper">
               <Package size={60} />
             </div>
-            <h2 className="shimmer-text">Loading product...</h2>
+            <h2 className="shimmer-text">Loading...</h2>
           </div>
         </div>
       )}

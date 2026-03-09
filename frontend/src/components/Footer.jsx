@@ -547,9 +547,9 @@ export default function Footer() {
             <div className="footer-section">
               <h3>SHOP ALL</h3>
               <ul>
-                <li><a href="/">Home</a></li>
+                {/* <li><a href="/">Home</a></li> */}
                 <li><a href="/product">Products</a></li>
-                <li><a href="/distributor">Distributor</a></li>
+                {/* <li><a href="/distributor">Distributor</a></li> */}
 
                 {/* <li><a href="/products/protein-bars">Protein Bars</a></li>
                 <li><a href="/products/pre-workout">Pre-Workout</a></li>

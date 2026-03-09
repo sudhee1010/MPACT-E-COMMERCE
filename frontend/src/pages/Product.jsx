@@ -1217,7 +1217,7 @@ function ProductCard({ product, wishlist, toggleWishlist, handleAddToCart, navig
       {/* Description - Hidden on mobile via CSS */}
       <p
         style={{
-          fontSize: "10px",
+          fontSize: "13px",
           color: "#9ca3af",
           marginBottom: "0.5rem",
           padding: "0 12px",
@@ -1672,7 +1672,7 @@ export default function Products() {
 
 /* ================= TITLE ================= */
 .product-title {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
   color: #ffffff;
   padding: 12px 12px 0;
@@ -1692,7 +1692,7 @@ export default function Products() {
 }
 
 .spec {
-  font-size: 10px;
+  font-size: 12px;
   border: 1px solid #ffeb00;
   padding: 3px 6px;
   border-radius: 4px;
@@ -1710,7 +1710,7 @@ export default function Products() {
 
 .reviews {
   color: #aaa;
-  font-size: 12px;
+  font-size: 15px;
   padding: 0 12px;
 }
 
@@ -1720,7 +1720,7 @@ export default function Products() {
 }
 
 .old-price {
-  font-size: 12px;
+  font-size: 18px;
   color: #888;
   text-decoration: line-through;
 }
@@ -1959,7 +1959,7 @@ export default function Products() {
     top: 8px;
     left: 8px;
     padding: 4px 8px;
-    font-size: 11px;
+    font-size: 15px;
     border-radius: 6px;
   }
 
@@ -1976,7 +1976,7 @@ export default function Products() {
   }
 
   .product-title {
-    font-size: 12px;
+    font-size: 15px;
     padding: 8px 8px 0;
     -webkit-line-clamp: 2;
   }
@@ -1987,7 +1987,7 @@ export default function Products() {
   }
 
   .rating {
-    font-size: 10px;
+    font-size: 15px;
     padding: 0 8px;
   }
 
@@ -2001,12 +2001,12 @@ export default function Products() {
   }
 
   .old-price {
-    font-size: 10px;
+    font-size: 15px;
   }
 
   .price {
     padding: 0 8px;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   /* Hide description paragraph */
@@ -2055,7 +2055,7 @@ export default function Products() {
   }
 
   .section-title {
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 8px;
   }
 
@@ -2076,7 +2076,7 @@ export default function Products() {
 
   .discount-badge {
     padding: 3px 6px;
-    font-size: 9px;
+    font-size: 12px;
     border-radius: 4px;
   }
 
@@ -2091,23 +2091,23 @@ export default function Products() {
   }
 
   .product-title {
-    font-size: 11px;
+    font-size: 15px;
     padding: 6px 6px 0;
   }
 
   .rating {
-    font-size: 9px;
+    font-size: 13px;
     padding: 0 6px;
   }
 
   .reviews {
-    font-size: 9px;
+    font-size: 12px;
     padding: 0 6px;
   }
 
   .price {
     padding: 0 6px;
-    font-size: 14px;
+    font-size: 17px;
   }
 
   .action-buttons {
@@ -2169,12 +2169,12 @@ export default function Products() {
   }
 
   .product-title {
-    font-size: 10px;
+    font-size: 12px;
     padding: 4px 4px 0;
   }
 
   .price {
-    font-size: 12px;
+    font-size: 15px;
   }
 
   .add-to-cart-btn,
@@ -2189,7 +2189,7 @@ export default function Products() {
   }
 
   .rating, .reviews {
-    font-size: 8px;
+    font-size: 12px;
     padding: 0 4px;
   }
 }
