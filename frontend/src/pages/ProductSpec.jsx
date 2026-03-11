@@ -1884,26 +1884,38 @@ const ProductPage = () => {
       // }
 
 
+      // if (existing) {
+
+      //   existing.quantity += qty;
+
+      //   // ⭐ ensure originalPrice always exists
+      //   if (!existing.originalPrice && product.originalPrice) {
+      //     existing.originalPrice = product.originalPrice;
+      //   }
+
+      // } else {
+
+      //   guestCart.push({
+      //     productId,
+      //     product: product,          // ← full product object
+      //     price: product.price,
+      //     originalPrice: product.originalPrice,
+      //     quantity: qty
+      //   });
+
+      // }
+
       if (existing) {
-
         existing.quantity += qty;
-
-        // ⭐ ensure originalPrice always exists
-        if (!existing.originalPrice && product.originalPrice) {
-          existing.originalPrice = product.originalPrice;
-        }
-
+        if (!existing.product) existing.product = product; // ← backfill if missing
       } else {
-
         guestCart.push({
           productId,
-          name: product.name,
+          product: product,        // ← full product object
           price: product.price,
           originalPrice: product.originalPrice,
-          image: product.images?.[0]?.url,
           quantity: qty
         });
-
       }
       localStorage.setItem("guestCart", JSON.stringify(guestCart));
 
