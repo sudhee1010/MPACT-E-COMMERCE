@@ -1407,23 +1407,31 @@ export default function Products() {
           (item) => item.productId === product._id
         );
 
+        // if (existingItem) {
+        //   existingItem.quantity += 1;
+        // } else {
+
+
+        //   guestCart.push({
+        //     productId: product._id,
+        //     product: product,          // ← full product object
+        //     price: product.price,
+        //     originalPrice: product.originalPrice || product.price,
+        //     quantity: 1
+        //   });
+        // }
+
+
+
         if (existingItem) {
           existingItem.quantity += 1;
+          if (!existingItem.product) existingItem.product = product; // ← backfill if missing
         } else {
-          // guestCart.push({
-          //   productId: product._id,
-          //   name: product.name,
-          //   price: product.price,
-          //   image: product.images?.[0]?.url,
-          //   quantity: 1
-          // });
-
           guestCart.push({
             productId: product._id,
-            name: product.name,
+            product: product,        // ← full product object
             price: product.price,
             originalPrice: product.originalPrice || product.price,
-            image: product.images?.[0]?.url,
             quantity: 1
           });
         }

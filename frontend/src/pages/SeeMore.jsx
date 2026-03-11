@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 /* ================= COMPONENT ================= */
 
@@ -1641,6 +1642,7 @@ const ProductCard = ({
   toggleWishlist,
   requireLogin,
 }) => {
+  const { user } = useAuth();
   const [qty, setQty] = useState(1);
   const [stockError, setStockError] = useState(null);
   const { refreshCart, setOpenSideCart } = useCart();
@@ -1655,7 +1657,7 @@ const ProductCard = ({
 
   // Hover should only switch to the second image; no auto-advance
   useEffect(() => {
-    return () => {};
+    return () => { };
   }, []);
 
   // Reset to first image when cursor leaves
@@ -1669,18 +1671,73 @@ const ProductCard = ({
   };
   // ─────────────────────────────────────────────────────────────────────────
 
-  const handleAddToCart = async (productId) => {
+  // const handleAddToCart = async (productId) => {
+  //   try {
+  //     await addToCartApi(productId, qty);
+  //     toast.success("Product added to cart 🛒");
+  //     await refreshCart();
+  //     setOpenSideCart(true);
+  //   } catch (error) {
+  //     if (error.response?.status === 401) {
+  //       requireLogin();
+  //     } else {
+  //       toast.error("Something went wrong");
+  //     }
+  //   }
+  // };
+
+  const handleAddToCart = async (product) => {
     try {
-      await addToCartApi(productId, qty);
-      toast.success("Product added to cart 🛒");
-      await refreshCart();
-      setOpenSideCart(true);
-    } catch (error) {
-      if (error.response?.status === 401) {
-        requireLogin();
-      } else {
-        toast.error("Something went wrong");
+
+      // GUEST USER
+      if (!user) {
+        const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+
+        const existing = guestCart.find(
+          (item) => item.productId === product._id
+        );
+
+        let updatedCart;
+
+        if (existing) {
+          updatedCart = guestCart.map((item) =>
+            item.productId === product._id
+              ? { ...item, quantity: item.quantity + qty }
+              : item
+          );
+        } else {
+          updatedCart = [
+            ...guestCart,
+            {
+              productId: product._id,
+              product: product,   // store full product
+              price: product.price,
+              originalPrice: product.originalPrice,
+              quantity: qty
+            }
+          ];
+        }
+
+        localStorage.setItem("guestCart", JSON.stringify(updatedCart));
+
+        toast.success("Added to cart 🛒");
+
+        setOpenSideCart(true);
+
+        return;
       }
+
+      // LOGGED IN USER
+      await addToCartApi(product._id, qty);
+
+      toast.success("Product added to cart 🛒");
+
+      await refreshCart();
+
+      setOpenSideCart(true);
+
+    } catch (error) {
+      toast.error("Something went wrong");
     }
   };
 
@@ -1726,7 +1783,7 @@ const ProductCard = ({
           style={{ transition: "opacity 0.4s ease, transform 0.4s ease" }}
         />
 
-        
+
 
         <button
           className={`fav ${wishlistIds.has(product._id) ? "active" : ""}`}
@@ -1806,7 +1863,7 @@ const ProductCard = ({
                 className="add-to-cart-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleAddToCart(product._id);
+                  handleAddToCart(product);
                 }}
               >
                 🛒 Add to Cart
