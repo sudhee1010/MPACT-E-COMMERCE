@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import logo from "../assets/mpact-logo.png.PNG"
 
 export default function Loader({ onFinish }) {
   const [progress, setProgress] = useState(0);
@@ -67,6 +68,24 @@ export default function Loader({ onFinish }) {
     <div className={`loader ${hide ? "hide" : ""}`}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
+
+        .logo-container{
+  animation: revealLogo 1s ease forwards;
+  transform: scale(0.7);
+  opacity: 0;
+}
+
+.loader-logo{
+  width: 220px;
+  object-fit: contain;
+}
+
+@keyframes revealLogo{
+  to{
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 
         .loader {
           position: fixed;
@@ -144,18 +163,25 @@ export default function Loader({ onFinish }) {
             font-size: 56px;
             letter-spacing: 6px;
           }
+            .tagline{
+            font-size:10px;
+            letter-spacing: 4px;
+            }
         }
       `}</style>
 
-      <div className="loader-text">
+      {/* <div className="loader-text">
         {"MPACT".split("").map((c, i) => (
           <span key={i} style={{ "--i": i }}>
             {c}
           </span>
         ))}
+      </div> */}
+      <div className="logo-container">
+        <img src={logo} alt="MPACT Logo" className="loader-logo" />
       </div>
 
-      <div className="tagline">BUILD • PUSH • DOMINATE</div>
+      <div className="tagline">FUEL YOUR FITNESS WITH MPACT</div>
 
       <div className="bar">
         <div className="bar-fill" />
