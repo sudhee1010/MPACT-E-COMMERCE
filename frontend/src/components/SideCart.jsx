@@ -5681,8 +5681,6 @@
 
 
 
-
-
 import { useEffect, useState } from "react";
 import { updateCartItemApi, removeCartItemApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
@@ -5708,7 +5706,7 @@ export default function SideCart() {
   // ── GUEST CART STATE ──
   const [guestCartItems, setGuestCartItems] = useState([]);
 
-  // ── Load guest cart whenever openSideCart changes ──
+  // ── Load guest cart whenever openSideCart or user changes ──
   useEffect(() => {
     if (!user) {
       const stored = JSON.parse(localStorage.getItem("guestCart")) || [];
