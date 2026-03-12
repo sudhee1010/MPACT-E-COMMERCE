@@ -3353,7 +3353,7 @@
 //   };
 
 //   return (
-    
+
 //     <div
 //       style={{ position: "relative", display: "inline-block" }}
 //       onMouseEnter={handleEnter}
@@ -3980,7 +3980,7 @@
 //   };
 
 //   return (
-    
+
 //     <div
 //       style={{ position: "relative", display: "inline-block" }}
 //       onMouseEnter={handleEnter}
@@ -4626,11 +4626,11 @@ function SeeMoreDripButton({ onClick, isMobile }) {
     lottieRef.current.stop();
   };
 
-    const handleButtonEnter = () => {
+  const handleButtonEnter = () => {
     if (!lottieRef.current || isTouchDev) return;
-  lottieRef.current.setSpeed(5); 
-  lottieRef.current.goToAndPlay(0, true);
-};
+    lottieRef.current.setSpeed(5);
+    lottieRef.current.goToAndPlay(0, true);
+  };
 
   return (
     <div
@@ -4819,7 +4819,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
           </h3>
         )}
 
-        <p style={{ fontSize: "1.5rem", color: "white", textAlign: "center", marginBottom: "0.5rem",fontSize: isMobile ? "17px" : "23px",fontFamily: "'Bebas Neue', cursive",letterSpacing:"2px" }}>
+        <p style={{ color: "white", textAlign: "center", marginBottom: "0.5rem", fontSize: isMobile ? "17px" : "23px", fontFamily: "'Bebas Neue', cursive", letterSpacing: "2px" }}>
           {product.name}
         </p>
 
@@ -4827,7 +4827,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
           const isLong = isMobile && product.description?.length > 60;
           const isExpanded = expandedDesc[product._id];
           return (
-            <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "0.5rem",fontFamily: "'Poppins', sans-serif" }}>
+            <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "0.5rem", fontFamily: "'Poppins', sans-serif" }}>
               {isLong && !isExpanded ? product.description.slice(0, 30) + "..." : product.description}
               {isLong && (
                 <span
@@ -4850,7 +4850,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               <div key={i} style={{
                 border: "1px solid rgba(202,138,4,0.5)", borderRadius: "0.25rem",
                 padding: "0.125rem 0.375rem", fontSize: "12px",
-                fontWeight: "bold", textAlign: "center", color: "#facc15",fontFamily: "'Poppins', sans-serif"
+                fontWeight: "bold", textAlign: "center", color: "#facc15", fontFamily: "'Poppins', sans-serif"
               }}>
                 {item}
               </div>
@@ -4867,7 +4867,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               <span key={i} style={{ color: "#4b5563", fontSize: "1rem" }}>☆</span>
             ))}
           </div>
-          <span style={{ fontSize: "13px", color: "#9ca3af",fontFamily: "'Poppins', sans-serif" }}>
+          <span style={{ fontSize: "13px", color: "#9ca3af", fontFamily: "'Poppins', sans-serif" }}>
             {product.numReviews || 0} Reviews
           </span>
         </div>
@@ -4878,7 +4878,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               <span style={{ fontSize: "25px", color: "#6b7280", textDecoration: "line-through" }}>
                 ₹{product.originalPrice}
               </span>
-              <span style={{ fontSize: "20px", color: "#4ade80", marginLeft: "0.25rem", fontWeight: "bold",fontSize: isMobile ? "13px" : "23px" }}>
+              <span style={{ color: "#4ade80", marginLeft: "0.25rem", fontWeight: "bold", fontSize: isMobile ? "13px" : "23px" }}>
                 {product.discountPercent}% OFF
               </span>
             </div>
@@ -4894,7 +4894,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               style={{
                 width: "100%", backgroundColor: "#facc15", color: "black",
                 fontWeight: 1000, padding: "0.5rem", borderRadius: "0.25rem",
-                border: "none", cursor: "pointer", transition: "all 0.3s", fontSize: "0.75rem",fontFamily: "'Bebas Neue', cursive", letterSpacing:"1px"
+                border: "none", cursor: "pointer", transition: "all 0.3s", fontSize: "0.75rem", fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px"
               }}
               onMouseEnter={(e) => e.target.style.backgroundColor = "#ffd500"}
               onMouseLeave={(e) => e.target.style.backgroundColor = "#facc15"}
@@ -4906,7 +4906,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               style={{
                 width: "100%", backgroundColor: "#2a2a2a", color: "#9ca3af",
                 fontWeight: 900, padding: "0.5rem", borderRadius: "0.25rem",
-                border: "1px solid #555", cursor: "not-allowed", fontSize: "0.75rem", opacity: 0.7,fontFamily: "'Bebas Neue', cursive",letterSpacing:"1px"
+                border: "1px solid #555", cursor: "not-allowed", fontSize: "0.75rem", opacity: 0.7, fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px"
               }}
             >
               OUT OF STOCK
@@ -5146,7 +5146,7 @@ const MPACTLandingPage = () => {
       {/* ── Products Section ── */}
       <section ref={productsRef} style={{ padding: "4rem 0", backgroundColor: "#262626", position: "relative", overflow: "hidden" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 1rem" }}>
-          <h2 style={{ fontSize: isMobile ? "2rem" : "3rem", fontWeight: 900, color: "#facc15", textAlign: "center", marginBottom: "2rem",fontFamily: "'Bebas Neue', cursive", letterSpacing:"5px" }}>
+          <h2 style={{ fontSize: isMobile ? "2rem" : "3rem", fontWeight: 900, color: "#facc15", textAlign: "center", marginBottom: "2rem", fontFamily: "'Bebas Neue', cursive", letterSpacing: "5px" }}>
             FIND OUR PRODUCTS
           </h2>
 
@@ -5156,7 +5156,7 @@ const MPACTLandingPage = () => {
             </p>
           )}
 
-          {loadingProducts && <p style={{ textAlign: "center", color: "#facc15",fontFamily: "'Poppins', sans-serif" }}>Loading products...</p>}
+          {loadingProducts && <p style={{ textAlign: "center", color: "#facc15", fontFamily: "'Poppins', sans-serif" }}>Loading products...</p>}
           {productError && <p style={{ textAlign: "center", color: "red" }}>{productError}</p>}
 
           <div style={{
