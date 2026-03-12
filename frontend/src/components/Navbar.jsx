@@ -2008,7 +2008,8 @@ export default function Navbar() {
   const debounceRef = useRef(null);
   const mobileDebounceRef = useRef(null);
 
-  const { cartCount, setOpenSideCart } = useCart();
+  // const { cartCount, setOpenSideCart } = useCart();
+  const { cartCount, setOpenSideCart, refreshCart } = useCart();
 
   // ── LOGO MAGNETIC STATE ──────────────────────────────────────
   const [logoDrag, setLogoDrag] = useState({ x: 0, y: 0 });
@@ -2082,29 +2083,29 @@ export default function Navbar() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
- // ── LOGO MAGNETIC: follows mouse position relative to logo center ──
-const logoHoveredRef = useRef(false);
+  // ── LOGO MAGNETIC: follows mouse position relative to logo center ──
+  const logoHoveredRef = useRef(false);
 
-useEffect(() => {
-  logoHoveredRef.current = logoHovered;
-}, [logoHovered]);
+  useEffect(() => {
+    logoHoveredRef.current = logoHovered;
+  }, [logoHovered]);
 
-useEffect(() => {
-  const onMouseMove = (e) => {
-    if (!logoHoveredRef.current || !logoRef.current) return;
-    const rect = logoRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = e.clientX - centerX;
-    const dy = e.clientY - centerY;
-    setLogoDrag({
-      x: clamp(dx * 0.4, -MAX_OFFSET, MAX_OFFSET),
-      y: clamp(dy * 0.4, -MAX_OFFSET, MAX_OFFSET),
-    });
-  };
-  window.addEventListener("mousemove", onMouseMove);
-  return () => window.removeEventListener("mousemove", onMouseMove);
-}, []); // runs once — uses ref to check hover state
+  useEffect(() => {
+    const onMouseMove = (e) => {
+      if (!logoHoveredRef.current || !logoRef.current) return;
+      const rect = logoRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const dx = e.clientX - centerX;
+      const dy = e.clientY - centerY;
+      setLogoDrag({
+        x: clamp(dx * 0.4, -MAX_OFFSET, MAX_OFFSET),
+        y: clamp(dy * 0.4, -MAX_OFFSET, MAX_OFFSET),
+      });
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    return () => window.removeEventListener("mousemove", onMouseMove);
+  }, []); // runs once — uses ref to check hover state
 
   // AUTO-FOCUS mobile input when search opens
   useEffect(() => {
@@ -2889,12 +2890,10 @@ useEffect(() => {
           {/* CART */}
           <div
             className="nav-icon-btn"
-            onClick={() => {
-              if (cartCount === 0) {
-                toast.error("Your cart is empty");
-                return;
-              }
-              setOpenSideCart(true);
+       
+            onClick={async () => {
+              await refreshCart();
+              setOpenSideCart(true);  // always open, no cartCount check
             }}
             role="button" tabIndex={0}
           >
