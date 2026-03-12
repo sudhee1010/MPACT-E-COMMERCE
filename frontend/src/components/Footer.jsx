@@ -332,11 +332,11 @@ export default function Footer() {
 
     /* SECTION STYLING */
     .footer-section h3 {
-      font-family: 'Khand', sans-serif;
+      fontFamily: "'Bebas Neue', cursive";
       font-size: 24px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: -0.1rem;
       margin-bottom: 8px;
       color: white;
       padding-bottom: 12px;
@@ -360,7 +360,8 @@ export default function Footer() {
       font-size: 15px;
       font-weight: 400;
       transition: opacity 0.3s ease;
-      display: inline-block;
+      display: inline-block
+      fontFamily: "'Poppins', sans-serif";
     }
 
     .footer-section ul li a:hover {

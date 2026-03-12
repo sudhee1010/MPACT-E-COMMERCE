@@ -4669,6 +4669,7 @@ function SeeMoreDripButton({ onClick, isMobile }) {
             transform: "translateX(-50%)",
             pointerEvents: "none",
             zIndex: 10,
+            fontFamily: "'Bebas Neue', cursive"
           }}>
             <Lottie
               lottieRef={lottieRef}
@@ -4818,7 +4819,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
           </h3>
         )}
 
-        <p style={{ fontSize: "1.5rem", color: "white", textAlign: "center", marginBottom: "0.5rem",fontSize: isMobile ? "17px" : "23px" }}>
+        <p style={{ fontSize: "1.5rem", color: "white", textAlign: "center", marginBottom: "0.5rem",fontSize: isMobile ? "17px" : "23px",fontFamily: "'Bebas Neue', cursive",letterSpacing:"2px" }}>
           {product.name}
         </p>
 
@@ -4826,7 +4827,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
           const isLong = isMobile && product.description?.length > 60;
           const isExpanded = expandedDesc[product._id];
           return (
-            <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "0.5rem" }}>
+            <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "0.5rem",fontFamily: "'Poppins', sans-serif" }}>
               {isLong && !isExpanded ? product.description.slice(0, 30) + "..." : product.description}
               {isLong && (
                 <span
@@ -4849,7 +4850,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               <div key={i} style={{
                 border: "1px solid rgba(202,138,4,0.5)", borderRadius: "0.25rem",
                 padding: "0.125rem 0.375rem", fontSize: "12px",
-                fontWeight: "bold", textAlign: "center", color: "#facc15",
+                fontWeight: "bold", textAlign: "center", color: "#facc15",fontFamily: "'Poppins', sans-serif"
               }}>
                 {item}
               </div>
@@ -4866,7 +4867,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               <span key={i} style={{ color: "#4b5563", fontSize: "1rem" }}>☆</span>
             ))}
           </div>
-          <span style={{ fontSize: "13px", color: "#9ca3af" }}>
+          <span style={{ fontSize: "13px", color: "#9ca3af",fontFamily: "'Poppins', sans-serif" }}>
             {product.numReviews || 0} Reviews
           </span>
         </div>
@@ -4892,8 +4893,8 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               onClick={(e) => { e.stopPropagation(); handleBuyNow(product); }}
               style={{
                 width: "100%", backgroundColor: "#facc15", color: "black",
-                fontWeight: 900, padding: "0.5rem", borderRadius: "0.25rem",
-                border: "none", cursor: "pointer", transition: "all 0.3s", fontSize: "0.75rem",
+                fontWeight: 1000, padding: "0.5rem", borderRadius: "0.25rem",
+                border: "none", cursor: "pointer", transition: "all 0.3s", fontSize: "0.75rem",fontFamily: "'Bebas Neue', cursive", letterSpacing:"1px"
               }}
               onMouseEnter={(e) => e.target.style.backgroundColor = "#ffd500"}
               onMouseLeave={(e) => e.target.style.backgroundColor = "#facc15"}
@@ -4905,7 +4906,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               style={{
                 width: "100%", backgroundColor: "#2a2a2a", color: "#9ca3af",
                 fontWeight: 900, padding: "0.5rem", borderRadius: "0.25rem",
-                border: "1px solid #555", cursor: "not-allowed", fontSize: "0.75rem", opacity: 0.7,
+                border: "1px solid #555", cursor: "not-allowed", fontSize: "0.75rem", opacity: 0.7,fontFamily: "'Bebas Neue', cursive",letterSpacing:"1px"
               }}
             >
               OUT OF STOCK
@@ -5145,7 +5146,7 @@ const MPACTLandingPage = () => {
       {/* ── Products Section ── */}
       <section ref={productsRef} style={{ padding: "4rem 0", backgroundColor: "#262626", position: "relative", overflow: "hidden" }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 1rem" }}>
-          <h2 style={{ fontSize: isMobile ? "2rem" : "3rem", fontWeight: 900, color: "#facc15", textAlign: "center", marginBottom: "2rem" }}>
+          <h2 style={{ fontSize: isMobile ? "2rem" : "3rem", fontWeight: 900, color: "#facc15", textAlign: "center", marginBottom: "2rem",fontFamily: "'Bebas Neue', cursive", letterSpacing:"5px" }}>
             FIND OUR PRODUCTS
           </h2>
 
@@ -5155,7 +5156,7 @@ const MPACTLandingPage = () => {
             </p>
           )}
 
-          {loadingProducts && <p style={{ textAlign: "center", color: "#facc15" }}>Loading products...</p>}
+          {loadingProducts && <p style={{ textAlign: "center", color: "#facc15",fontFamily: "'Poppins', sans-serif" }}>Loading products...</p>}
           {productError && <p style={{ textAlign: "center", color: "red" }}>{productError}</p>}
 
           <div style={{

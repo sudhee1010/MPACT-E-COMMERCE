@@ -27,7 +27,7 @@ const FuelEarnShare = () => {
         <div className="min-h-screen bg-[#171717] text-white p-6">
             <div className="max-w-4xl mx-auto">
 
-                <h1 className="text-3xl text-yellow-400 font-bold mb-6 text-center">
+                <h1 className="text-3xl text-yellow-400 font-bold mb-6 text-center font-poppins">
                     Fuel • Share • Earn
                 </h1>
 
@@ -50,7 +50,7 @@ const FuelEarnShare = () => {
                 {/* PREMIUM COUPON HEADER */}
                 <div className="text-center mb-10 relative">
 
-                    <h2 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent animate-pulse">
+                    <h2 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent animate-pulse font-poppins">
                         Unlock Your Performance Advantage
                     </h2>
 

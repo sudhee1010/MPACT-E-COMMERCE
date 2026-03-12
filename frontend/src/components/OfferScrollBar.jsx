@@ -171,6 +171,7 @@ export default function HighlightScrollBar() {
         .marquee-item {
           color: #111;
           flex-shrink: 0;
+          fontFamily: "'Bebas Neue', cursive"
         }
 
         .divider {
