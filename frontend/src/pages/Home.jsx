@@ -4707,10 +4707,10 @@ function useProductCarousel(images = []) {
             }
             return prev + 1;
           });
-        }, 30000);
+        }, 1000);
       }
 
-    }, 1000);
+    }, 50);
   };
   const stopCarousel = () => {
     setIsHovered(false);
