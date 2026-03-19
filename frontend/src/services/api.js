@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://mpact-e-commerce-2-elbb.onrender.com/api",
+  baseURL: "/api",
+  // baseURL: "https://mpact-e-commerce-2-elbb.onrender.com/api",
   // baseURL: "http://localhost:5000/api",
   // baseURL: "http://13.48.193.184:5000/api",
   withCredentials: true, // Important: enables cookies
