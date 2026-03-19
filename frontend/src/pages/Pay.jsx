@@ -652,7 +652,8 @@ const styles = {
     border: "none",
     borderRadius: "12px",
     fontWeight: "bold",
-    cursor: "pointer"
+    cursor: "pointer",
+    color:"black"
   },
   couponBox: {
     display: "flex",
@@ -673,7 +674,8 @@ const styles = {
     borderRadius: "8px",
     padding: "0 14px",
     cursor: "pointer",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    color:"black"
   },
   couponBadge: {
     display: "flex",
@@ -721,7 +723,8 @@ const cancelStyles = {
     padding: "10px 16px",
     borderRadius: "8px",
     fontWeight: "bold",
-    cursor: "pointer"
+    cursor: "pointer",
+    color:"black"
   },
   secondary: {
     background: "transparent",
