@@ -54,7 +54,6 @@ app.use(
     // origin:"https://mpact-e-commerce-1-0222.onrender.com",
     origin: [
       "https://mpact-e-commerce-1-0222.onrender.com",
-      "https://mpact-e-commerce.onrender.com"
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
