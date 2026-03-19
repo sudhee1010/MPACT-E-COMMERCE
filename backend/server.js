@@ -48,10 +48,7 @@ connectDB();
 app.set("trust proxy", 1);
 app.use(
   cors({
-    // origin: ["https://mpact-e-commerce.onrender.com",
-    // "http://13.48.193.184:3000"],
-    // origin: "http://localhost:3000",
-    // origin:"https://mpact-e-commerce-1-0222.onrender.com",
+  
     origin: [
       "https://mpact-e-commerce-1-0222.onrender.com",
     ],
