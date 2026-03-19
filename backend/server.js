@@ -45,15 +45,19 @@ connectDB();
 
 // Middlewares
 // app.use(cors());
-app.set("trust proxy", 1); 
+app.set("trust proxy", 1);
 app.use(
   cors({
     // origin: ["https://mpact-e-commerce.onrender.com",
     // "http://13.48.193.184:3000"],
     // origin: "http://localhost:3000",
-    origin:"https://mpact-e-commerce-1-0222.onrender.com",
-    methods: ["GET", "POST", "PUT", "DELETE"], 
-    credentials: true,    
+    // origin:"https://mpact-e-commerce-1-0222.onrender.com",
+    origin: [
+      "https://mpact-e-commerce-1-0222.onrender.com",
+      "https://mpact-e-commerce.onrender.com"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 app.use(express.json());
@@ -65,10 +69,10 @@ startOrderCleanupJob();
 
 // Test route
 app.get("/", (req, res) => {
-    res.send("API is running...");
+  res.send("API is running...");
 });
 
-app.use("/api/users",userRoutes)
+app.use("/api/users", userRoutes)
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
@@ -90,17 +94,17 @@ app.use("/api/blogs", blogRoutes);
 app.use("/api/blog-categories", blogCategoryRoutes);
 app.use("/api/aboutus", aboutusRoutes);
 app.use("/api/address", addressRoutes);
-app.use("/api/distributor",distributorEnquiryRoutes);
+app.use("/api/distributor", distributorEnquiryRoutes);
 app.use("/api/invoice", invoiceRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/faqs", faqRoutes);
 app.use("/api/help", helpRoutes);
-app.use("/api/subscribe",subscriberRoutes);
-app.use("/api/topoffers",topOfferRoutes);
+app.use("/api/subscribe", subscriberRoutes);
+app.use("/api/topoffers", topOfferRoutes);
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
