@@ -89,7 +89,7 @@ export function AdsBanner() {
   const [saving, setSaving] = useState(false);
 
   // API Base URL
-  const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
+  // const PRODUCTS_API_URL = "https://mpact-e-backend.onrender.com/api/products";
 
   // 🔹 Fetch ALL products
   const fetchAllProducts = async () => {
