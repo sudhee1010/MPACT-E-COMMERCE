@@ -5219,7 +5219,9 @@ const MPACTLandingPage = () => {
             <h3 style={{ color: "#facc15", marginBottom: "1rem" }}>Login Required</h3>
             <p style={{ color: "#d1d5db", marginBottom: "1.5rem" }}>Please login to purchase this product.</p>
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-              <button onClick={() => (window.location.href = "/login")}
+              {/* <button onClick={() => (window.location.href = "/login")} */}
+              <button
+                onClick={() => navigate("/login")}
                 style={{ backgroundColor: "#facc15", color: "black", padding: "0.5rem 1.5rem", border: "none", borderRadius: "0.25rem", fontWeight: "bold", cursor: "pointer" }}>
                 Login
               </button>
