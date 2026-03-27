@@ -4,7 +4,7 @@ import {
   getMyOrders,
   getOrderById,
   cancelOrder,
-  requestReturn
+  requestReturn, updatePaymentMethod
 } from "../controllers/orderController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
@@ -15,7 +15,7 @@ router.get("/my-orders", protect, getMyOrders);
 router.get("/:id", protect, getOrderById);
 router.put("/:id/cancel", protect, cancelOrder);
 router.put("/:id/return", protect, requestReturn);
-
+router.put("/update-payment-method", protect, updatePaymentMethod);
 
 
 export default router;
