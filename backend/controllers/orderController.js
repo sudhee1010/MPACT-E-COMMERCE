@@ -275,3 +275,29 @@ export const requestReturn = async (req, res) => {
   }
 };
 
+export const updatePaymentMethod = async (req, res) => {
+  try {
+    const { orderId, paymentMethod } = req.body;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    order.paymentMethod = paymentMethod;
+
+    if (paymentMethod === "COD") {
+      order.orderStatus = "placed";
+      order.paymentStatus = "pending"; 
+    }
+
+    await order.save();
+
+    res.json(order);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

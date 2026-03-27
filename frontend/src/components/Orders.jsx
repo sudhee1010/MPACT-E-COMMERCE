@@ -65,20 +65,29 @@ export function Orders() {
     }
   };
 
-  const getPaymentColor = (status) => {
-  switch (status) {
-    case "paid":
-      return "bg-green-900/50 text-green-400 border border-green-700";
-    case "pending":
-      return "bg-yellow-900/50 text-yellow-400 border border-yellow-700";
-    case "failed":
-      return "bg-red-900/50 text-red-400 border border-red-700";
-    case "refunded":
-      return "bg-blue-900/50 text-blue-400 border border-blue-700";
-    default:
-      return "bg-gray-900/50 text-gray-400 border border-gray-700";
-  }
-};
+  const getPaymentColor = (status, method) => {
+    if (method === "COD" && status !== "paid") {
+      return "bg-purple-900/50 text-purple-400 border border-purple-700";
+    }
+
+    switch (status) {
+      case "paid":
+        return "bg-green-900/50 text-green-400 border border-green-700";
+    }
+
+    switch (status) {
+      case "paid":
+        return "bg-green-900/50 text-green-400 border border-green-700";
+      case "pending":
+        return "bg-yellow-900/50 text-yellow-400 border border-yellow-700";
+      case "failed":
+        return "bg-red-900/50 text-red-400 border border-red-700";
+      case "refunded":
+        return "bg-blue-900/50 text-blue-400 border border-blue-700";
+      default:
+        return "bg-gray-900/50 text-gray-400 border border-gray-700";
+    }
+  };
 
 
 
@@ -145,6 +154,19 @@ export function Orders() {
     }
   };
 
+  const markAsPaid = async (orderId) => {
+    try {
+      await api.put(`/api/admin/orders/${orderId}/mark-paid`);
+
+      toast.success("Payment marked as PAID");
+
+      fetchOrders(); // refresh table
+
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update payment");
+    }
+  };
+
 
 
   // const updateOrderStatus = async (orderId, newStatus) => {
@@ -193,24 +215,24 @@ export function Orders() {
     }
   };
 
- const downloadInvoice = async (orderId) => {
-  try {
-  const response = await api.get(`/api/invoice/admin/${orderId}`, {
-      responseType: "blob",
-    });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `INV-${orderId.slice(-6).toUpperCase()}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-    toast.success("Invoice downloaded!");
-  } catch (err) {
-    toast.error("Failed to generate invoice");
-  }
-};
+  const downloadInvoice = async (orderId) => {
+    try {
+      const response = await api.get(`/api/invoice/admin/${orderId}`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `INV-${orderId.slice(-6).toUpperCase()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Invoice downloaded!");
+    } catch (err) {
+      toast.error("Failed to generate invoice");
+    }
+  };
 
 
 
@@ -307,6 +329,7 @@ export function Orders() {
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Quantity</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Amount</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Payment</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Method</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Status</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Date</th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-400">Actions</th>
@@ -326,10 +349,17 @@ export function Orders() {
                   <td className="py-3 px-4">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPaymentColor(
-                        order.paymentStatus
+                        order.paymentStatus, order.paymentMethod
                       )}`}
                     >
-                      {order.paymentStatus?.toUpperCase()}
+                      {order.paymentMethod === "COD"
+                        ? "COD"
+                        : order.paymentStatus?.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="px-2 py-1 text-xs rounded-full bg-purple-900/50 text-purple-400 border border-purple-700">
+                      {order.paymentMethod}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -447,6 +477,16 @@ export function Orders() {
 
                             <div className="border-t border-gray-700 pt-4">
                               <h4 className="font-semibold text-white mb-2">Update Status</h4>
+                              {/* 🔥 COD MARK AS PAID BUTTON */}
+                              {selectedOrder.paymentMethod === "COD" &&
+                                selectedOrder.paymentStatus !== "paid" && (
+                                  <button
+                                    onClick={() => markAsPaid(selectedOrder._id)}
+                                    className="w-full mb-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold"
+                                  >
+                                    Mark as Paid
+                                  </button>
+                                )}
                               {selectedOrder?.orderStatus === "return_requested" && (
                                 <div className="flex gap-3 mt-4">
                                   <button
@@ -461,10 +501,10 @@ export function Orders() {
                                     className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-white"
                                   >
                                     Reject Return
-                                  </button>  
+                                  </button>
                                 </div>
                               )}
-                              
+
                               <Select
                                 value={normalizeStatus(selectedOrder.orderStatus)}
                                 onValueChange={(value) =>
@@ -485,16 +525,16 @@ export function Orders() {
                               </Select>
                             </div>
 
-                             <button
-    onClick={() => downloadInvoice(selectedOrder._id)}
-    className="flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-semibold rounded-md transition-colors w-full justify-center mt-3"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-      <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-      <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
-    </svg>
-    Download Invoice
-  </button>
+                            <button
+                              onClick={() => downloadInvoice(selectedOrder._id)}
+                              className="flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-semibold rounded-md transition-colors w-full justify-center mt-3"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                              </svg>
+                              Download Invoice
+                            </button>
                           </div>
                         )}
                       </DialogContent>

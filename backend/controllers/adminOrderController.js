@@ -256,4 +256,35 @@ export const rejectReturn = async (req, res) => {
 };
 
 
+export const markCODAsPaid = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Only COD allowed
+    if (order.paymentMethod !== "COD") {
+      return res.status(400).json({ message: "Not a COD order" });
+    }
+
+    if (order.paymentStatus === "paid") {
+      return res.status(400).json({ message: "Already paid" });
+    }
+
+    order.paymentStatus = "paid";
+
+    await order.save();
+
+    res.json({
+      message: "Payment marked as paid",
+      order
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
