@@ -107,29 +107,111 @@
 //     setShowCustomModal(true);
 //   };
 
+//   // const handleAddToCart = async (productId) => {
+//   //   try {
+//   //     await addToCartApi(productId, 1);
+//   //     await refreshCart();
+//   //     setOpenSideCart(true);
+//   //     showNotification("success", "Success!", "Product added to cart 🛒");
+//   //   } catch (error) {
+//   //     const message = error.response?.data?.message;
+
+//   //     if (message && message.toLowerCase().includes("stock")) {
+//   //       showNotification("error", "Out of Stock", message);
+//   //       return;
+//   //     }
+
+//   //     if (error.response?.status === 401) {
+//   //       showNotification("error", "Login Required", "Please login to add to cart");
+//   //       setShowLoginModal(true);
+//   //       return;
+//   //     }
+
+//   //     showNotification("error", "Error", message || "Something went wrong");
+//   //   }
+//   // };
+
+
 //   const handleAddToCart = async (productId) => {
 //     try {
-//       await addToCartApi(productId, 1);
-//       await refreshCart();
+
+//       // ✅ IF USER LOGGED IN → SERVER CART
+//       if (user && user._id) {
+//         await addToCartApi(productId, qty);
+//         await refreshCart();
+//         setOpenSideCart(true);
+
+//         showNotification("success", "Success!", "Product added to cart 🛒");
+//         return;
+//       }
+
+//       // ✅ GUEST CART → LOCAL STORAGE
+//       const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+
+//       const existing = guestCart.find((item) => item.productId === productId);
+
+//       // if (existing) {
+//       //   existing.quantity += qty;
+//       // } else {
+//       //   guestCart.push({
+//       //     productId,
+//       //     name: product.name,
+//       //     price: product.price,
+//       //     originalPrice: product.originalPrice,
+//       //     image: product.images?.[0]?.url,
+//       //     quantity: qty
+//       //   });
+//       // }
+
+
+//       // if (existing) {
+
+//       //   existing.quantity += qty;
+
+//       //   // ⭐ ensure originalPrice always exists
+//       //   if (!existing.originalPrice && product.originalPrice) {
+//       //     existing.originalPrice = product.originalPrice;
+//       //   }
+
+//       // } else {
+
+//       //   guestCart.push({
+//       //     productId,
+//       //     product: product,          // ← full product object
+//       //     price: product.price,
+//       //     originalPrice: product.originalPrice,
+//       //     quantity: qty
+//       //   });
+
+//       // }
+
+//       if (existing) {
+//         existing.quantity += qty;
+//         if (!existing.product) existing.product = product; // ← backfill if missing
+//       } else {
+//         guestCart.push({
+//           productId,
+//           product: product,        // ← full product object
+//           price: product.price,
+//           originalPrice: product.originalPrice,
+//           quantity: qty
+//         });
+//       }
+//       localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
 //       setOpenSideCart(true);
-//       showNotification("success", "Success!", "Product added to cart 🛒");
+
+//       showNotification(
+//         "success",
+//         "Added to Cart",
+//         "Product added to cart 🛒"
+//       );
+
 //     } catch (error) {
-//       const message = error.response?.data?.message;
-
-//       if (message && message.toLowerCase().includes("stock")) {
-//         showNotification("error", "Out of Stock", message);
-//         return;
-//       }
-
-//       if (error.response?.status === 401) {
-//         showNotification("error", "Login Required", "Please login to add to cart");
-//         setShowLoginModal(true);
-//         return;
-//       }
-
-//       showNotification("error", "Error", message || "Something went wrong");
+//       showNotification("error", "Error", "Something went wrong");
 //     }
 //   };
+
 
 //   const handleBuyNow = () => {
 //     if (loading) return;
@@ -783,12 +865,14 @@
 //       lineHeight: "1.00",
 //     },
 //     rangeGrid: {
-//       maxWidth: 1230,
+//       maxWidth: 1380,
 //       margin: "0 auto",
 //       display: "grid",
-//       gridTemplateColumns: "repeat(4, 1fr)",
-//       gap: 28,
-//       padding: "0 32px",
+//       gridTemplateColumns: "repeat(auto-fill, minmax(280px, 291.51px))",
+//       gap: 18,
+//       padding: "0 8px",
+//       justifyContent: "center",
+//       alignItems: "stretch",
 //     },
 //     rangeCard: {
 //       background: "#3a3a3a",
@@ -952,7 +1036,7 @@
 //       <Navbar />
 //       <style>{`
 //         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
-
+        
 //         /* ================= LUXURY LOADER ================= */
 //         .loader-overlay {
 //           position: fixed;
@@ -1102,7 +1186,7 @@
 //             opacity: 1;
 //           }
 //         }
-
+        
 //         @media (max-width: 768px) {
 //           .product-section {
 //             grid-template-columns: 1fr !important;
@@ -1110,86 +1194,88 @@
 //             padding: 30px 20px !important;
 //             margin-left: 0 !important;
 //           }
-
+          
 //           .main-image-container {
 //             height: 300px !important;
 //             margin-left: 0 !important;
 //           }
-
+          
 //           .main-image {
 //             height: 300px !important;
 //           }
-
+          
 //           .thumbnails-container {
 //             margin-left: 0 !important;
 //             grid-template-columns: repeat(4, 1fr) !important;
 //           }
-
+          
 //           .thumbnail-image {
 //             height: 80px !important;
 //           }
-
+          
 //           .details-container {
 //             max-width: 100% !important;
 //           }
-
+          
 //           .title {
 //             font-size: 28px !important;
 //           }
-
+          
 //           .current-price {
 //             font-size: 24px !important;
 //           }
-
+          
 //           .action-buttons {
 //             flex-direction: column !important;
 //           }
-
+          
 //           .action-buttons button {
 //             width: 100% !important;
 //             font-size: 18px !important;
 //           }
-
+          
 //           .reviews-section {
 //             padding: 20px 20px !important;
 //           }
-
+          
 //           .reviews-header {
 //             margin-left: 0 !important;
 //           }
-
+          
 //           .reviews-grid {
 //             grid-template-columns: 1fr !important;
 //           }
-
+          
 //           .range-grid {
 //             grid-template-columns: repeat(2, 1fr) !important;
-//             gap: 16px !important;
-//             padding: 0 20px !important;
+//             gap: 12px !important;
+//             padding: 0 4px !important;
 //           }
-
+          
 //           .range-title {
 //             font-size: 32px !important;
 //           }
-
+          
 //           .reviews-buttons {
 //             flex-direction: column !important;
 //             width: 100% !important;
 //           }
-
+          
 //           .reviews-buttons button {
 //             width: 100% !important;
 //           }
-
+          
 //           .popup-content {
 //             padding: 20px !important;
 //             max-height: calc(100vh - 32px) !important;
 //           }
 //         }
-
+        
 //         @media (max-width: 480px) {
 //           .range-grid {
-//             grid-template-columns: 1fr !important;
+//             grid-template-columns: repeat(2, 1fr) !important;
+//             gap: 8px !important;
+//             padding: 0 8px !important;
 //           }
 //         }
 //       `}</style>
@@ -1201,7 +1287,7 @@
 //             <div className="icon-wrapper">
 //               <Package size={60} />
 //             </div>
-//             <h2 className="shimmer-text">Loading product...</h2>
+//             <h2 className="shimmer-text">Loading...</h2>
 //           </div>
 //         </div>
 //       )}
@@ -1718,6 +1804,8 @@
 // export default ProductPage;
 
 
+
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
@@ -1827,30 +1915,6 @@ const ProductPage = () => {
     setShowCustomModal(true);
   };
 
-  // const handleAddToCart = async (productId) => {
-  //   try {
-  //     await addToCartApi(productId, 1);
-  //     await refreshCart();
-  //     setOpenSideCart(true);
-  //     showNotification("success", "Success!", "Product added to cart 🛒");
-  //   } catch (error) {
-  //     const message = error.response?.data?.message;
-
-  //     if (message && message.toLowerCase().includes("stock")) {
-  //       showNotification("error", "Out of Stock", message);
-  //       return;
-  //     }
-
-  //     if (error.response?.status === 401) {
-  //       showNotification("error", "Login Required", "Please login to add to cart");
-  //       setShowLoginModal(true);
-  //       return;
-  //     }
-
-  //     showNotification("error", "Error", message || "Something went wrong");
-  //   }
-  // };
-
 
   const handleAddToCart = async (productId) => {
     try {
@@ -1869,41 +1933,6 @@ const ProductPage = () => {
       const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
       const existing = guestCart.find((item) => item.productId === productId);
-
-      // if (existing) {
-      //   existing.quantity += qty;
-      // } else {
-      //   guestCart.push({
-      //     productId,
-      //     name: product.name,
-      //     price: product.price,
-      //     originalPrice: product.originalPrice,
-      //     image: product.images?.[0]?.url,
-      //     quantity: qty
-      //   });
-      // }
-
-
-      // if (existing) {
-
-      //   existing.quantity += qty;
-
-      //   // ⭐ ensure originalPrice always exists
-      //   if (!existing.originalPrice && product.originalPrice) {
-      //     existing.originalPrice = product.originalPrice;
-      //   }
-
-      // } else {
-
-      //   guestCart.push({
-      //     productId,
-      //     product: product,          // ← full product object
-      //     price: product.price,
-      //     originalPrice: product.originalPrice,
-      //     quantity: qty
-      //   });
-
-      // }
 
       if (existing) {
         existing.quantity += qty;
@@ -1927,9 +1956,13 @@ const ProductPage = () => {
         "Product added to cart 🛒"
       );
 
-    } catch (error) {
-      showNotification("error", "Error", "Something went wrong");
-    }
+   } catch (error) {
+  if (product?.countInStock === 0) {
+    showNotification("error", "Out of Stock", "This product is currently out of stock");
+  } else {
+    showNotification("error", "Error", "Something went wrong");
+  }
+}
   };
 
 
@@ -1937,8 +1970,8 @@ const ProductPage = () => {
     if (loading) return;
 
     if (!user || !user._id) {
-      setShowLoginModal(true);
-      return;
+    navigate("/login");
+    return;
     }
 
     navigate("/checkout", {
@@ -3168,34 +3201,56 @@ const ProductPage = () => {
                   </button>
                 </div>
               </div>
-              <div style={styles.actionButtons} className="action-buttons">
-                <button
-                  style={styles.addToCartButton}
-                  onClick={() => handleAddToCart(product._id)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#ffe600";
-                    e.currentTarget.style.color = "#000";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#2f2f2f";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                >
-                  🛒 ADD TO CART
-                </button>
+             
+<div style={styles.actionButtons} className="action-buttons">
+  {product.countInStock > 0 ? (
+    <>
+      <button
+        style={styles.addToCartButton}
+        onClick={() => handleAddToCart(product._id)}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "#ffe600";
+          e.currentTarget.style.color = "#000";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "#2f2f2f";
+          e.currentTarget.style.color = "#fff";
+        }}
+      >
+        🛒 ADD TO CART
+      </button>
 
-                <button
-                  style={{
-                    ...styles.buyNowButton,
-                    opacity: loading ? 0.6 : 1,
-                    cursor: loading ? "not-allowed" : "pointer",
-                  }}
-                  disabled={loading}
-                  onClick={handleBuyNow}
-                >
-                  BUY NOW
-                </button>
-              </div>
+      <button
+        style={{
+          ...styles.buyNowButton,
+          opacity: loading ? 0.6 : 1,
+          cursor: loading ? "not-allowed" : "pointer",
+        }}
+        disabled={loading}
+        onClick={handleBuyNow}
+      >
+        BUY NOW
+      </button>
+    </>
+  ) : (
+    <button
+      disabled
+      style={{
+        ...styles.buyNowButton,
+        flex: 2,
+        background: "#2a2a2a",
+        color: "#9ca3af",
+        border: "1px solid #555",
+        cursor: "not-allowed",
+        opacity: 0.7,
+        fontFamily: "'Bebas Neue', cursive",
+        letterSpacing: "1px",
+      }}
+    >
+      OUT OF STOCK
+    </button>
+  )}
+</div>
             </div>
           </section>
 
