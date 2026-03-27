@@ -1927,9 +1927,13 @@ const ProductPage = () => {
         "Product added to cart 🛒"
       );
 
-    } catch (error) {
-      showNotification("error", "Error", "Something went wrong");
-    }
+   } catch (error) {
+  if (product?.countInStock === 0) {
+    showNotification("error", "Out of Stock", "This product is currently out of stock");
+  } else {
+    showNotification("error", "Error", "Something went wrong");
+  }
+}
   };
 
 
@@ -3168,34 +3172,56 @@ const ProductPage = () => {
                   </button>
                 </div>
               </div>
-              <div style={styles.actionButtons} className="action-buttons">
-                <button
-                  style={styles.addToCartButton}
-                  onClick={() => handleAddToCart(product._id)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#ffe600";
-                    e.currentTarget.style.color = "#000";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#2f2f2f";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                >
-                  🛒 ADD TO CART
-                </button>
+             
+<div style={styles.actionButtons} className="action-buttons">
+  {product.countInStock > 0 ? (
+    <>
+      <button
+        style={styles.addToCartButton}
+        onClick={() => handleAddToCart(product._id)}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "#ffe600";
+          e.currentTarget.style.color = "#000";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "#2f2f2f";
+          e.currentTarget.style.color = "#fff";
+        }}
+      >
+        🛒 ADD TO CART
+      </button>
 
-                <button
-                  style={{
-                    ...styles.buyNowButton,
-                    opacity: loading ? 0.6 : 1,
-                    cursor: loading ? "not-allowed" : "pointer",
-                  }}
-                  disabled={loading}
-                  onClick={handleBuyNow}
-                >
-                  BUY NOW
-                </button>
-              </div>
+      <button
+        style={{
+          ...styles.buyNowButton,
+          opacity: loading ? 0.6 : 1,
+          cursor: loading ? "not-allowed" : "pointer",
+        }}
+        disabled={loading}
+        onClick={handleBuyNow}
+      >
+        BUY NOW
+      </button>
+    </>
+  ) : (
+    <button
+      disabled
+      style={{
+        ...styles.buyNowButton,
+        flex: 2,
+        background: "#2a2a2a",
+        color: "#9ca3af",
+        border: "1px solid #555",
+        cursor: "not-allowed",
+        opacity: 0.7,
+        fontFamily: "'Bebas Neue', cursive",
+        letterSpacing: "1px",
+      }}
+    >
+      OUT OF STOCK
+    </button>
+  )}
+</div>
             </div>
           </section>
 
