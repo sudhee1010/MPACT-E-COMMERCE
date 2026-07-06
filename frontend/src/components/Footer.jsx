@@ -1,295 +1,3 @@
-// import { Link } from "react-router-dom";
-// import { Instagram, Youtube, Linkedin, Twitter } from "lucide-react";
-// import { SiFacebook } from "react-icons/si";
-// import OfferScrollBar from "./OfferScrollBar"
-
-// export default function Footer() {
-//   return (
-//     <>
-//       <OfferScrollBar />
-//       <footer className="mpact-footer">
-//         <style>{`
-//     @import url('https://fonts.googleapis.com/css2?family=Khand:wght@500;600;700;800&display=swap');
-//     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-//     .mpact-footer {
-//       background: #3a3a3a;
-//       color: #ffffff;
-//       padding: 60px 0 0 0;
-//       font-family: 'Inter', sans-serif;
-//     }
-
-//     .footer-wrapper {
-//       max-width: 1400px;
-//       margin: auto;
-//       padding: 0 60px;
-//     }
-
-//     .footer-grid {
-//       display: grid;
-//       grid-template-columns: repeat(5, 1fr);
-//       gap: 50px;
-//       padding-bottom: 60px;
-//     }
-
-//     /* SECTION STYLING */
-//     .footer-section h3 {
-//       font-family: 'Khand', sans-serif;
-//       font-size: 24px;
-//       font-weight: 800;
-//       text-transform: uppercase;
-//       letter-spacing: 1px;
-//       margin-bottom: 8px;
-//       color: white;
-//       padding-bottom: 12px;
-//       border-bottom: 3px solid #ffeb3b;
-//     }
-
-//     .footer-section ul {
-//       list-style: none;
-//       padding: 0;
-//       margin: 0;
-//       margin-top: 24px;
-//     }
-
-//     .footer-section ul li {
-//       margin-bottom: 14px;
-//     }
-
-//     .footer-section ul li a {
-//       color: white;
-//       text-decoration: none;
-//       font-size: 15px;
-//       font-weight: 400;
-//       transition: opacity 0.3s ease;
-//       display: inline-block;
-//     }
-
-//     .footer-section ul li a:hover {
-//       color:#ffeb3b;
-//       opacity: 0.8;
-//       text-decoration: underline;
-//     }
-
-//     /* SOCIAL ICONS */
-//     .footer-social-icons {
-//       display: flex;
-//       gap: 16px;
-//       margin-top: 20px;
-//     }
-
-//     .social-circle {
-//       width: 48px;
-//       height: 48px;
-//       border-radius: 50%;
-//       background: white;
-//       display: flex;
-//       align-items: center;
-//       justify-content: center;
-//       color: #E31E24;
-//       cursor: pointer;
-//       transition: transform 0.3s ease, box-shadow 0.3s ease;
-//     }
-
-//     .social-circle:hover {
-//       transform: scale(1.1);
-//       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-//     }
-
-//     /* CONTACT INFO */
-//     .contact-item {
-//       display: flex;
-//       align-items: flex-start;
-//       gap: 12px;
-//       margin-bottom: 18px;
-//       font-size: 15px;
-//       line-height: 1.6;
-//     }
-
-//     .contact-item svg,
-//     .contact-item .icon {
-//       flex-shrink: 0;
-//       margin-top: 2px;
-//     }
-
-//     /* BOTTOM BAR */
-//     .footer-bottom {
-//       background: #3a3a4a;
-//       padding: 20px 60px;
-//       text-align: center;
-//       font-size: 14px;
-//       color: white;
-//     }
-
-//     /* RESPONSIVE */
-//     @media (max-width: 1100px) {
-//       .footer-grid {
-//         grid-template-columns: repeat(3, 1fr);
-//         gap: 40px;
-//       }
-//     }
-
-//     @media (max-width: 768px) {
-//       .footer-wrapper {
-//         padding: 0 30px;
-//       }
-
-//       .footer-grid {
-//         grid-template-columns: repeat(2, 1fr);
-//         gap: 35px;
-//       }
-
-//       .footer-bottom {
-//         padding: 20px 30px;
-//       }
-//     }
-
-//     @media (max-width: 500px) {
-//       .footer-wrapper {
-//         padding: 0 20px;
-//       }
-
-//       .footer-grid {
-//         grid-template-columns: 1fr;
-//         gap: 30px;
-//       }
-
-//       .footer-section h3 {
-//         font-size: 20px;
-//       }
-
-//       .footer-bottom {
-//         padding: 20px;
-//         font-size: 13px;
-//       }
-//     }
-//   `}</style>
-
-//         <div className="footer-wrapper">
-//           <div className="footer-grid">
-//             {/* SHOP ALL */}
-//             <div className="footer-section">
-//               <h3>SHOP ALL</h3>
-//               <ul>
-//                 {/* <li><a href="/">Home</a></li> */}
-//                 <li><a href="/product">Products</a></li>
-//                 {/* <li><a href="/distributor">Distributor</a></li> */}
-
-//                 {/* <li><a href="/products/protein-bars">Protein Bars</a></li>
-//                 <li><a href="/products/pre-workout">Pre-Workout</a></li>
-//                 <li><a href="/products/supplements">Supplements</a></li> */}
-//               </ul>
-//             </div>
-
-//             {/* KNOW MORE */}
-//             <div className="footer-section">
-//               <h3>KNOW MORE</h3>
-//               <ul>
-//                 <li><a href="/blog">Blogs</a></li>
-//                 <li><a href="/tracking">Tracking Link</a></li>
-//                 {/* <li><a href="/pro">MPACT Pro</a></li> */}
-//                 <li><a href="/about">About Us</a></li>
-//                 <li><a href="/faq">FAQ</a></li>
-//                 <li><a href="/connect">Connect Now</a></li>
-//               </ul>
-//             </div>
-
-//             {/* SUPPORT & POLICY */}
-//             <div className="footer-section">
-//               <h3>SUPPORT & POLICY</h3>
-//               <ul>
-//                 {/* <li><a href="/refer">Refer & Earn</a></li> */}
-//                 <li><a href="/terms-and-conditions">Terms and Conditions</a></li>
-//                 <li><a href="/privacy-policy">Privacy Policy</a></li>
-//                 <li><a href="/return-policy">Return Policy</a></li>
-//                 <li><a href="/help">Help and Support</a></li>
-//                 <li><a href="/contact-us">Contact Us</a></li>
-//                 <li><a href="/shipping-policy">Shipping Policy </a></li>
-//               </ul>
-//             </div>
-
-//             {/* FOLLOW ALONG */}
-//             {/* FOLLOW ALONG */}
-//             <div className="footer-section">
-//               <h3>FOLLOW ALONG</h3>
-//               <div className="footer-social-icons">
-
-//                 {/* Instagram */}
-//                 <a
-//                   href="https://www.instagram.com/mpact.in?igsh=MTc5aGRmcmNtc3F0OQ=="
-//                   target="_blank"
-//                   rel="noopener noreferrer"
-//                 >
-//                   <div className="social-circle">
-//                     <Instagram size={22} strokeWidth={2} />
-//                   </div>
-//                 </a>
-
-//                 {/* YouTube */}
-//                 <a
-//                   href="https://www.youtube.com/@mpact_fit"
-//                   target="_blank"
-//                   rel="noopener noreferrer"
-//                 >
-//                   <div className="social-circle">
-//                     <Youtube size={22} strokeWidth={2} />
-//                   </div>
-//                 </a>
-
-//                 <a
-//                   href="https://www.linkedin.com/in/mpact-in-8b5b753b2?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
-//                   target="_blank"
-//                   rel="noopener noreferrer"
-//                 >
-//                   <div className="social-circle">
-//                     <Linkedin size={22} strokeWidth={2} />
-//                   </div>
-//                 </a>
-
-//                 <a
-//                   href="https://x.com/mpact_in?s=11"
-//                   target="_blank"
-//                   rel="noopener noreferrer"
-//                 >
-//                   <div className="social-circle">
-//                     <Twitter size={22} strokeWidth={2} />
-//                   </div>
-//                 </a>
-//               </div>
-//             </div>
-
-//             {/* GET IN TOUCH */}
-//             <div className="footer-section">
-//               <h3>GET IN TOUCH</h3>
-//               <div className="contact-item">
-//                 <span className="icon">📱</span>
-//                 <span>+91 8075711893</span>
-//               </div>
-//               <div className="contact-item">
-//                 <span className="icon">✉️</span>
-//                 <span>support@mpact.in</span>
-//               </div>
-//               <div className="contact-item">
-//                 <span className="icon">🕐</span>
-//                 <div>
-//                   <div>10AM - 6PM IST</div>
-//                   <div>(Monday to Saturday)</div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-
-//         <div className="footer-bottom">
-//           COPYRIGHT © MPACT 2025 – ALL RIGHTS RESERVED
-//           <h2>Design and Developed by Scipy Technologies</h2>
-//         </div>
-//       </footer>
-//     </>
-//   );
-// }
-
-
 import { Link } from "react-router-dom";
 import { Instagram, Youtube, Linkedin, Facebook } from "lucide-react";
 import OfferScrollBar from "./OfferScrollBar"
@@ -314,7 +22,7 @@ export default function Footer() {
       background: #000000;
       color: #ffffff;
       padding: 60px 0 0 0;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Bebas Neue', sans-serif;
     }
 
     .footer-wrapper {
@@ -334,9 +42,9 @@ export default function Footer() {
     .footer-section h3 {
       fontFamily: "'Bebas Neue', cursive";
       font-size: 24px;
-      font-weight: 800;
+      font-weight: 100;
       text-transform: uppercase;
-      letter-spacing: -0.1rem;
+      letter-spacing: -0rem;
       margin-bottom: 8px;
       color: white;
       padding-bottom: 12px;
@@ -358,10 +66,11 @@ export default function Footer() {
       color: white;
       text-decoration: none;
       font-size: 15px;
-      font-weight: 400;
+      font-weight: 100;
+      letter-spacing: 0.5px;
       transition: opacity 0.3s ease;
       display: inline-block
-      fontFamily: "'Poppins', sans-serif";
+      fontFamily: "'Bebas Neue', cursive";
     }
 
     .footer-section ul li a:hover {
@@ -416,10 +125,11 @@ export default function Footer() {
     /* BOTTOM BAR */
     .footer-bottom {
       background: #3a3a4a;
-      padding: 20px 60px;
+      padding: 5px 20px;
       text-align: center;
-      font-size: 14px;
+      font-size: 12px;
       color: white;
+      font-family: 'Arial', sans-serif;
     }
 
     /* RESPONSIVE */
@@ -560,15 +270,15 @@ export default function Footer() {
             <div className="footer-section">
               <h3>GET IN TOUCH</h3>
               <div className="contact-item">
-                <span className="icon">📱</span>
+                {/* <span className="icon">📱</span> */}
                 <span>+91 8075711893</span>
               </div>
               <div className="contact-item">
-                <span className="icon">✉️</span>
+                {/* <span className="icon">✉️</span> */}
                 <span>support@mpact.in</span>
               </div>
               <div className="contact-item">
-                <span className="icon">🕐</span>
+                {/* <span className="icon">🕐</span> */}
                 <div>
                   <div>10AM - 6PM IST</div>
                   <div>(Monday to Saturday)</div>
@@ -579,8 +289,8 @@ export default function Footer() {
         </div>
 
         <div className="footer-bottom">
-          COPYRIGHT © MPACT 2025 – ALL RIGHTS RESERVED
-          <h2>Design and Developed by Scipy Technologies</h2>
+          COPYRIGHT © MPACT 2026 – ALL RIGHTS RESERVED
+          Design and Developed by Scipy Technologies
         </div>
       </footer>
     </>
