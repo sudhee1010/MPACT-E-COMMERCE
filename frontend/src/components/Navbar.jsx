@@ -266,11 +266,12 @@ export default function Navbar() {
       position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
       backgroundColor: "rgba(0,0,0,0.75)", display: "flex",
       alignItems: "center", justifyContent: "center", zIndex: 2000, backdropFilter: "blur(8px)",
+      padding: "16px",
     },
     modal: {
       backgroundColor: "#1a1a1a", padding: "2.5rem", borderRadius: "20px",
-      border: "2px solid #ffd400", width: "340px", textAlign: "center",
-      color: "white", boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)",
+      border: "2px solid #ffd400", width: "340px", maxWidth: "100%", textAlign: "center",
+      color: "white", boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5)", boxSizing: "border-box",
     },
     loginBtn: {
       backgroundColor: "#ffd400", border: "none", padding: "0.75rem 1.75rem",
@@ -290,11 +291,18 @@ export default function Navbar() {
       @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
 
-        :root { --navbar-height: 92px; --promo-height: 36px; }
+        :root {
+          --navbar-height: 92px;
+          --promo-height: 36px;
+          --safe-top: env(safe-area-inset-top, 0px);
+          --safe-bottom: env(safe-area-inset-bottom, 0px);
+          --safe-left: env(safe-area-inset-left, 0px);
+          --safe-right: env(safe-area-inset-right, 0px);
+        }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        html, body { scrollbar-width: none; -ms-overflow-style: none; }
+        html, body { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hidden; max-width: 100%; }
         html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
         body {
@@ -328,13 +336,15 @@ export default function Navbar() {
           position: fixed;
           top: 0; left: 0;
           width: 100%;
-          height: var(--promo-height);
+          height: calc(var(--promo-height) + var(--safe-top));
+          padding-top: var(--safe-top);
           background: #111111;
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 1200;
           border-bottom: 1px solid rgba(255, 212, 0, 0.2);
+          box-sizing: border-box;
         }
         .promo-inner {
           width: 100%;
@@ -343,7 +353,9 @@ export default function Navbar() {
           align-items: center;
           justify-content: center;
           gap: 8px;
+          padding: 0 12px;
           animation: promoFade 0.25s ease;
+          box-sizing: border-box;
         }
         .promo-text {
           color: #FFD700;
@@ -351,8 +363,12 @@ export default function Navbar() {
           font-weight: 700;
           letter-spacing: 1.5px;
           font-size: 14px;
-          line-height: 1;
-          fontFamily: "'Poppins', sans-serif"
+          line-height: 1.2;
+          fontFamily: "'Poppins', sans-serif";
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
         }
         .promo-arrow {
           background: transparent;
@@ -360,18 +376,20 @@ export default function Navbar() {
           color: #ffd400;
           height: 100%;
           width: 44px;
+          min-width: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           opacity: 0.85;
+          flex-shrink: 0;
         }
         .promo-arrow:hover { opacity: 1; }
 
         /* ── NAVBAR ─────────────────────────────────── */
         .navbar {
           position: fixed;
-          top: var(--promo-height); left: 0;
+          top: calc(var(--promo-height) + var(--safe-top)); left: 0;
           width: 100%;
           height: var(--navbar-height);
           background: #000000;
@@ -379,10 +397,13 @@ export default function Navbar() {
           align-items: center;
           justify-content: space-between;
           padding: 0 60px;
+          padding-left: calc(60px + var(--safe-left));
+          padding-right: calc(60px + var(--safe-right));
           z-index: 1100;
           overflow: visible;
           box-shadow: 0 4px 24px rgba(255, 212, 0, 0.12);
           border-bottom: 1px solid rgba(255, 212, 0, 0.15);
+          box-sizing: border-box;
         }
 
         /* ── LOGO IMAGE ─────────────────────────────── */
@@ -395,6 +416,7 @@ export default function Navbar() {
 
         .nav-logo img {
           height: 120px;
+          max-height: 80%;
           width: auto;
           object-fit: contain;
           /* glow transition only — scale/translate handled inline */
@@ -418,6 +440,8 @@ export default function Navbar() {
           display: flex;
           gap: 8px;
           z-index: 1;
+          max-width: 55vw;
+          flex-wrap: nowrap;
         }
 
         .nav-tab {
@@ -472,6 +496,7 @@ export default function Navbar() {
           gap: 12px;
           position: relative;
           z-index: 1200;
+          flex-shrink: 0;
         }
 
         .nav-icon-btn {
@@ -521,6 +546,7 @@ export default function Navbar() {
 
         .search-input {
           width: 150px;
+          max-width: 30vw;
           padding: 9px 14px;
           border-radius: 24px;
           border: 2px solid #ffd400;
@@ -530,6 +556,7 @@ export default function Navbar() {
           color: #ffd400;
           outline: none;
           box-shadow: none;
+          box-sizing: border-box;
         }
 
         .search-input::placeholder { color: rgba(255, 212, 0, 0.45); }
@@ -540,12 +567,13 @@ export default function Navbar() {
           position: absolute;
           top: calc(100% + 52px);
           right: 0;
-          width: 300px;
+          width: min(300px, 90vw);
+          max-width: calc(100vw - 32px - var(--safe-left) - var(--safe-right));
           background: #1a1a1a;
           border: 2px solid #ffd400;
           border-radius: 16px;
           overflow-y: auto;
-          max-height: 360px;
+          max-height: min(360px, 60vh);
           z-index: 2000;
           animation: suggFadeIn 0.2s ease;
           box-shadow: 0 12px 40px rgba(0,0,0,0.6);
@@ -561,17 +589,20 @@ export default function Navbar() {
         .mobile-search-bar {
           display: none;
           position: fixed;
-          top: calc(var(--navbar-height) + var(--promo-height));
+          top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top));
           left: 0;
           width: 100%;
           background: #111111;
           padding: 12px 16px;
+          padding-left: calc(16px + var(--safe-left));
+          padding-right: calc(16px + var(--safe-right));
           z-index: 1090;
           box-shadow: 0 4px 20px rgba(0,0,0,0.4);
           flex-direction: column;
           gap: 8px;
           animation: mobileSearchSlide 0.25s ease;
           border-bottom: 1px solid rgba(255, 212, 0, 0.2);
+          box-sizing: border-box;
         }
 
         .mobile-search-bar.visible { display: flex; }
@@ -584,10 +615,13 @@ export default function Navbar() {
           border-radius: 14px;
           padding: 10px 16px;
           border: 2px solid #ffd400;
+          box-sizing: border-box;
+          width: 100%;
         }
 
         .mobile-search-inner input {
           flex: 1;
+          min-width: 0;
           border: none;
           background: transparent;
           font-size: 16px;
@@ -609,6 +643,8 @@ export default function Navbar() {
           box-shadow: 0 8px 30px rgba(0,0,0,0.5);
           scrollbar-width: thin;
           scrollbar-color: #ffd400 #1a1a1a;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .mobile-sugg-list::-webkit-scrollbar { width: 4px; }
@@ -700,18 +736,22 @@ export default function Navbar() {
         /* ── MOBILE MENU ────────────────────────────── */
         .mobile-menu {
           position: fixed;
-          top: calc(var(--navbar-height) + var(--promo-height)); left: 0;
+          top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top)); left: 0;
           width: 100%;
           background: #000000;
           display: flex; flex-direction: column; align-items: center;
           gap: 8px; padding: 20px;
+          padding-bottom: calc(20px + var(--safe-bottom));
+          padding-left: calc(20px + var(--safe-left));
+          padding-right: calc(20px + var(--safe-right));
           transform: translateY(-120%);
           transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
           z-index: 1050;
           box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          max-height: calc(100vh - var(--navbar-height));
+          max-height: calc(100vh - var(--navbar-height) - var(--promo-height) - var(--safe-top));
           overflow-y: auto;
           border-bottom: 1px solid rgba(255, 212, 0, 0.2);
+          box-sizing: border-box;
         }
 
         .mobile-menu.open { transform: translateY(0); }
@@ -723,6 +763,7 @@ export default function Navbar() {
           transition: all 0.3s ease; text-decoration: none;
           background: rgba(255, 212, 0, 0.06);
           border: 1px solid rgba(255, 212, 0, 0.1);
+          box-sizing: border-box;
         }
 
         .mobile-tab.active {
@@ -743,9 +784,18 @@ export default function Navbar() {
 
         .mobile-tab.active .mobile-tab-label { font-weight: 700; color: #ffffff; }
 
-        .page-wrapper { padding-top: calc(var(--navbar-height) + var(--promo-height)); }
+        .page-wrapper { padding-top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top)); }
 
         /* ── RESPONSIVE ─────────────────────────────── */
+
+        /* Small laptops / large tablets: tighten spacing before the hamburger breakpoint */
+        @media (max-width: 1280px) and (min-width: 1107px) {
+          .navbar { padding: 0 32px; padding-left: calc(32px + var(--safe-left)); padding-right: calc(32px + var(--safe-right)); }
+          .nav-tabbar { gap: 2px; padding: 12px 10px; }
+          .nav-tab { padding: 8px 10px; min-width: 56px; }
+          .nav-tab-label { font-size: 18px; }
+        }
+
         @media (max-width: 1106px) {
           .nav-tabbar { display: none; }
           .hamburger  { display: block; }
@@ -753,27 +803,77 @@ export default function Navbar() {
           .search-suggestions { display: none !important; }
         }
 
+        /* Tablets (portrait) */
+        @media (max-width: 900px) {
+          .navbar { padding: 0 32px; padding-left: calc(32px + var(--safe-left)); padding-right: calc(32px + var(--safe-right)); }
+          .nav-logo img { height: 110px; }
+        }
+
         @media (max-width: 768px) {
-          .navbar { padding: 0 24px; }
+          .navbar { padding: 0 24px; padding-left: calc(24px + var(--safe-left)); padding-right: calc(24px + var(--safe-right)); }
           .nav-logo img { height: 130px; }
           .nav-icon-btn { width: 42px; height: 42px; }
           .nav-icons { gap: 8px; }
         }
 
+        /* Large phones */
         @media (max-width: 600px) {
           :root { --navbar-height: 72px; --promo-height: 32px; }
-          .navbar { padding: 0 16px; }
+          .navbar { padding: 0 16px; padding-left: calc(16px + var(--safe-left)); padding-right: calc(16px + var(--safe-right)); }
           .nav-logo img { height: 100px; }
           .nav-icon-btn { width: 38px; height: 38px; }
+          .nav-icon-btn svg { width: 20px; height: 20px; }
           .nav-icons { gap: 6px; }
           .hamburger { font-size: 22px; padding: 8px; }
+          .promo-text { font-size: 12px; letter-spacing: 1px; max-width: 65vw; }
+          .promo-arrow { width: 32px; }
         }
 
-        @media (max-width: 380px) {
-          .navbar { padding: 0 12px; }
-          .nav-logo img { height: 90px; }
+        /* Standard phones (e.g. iPhone 12/13/14, Pixel) */
+        @media (max-width: 480px) {
+          :root { --navbar-height: 68px; --promo-height: 30px; }
+          .navbar { padding: 0 14px; padding-left: calc(14px + var(--safe-left)); padding-right: calc(14px + var(--safe-right)); }
+          .nav-logo img { height: 88px; }
           .nav-icon-btn { width: 36px; height: 36px; }
+          .nav-icons { gap: 5px; }
+          .mobile-search-bar { padding: 10px 14px; }
+          .mobile-search-inner { padding: 8px 12px; }
+          .mobile-search-inner input { font-size: 15px; }
+          .mobile-tab { width: 100%; padding: 12px 18px; }
+        }
+
+        /* Small phones (e.g. iPhone SE, older Androids) */
+        @media (max-width: 380px) {
+          .navbar { padding: 0 12px; padding-left: calc(12px + var(--safe-left)); padding-right: calc(12px + var(--safe-right)); }
+          .nav-logo img { height: 78px; }
+          .nav-icon-btn { width: 34px; height: 34px; }
           .nav-icons { gap: 4px; }
+          .promo-text { font-size: 11px; max-width: 55vw; }
+          .promo-arrow { width: 26px; min-width: 26px; }
+        }
+
+        /* Very narrow / foldables closed (e.g. Galaxy Fold cover screen) */
+        @media (max-width: 320px) {
+          .navbar { padding: 0 8px; padding-left: calc(8px + var(--safe-left)); padding-right: calc(8px + var(--safe-right)); }
+          .nav-logo img { height: 64px; }
+          .nav-icon-btn { width: 30px; height: 30px; }
+          .nav-icon-btn svg { width: 16px; height: 16px; }
+          .nav-icons { gap: 3px; }
+          .hamburger { font-size: 18px; padding: 6px; }
+          .promo-text { font-size: 10px; max-width: 48vw; }
+          .promo-arrow { width: 20px; min-width: 20px; }
+        }
+
+        /* Short viewports / landscape phones: keep menus scrollable & usable */
+        @media (max-height: 480px) {
+          .mobile-menu { max-height: calc(100vh - 56px); padding: 12px; gap: 4px; }
+          .mobile-tab { padding: 10px 18px; }
+          .mobile-sugg-list { max-height: 40vh; }
+        }
+
+        /* Ensure search dropdown never overflows small screens */
+        @media (max-width: 400px) {
+          .search-suggestions { right: -8px; }
         }
       `}</style>
 
@@ -1023,7 +1123,7 @@ export default function Navbar() {
           <div style={modalStyles.modal} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginBottom: "1rem", color: "#ffd400", fontSize: "26px", fontWeight: "bold" }}>Login Required</h3>
             <p style={{ marginBottom: "1.5rem", color: "#ccc", fontSize: "15px" }}>Please login to continue with your action.</p>
-            <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
               <button
                 style={modalStyles.loginBtn}
                 onClick={() => { setShowLoginModal(false); navigate("/login"); }}
