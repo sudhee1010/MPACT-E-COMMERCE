@@ -382,7 +382,7 @@ const MotivationalSection = () => {
         .div-block-16 {
           width: 100%;
           margin-top: -1.5vw;
-          margin-bottom: -2.5vw;
+          margin-bottom: 0;
           display: block;
         }
 
@@ -391,6 +391,7 @@ const MotivationalSection = () => {
           justify-content: center;
           align-self: center;
           align-items: center;
+          min-height: 1px;
         }
 
         .div-block-45 {
@@ -409,9 +410,9 @@ const MotivationalSection = () => {
           outline-offset: 0px;
           display: inline-flex;
           flex: none;
-          justify-content: flex-start;
+          justify-content: center;
           align-items: center;
-          padding: 0;
+          padding: clamp(0.6rem, 1.2vw, 1rem) clamp(1.5rem, 4vw, 3rem);
           position: relative;
           transform: rotate(3deg);
         }
@@ -454,11 +455,12 @@ const MotivationalSection = () => {
           font-family: 'Proxima Nova', 'Helvetica', 'Arial', sans-serif;
           font-size: clamp(13px, 1.04vw, 18px);
           font-weight: 400;
-          line-height: 1.5;
-          width: clamp(260px, 26vw, 500px);
-          margin-bottom: 0;
+          line-height: 1.6;
+          width: min(92vw, 580px);
+          margin: 0 auto;
           text-align: center;
           color: var(--milk);
+          letter-spacing: 0.01em;
         }
 
         /* ── WORD SPAN ── */
@@ -549,7 +551,7 @@ const MotivationalSection = () => {
           }
 
           .div-block-95 { margin-top: 5vw; }
-          .paragraph { width: 75%; font-size: clamp(13px, 2vw, 18px); }
+          .paragraph { width: min(90vw, 540px); font-size: clamp(13px, 2vw, 18px); }
         }
 
         /* ── Large phone / small tablet (600px–767px) ── */
@@ -575,7 +577,7 @@ const MotivationalSection = () => {
             outline-width: clamp(2px, 0.8vw, 5px);
           }
 
-          .paragraph { width: 80%; font-size: 14px; line-height: 1.55; }
+          .paragraph { width: min(90vw, 520px); font-size: 14px; line-height: 1.55; }
           .div-block-95 { margin-top: 6vw; }
         }
 
@@ -601,7 +603,7 @@ const MotivationalSection = () => {
             padding: 0 2.5vw 0.15em;
           }
 
-          .paragraph { width: 86%; font-size: 13.5px; }
+          .paragraph { width: min(92vw, 500px); font-size: 13.5px; }
           .div-block-95 { margin-top: 7vw; }
         }
 
@@ -630,7 +632,7 @@ const MotivationalSection = () => {
 
           .fuel-up_wrapper { outline-width: 2px; }
 
-          .paragraph { width: 90%; font-size: 13px; line-height: 1.6; }
+          .paragraph { width: min(94vw, 480px); font-size: 13px; line-height: 1.6; }
           .div-block-95 { margin-top: 8vw; }
         }
 
@@ -651,13 +653,13 @@ const MotivationalSection = () => {
 
                 <div id="w-node-cbba1394-4c2d-b94f-4804-97ed68fafb8d-8dfd2cdc">
                   <h1 className="s2 scrub-line" ref={el => textSplitRefs.current[0] = el}>
-                    STIR UP YOUR
+                    REAL INGREDIENTS
                   </h1>
                 </div>
 
                 <div id="w-node-cbba1394-4c2d-b94f-4804-97ed68fafb90-8dfd2cdc">
                   <h1 className="s2 scrub-line" ref={el => textSplitRefs.current[1] = el}>
-                    FEARLESS PAST AND
+                    CLEAN NUTRITION AND
                   </h1>
                 </div>
 
@@ -665,7 +667,7 @@ const MotivationalSection = () => {
                   <div id="w-node-cbba1394-4c2d-b94f-4804-97ed68fafb94-8dfd2cdc" className="div-block-46">
                     <div id="w-node-cbba1394-4c2d-b94f-4804-97ed68fafb95-8dfd2cdc" className="div-block-45">
                       <div className="fuel-up_wrapper" ref={boxAnimationRef}>
-                        <h1 className="heading-1 faeade _2">FUEL UP</h1>
+                        <h1 className="heading-1 faeade _2">MPACT</h1>
                       </div>
                     </div>
                   </div>
@@ -673,23 +675,23 @@ const MotivationalSection = () => {
 
                 <div id="w-node-cbba1394-4c2d-b94f-4804-97ed68fafb99-8dfd2cdc" className="div-block-60">
                   <h1 className="s2 scrub-line" ref={el => textSplitRefs.current[2] = el}>
-                    YOUR FUTURE WITH EVERY
+                    FUEL YOUR BODY WITH EVERY
                   </h1>
                 </div>
 
                 <div id="w-node-cbba1394-4c2d-b94f-4804-97ed68fafb9c-8dfd2cdc">
                   <h1 className="s2 scrub-line" ref={el => textSplitRefs.current[3] = el}>
-                    GULP OF PERFECT PROTEIN
+                    SPOONFUL OF GOODNESS
                   </h1>
                 </div>
 
               </div>
               <div className="div-block-95">
                 <p
-                  className="paragraph center width-26vw white"
+                  className="paragraph"
                   ref={lettersSlideUpRef}
                 >
-                  Rev up your rebel spirit and feed the adventure of life with SPYLT, where you're one chug away from epic nostalgia and fearless fun.
+                  At MPACT, we keep it real. No added sugar, no preservatives, no artificial ingredients. Just premium peanuts, real ingredients and the perfect balance of protein and good fats to fuel your every rep, run and routine.
                 </p>
               </div>
             </div>
