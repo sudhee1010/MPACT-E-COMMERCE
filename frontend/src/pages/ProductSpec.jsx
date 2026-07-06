@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 // import React, { useState, useEffect } from "react";
 // import { Link } from "react-router-dom";
 // import Footer from "../components/Footer";
@@ -1806,13 +1808,14 @@
 
 
 
+>>>>>>> 74b9f19a86ec6202b8cf398c1d9d103e09fb955c
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import { useParams } from "react-router-dom";
 import api from "../services/api.js";
 import toast from "react-hot-toast";
-import { Package, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Package, CheckCircle, XCircle, AlertCircle, ShoppingCart } from "lucide-react";
 import { addToCartApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -1915,7 +1918,10 @@ const ProductPage = () => {
     setShowCustomModal(true);
   };
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 74b9f19a86ec6202b8cf398c1d9d103e09fb955c
   const handleAddToCart = async (productId) => {
     try {
 
@@ -1925,7 +1931,7 @@ const ProductPage = () => {
         await refreshCart();
         setOpenSideCart(true);
 
-        showNotification("success", "Success!", "Product added to cart 🛒");
+        showNotification("success", "Success!", "Product added to cart");
         return;
       }
 
@@ -1953,7 +1959,7 @@ const ProductPage = () => {
       showNotification(
         "success",
         "Added to Cart",
-        "Product added to cart 🛒"
+        "Product added to cart"
       );
 
    } catch (error) {
@@ -2043,7 +2049,7 @@ const ProductPage = () => {
 
   const styles = {
     container: {
-      background: "#2f2f2f",
+      background: "#1b1b1b",
       color: "#fff",
     },
     productSection: {
@@ -2164,7 +2170,7 @@ const ProductPage = () => {
       borderRadius: 12,
       overflow: "hidden",
       height: 52,
-      background: "#2f2f2f",
+      background: "#1b1b1b",
       width: "fit-content",
     },
     quantityButton: {
@@ -2203,7 +2209,7 @@ const ProductPage = () => {
       alignItems: "center",
       justifyContent: "center",
       gap: 10,
-      background: "#2f2f2f",
+      background: "#1b1b1b",
       color: "#fff",
       padding: "0 20px",
       fontSize: 23,
@@ -2537,7 +2543,7 @@ const ProductPage = () => {
       border: "1px solid #ffe600",
       borderRadius: 16,
       padding: 16,
-      background: "#2f2f2f",
+      background: "#1b1b1b",
       width: "100%",
       boxSizing: "border-box",
       display: "flex",
@@ -2597,13 +2603,13 @@ const ProductPage = () => {
       border: "1px solid #ffe600",
       borderRadius: 12,
       padding: 20,
-      background: "#2f2f2f",
+      background: "#1b1b1b",
       width: "100%",
       boxSizing: "border-box",
     },
     rangeSection: {
       padding: "64px 0",
-      background: "#2f2f2f",
+      background: "#1b1b1b",
     },
     rangeTitle: {
       fontFamily: "'Jersey 25', sans-serif",
@@ -3031,6 +3037,53 @@ const ProductPage = () => {
             padding: 0 8px !important;
           }
         }
+
+        /* ================= RESPONSIVE CART ICON ================= */
+        .cart-icon {
+          display: inline;
+          vertical-align: middle;
+          flex-shrink: 0;
+        }
+        
+        .cart-icon-btn {
+          margin-right: clamp(4px, 2vw, 8px);
+        }
+
+        /* Desktop */
+        @media (min-width: 1025px) {
+          .cart-icon-btn {
+            width: 18px;
+            height: 18px;
+            margin-right: 6px;
+          }
+        }
+
+        /* Tablet (768px - 1024px) */
+        @media (max-width: 1024px) and (min-width: 769px) {
+          .cart-icon-btn {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+          }
+        }
+
+        /* Mobile (max 768px) */
+        @media (max-width: 768px) {
+          .cart-icon-btn {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+          }
+        }
+
+        /* Small phones (max 480px) */
+        @media (max-width: 480px) {
+          .cart-icon-btn {
+            width: 12px;
+            height: 12px;
+            margin-right: 3px;
+          }
+        }
       `}</style>
 
       {loading && (
@@ -3213,11 +3266,11 @@ const ProductPage = () => {
           e.currentTarget.style.color = "#000";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = "#2f2f2f";
+          e.currentTarget.style.background = "#1b1b1b";
           e.currentTarget.style.color = "#fff";
         }}
       >
-        🛒 ADD TO CART
+        <ShoppingCart className="cart-icon cart-icon-btn" /> ADD TO CART
       </button>
 
       <button

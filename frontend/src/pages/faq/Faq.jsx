@@ -173,7 +173,7 @@
 //           background-color: #ffee00;
 //           font-family: 'Khand', sans-serif;
 //           font-weight: bold;
-//           color: #2f2f2f;
+//           color: #1b1b1b;
 //           font-size: 23px;
 //           border: none;
 //           border-radius: 7px;
@@ -239,7 +239,7 @@
 
 //         .cta-button {
 //           background-color: #ffee00;
-//           color: #2f2f2f;
+//           color: #1b1b1b;
 //           font-family: 'Khand', sans-serif;
 //           font-size: 24px;
 //           font-weight: bold;
@@ -452,7 +452,7 @@ const Faq = () => {
           width: 100%;
           padding: 14px 50px 14px 18px;
           background-color: #ffee00;
-          color: #2f2f2f;
+          color: #1b1b1b;
           font-family: 'Khand', sans-serif;
           font-size: 22px;
           font-weight: bold;

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Footer from "../components/Footer";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 // import axios from "axios";
 import api from "../api/axios";
@@ -1621,6 +1621,54 @@ export default function ProductPage() {
             font-size: 9px;
           }
         }
+        
+        /* ================= RESPONSIVE CART ICON ================= */
+        .cart-icon {
+          display: inline;
+          vertical-align: middle;
+          flex-shrink: 0;
+        }
+        
+        .cart-icon-btn {
+          margin-right: clamp(4px, 2vw, 8px);
+        }
+
+        /* Desktop */
+        @media (min-width: 1025px) {
+          .cart-icon-btn {
+            width: 18px;
+            height: 18px;
+            margin-right: 6px;
+          }
+        }
+
+        /* Tablet (768px - 1024px) */
+        @media (max-width: 1024px) and (min-width: 769px) {
+          .cart-icon-btn {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+          }
+        }
+
+        /* Mobile (max 768px) */
+        @media (max-width: 768px) {
+          .cart-icon-btn {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+          }
+        }
+
+        /* Small phones (max 480px) */
+        @media (max-width: 480px) {
+          .cart-icon-btn {
+            width: 12px;
+            height: 12px;
+            margin-right: 3px;
+          }
+        }
+
           .card {
   cursor: pointer;
 }
@@ -1669,22 +1717,7 @@ const ProductCard = ({
     setIsHovered(false);
     setCarouselIndex(0);
   };
-  // ─────────────────────────────────────────────────────────────────────────
-
-  // const handleAddToCart = async (productId) => {
-  //   try {
-  //     await addToCartApi(productId, qty);
-  //     toast.success("Product added to cart 🛒");
-  //     await refreshCart();
-  //     setOpenSideCart(true);
-  //   } catch (error) {
-  //     if (error.response?.status === 401) {
-  //       requireLogin();
-  //     } else {
-  //       toast.error("Something went wrong");
-  //     }
-  //   }
-  // };
+  // ───────────────────────────────────────────────────────────────────────── //
 
   const handleAddToCart = async (product) => {
     try {
@@ -1720,7 +1753,7 @@ const ProductCard = ({
 
         localStorage.setItem("guestCart", JSON.stringify(updatedCart));
 
-        toast.success("Added to cart 🛒");
+        toast.success("Added to cart");
 
         setOpenSideCart(true);
 
@@ -1730,7 +1763,7 @@ const ProductCard = ({
       // LOGGED IN USER
       await addToCartApi(product._id, qty);
 
-      toast.success("Product added to cart 🛒");
+      toast.success("Product added to cart");
 
       await refreshCart();
 
@@ -1866,7 +1899,7 @@ const ProductCard = ({
                   handleAddToCart(product);
                 }}
               >
-                🛒 Add to Cart
+                <ShoppingCart className="cart-icon cart-icon-btn" /> Add to Cart
               </button>
 
               <Link
