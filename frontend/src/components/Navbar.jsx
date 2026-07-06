@@ -7,7 +7,7 @@ import { useCart } from "../context/CartContext";
 import { ShoppingCart, User, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../api/axios";
-import MpactLogo from "../assets/mpact-logo.png.PNG";
+import MpactLogo from "../assets/favicon.png";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -416,7 +416,6 @@ export default function Navbar() {
 
         .nav-logo img {
           height: 120px;
-          max-height: 80%;
           width: auto;
           object-fit: contain;
           /* glow transition only — scale/translate handled inline */
@@ -787,15 +786,6 @@ export default function Navbar() {
         .page-wrapper { padding-top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top)); }
 
         /* ── RESPONSIVE ─────────────────────────────── */
-
-        /* Small laptops / large tablets: tighten spacing before the hamburger breakpoint */
-        @media (max-width: 1280px) and (min-width: 1107px) {
-          .navbar { padding: 0 32px; padding-left: calc(32px + var(--safe-left)); padding-right: calc(32px + var(--safe-right)); }
-          .nav-tabbar { gap: 2px; padding: 12px 10px; }
-          .nav-tab { padding: 8px 10px; min-width: 56px; }
-          .nav-tab-label { font-size: 18px; }
-        }
-
         @media (max-width: 1106px) {
           .nav-tabbar { display: none; }
           .hamburger  { display: block; }
