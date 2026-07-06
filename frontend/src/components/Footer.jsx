@@ -311,7 +311,7 @@ export default function Footer() {
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     .mpact-footer {
-      background: #3a3a3a;
+      background: #000000;
       color: #ffffff;
       padding: 60px 0 0 0;
       font-family: 'Inter', sans-serif;

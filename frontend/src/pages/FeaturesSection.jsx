@@ -1509,18 +1509,18 @@ export default function FeaturesSection() {
           will-change: transform, opacity;
         }
 
-        /* ── Colour themes ── */
-        .spylt-box-1 { background: #c88e64; }
-        .spylt-box-1 .spylt-split-word { color: #faeade; }
+/* ── Colour themes ── */
+.spylt-box-1 { background: #000000; }
+.spylt-box-1 .spylt-split-word { color: #ffd500; }
 
-        .spylt-box-2 { background: #7f3b2d; }
-        .spylt-box-2 .spylt-split-word { color: #faeade; }
+.spylt-box-2 { background: #000000; }
+.spylt-box-2 .spylt-split-word { color: #ffd500; }
 
-        .spylt-box-3 { background: #faeade; }
-        .spylt-box-3 .spylt-split-word { color: #2e2d2f; }
+.spylt-box-3 { background: #ffd500; }
+.spylt-box-3 .spylt-split-word { color: #000000; }
 
-        .spylt-box-4 { background: #fed775; }
-        .spylt-box-4 .spylt-split-word { color: #2e2d2f; }
+.spylt-box-4 { background: #ffd500; }
+.spylt-box-4 .spylt-split-word { color: #000000; }
 
         /* ── Bottom label ── */
         .spylt-bottom-label {

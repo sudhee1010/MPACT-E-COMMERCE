@@ -283,7 +283,7 @@ const Checkout = () => {
           gap: 14px;
           padding: 16px 12px;
           border-bottom: 1px solid #facc15;
-          background: #2f2f2f;
+          background: #1b1b1b;
           flex-wrap: wrap;
         }
 

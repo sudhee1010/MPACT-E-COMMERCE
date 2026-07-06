@@ -4766,6 +4766,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
             padding: isMobile ? "3px 6px" : "4px 8px",
             fontSize: isMobile ? "13px" : "15px",
             fontWeight: 800, borderRadius: "6px", zIndex: 2,
+            fontFamily: "'Bebas Neue', cursive",letterSpacing: "1px",
           }}>
             {product.discountPercent}% OFF
           </div>
@@ -5043,62 +5044,7 @@ const MPACTLandingPage = () => {
     }}>
 
       {/* ── Fixed Header ── */}
-      <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        backgroundColor: isMobile ? 'rgb(250, 204, 21)' : (scrollY > 100 ? 'rgba(250, 204, 21, 0.95)' : 'rgb(250, 204, 21)'),
-        backdropFilter: (isMobile || scrollY > 100) ? 'blur(10px)' : 'none',
-        color: 'black', transition: 'all 0.3s'
-      }}>
-        <div style={{
-          maxWidth: '1280px', margin: '0 auto', padding: '1rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-        }}>
-          <div style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: 'bold', cursor: 'pointer' }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            MPACT
-          </div>
-
-          <nav style={{ display: isMobile ? 'none' : 'flex', gap: '2rem', fontSize: '0.875rem', fontWeight: 'bold' }}>
-            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
-              onMouseEnter={(e) => e.target.style.textDecoration = 'underline'} onMouseLeave={(e) => e.target.style.textDecoration = 'none'}>HOME</button>
-            <button onClick={() => scrollToSection(productsRef)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
-              onMouseEnter={(e) => e.target.style.textDecoration = 'underline'} onMouseLeave={(e) => e.target.style.textDecoration = 'none'}>PRODUCTS</button>
-            <button onClick={() => scrollToSection(aboutRef)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
-              onMouseEnter={(e) => e.target.style.textDecoration = 'underline'} onMouseLeave={(e) => e.target.style.textDecoration = 'none'}>ABOUT US</button>
-            <button onClick={() => scrollToSection(blogRef)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
-              onMouseEnter={(e) => e.target.style.textDecoration = 'underline'} onMouseLeave={(e) => e.target.style.textDecoration = 'none'}>BLOG</button>
-          </nav>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><Search size={20} /></button>
-            <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><User size={20} /></button>
-            <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><ShoppingCart size={20} /></button>
-            <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', display: isMobile ? 'block' : 'none' }}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        <div style={{
-          display: isMobile ? 'block' : 'none', overflow: 'hidden',
-          maxHeight: mobileMenuOpen ? '384px' : '0',
-          opacity: mobileMenuOpen ? 1 : 0, transition: 'all 0.3s'
-        }}>
-          <nav style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-            <button onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }}
-              style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 'bold', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.05)', cursor: 'pointer', color: 'inherit' }}>HOME</button>
-            <button onClick={() => { scrollToSection(productsRef); setMobileMenuOpen(false); }}
-              style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 'bold', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.05)', cursor: 'pointer', color: 'inherit' }}>PRODUCTS</button>
-            <button onClick={() => { scrollToSection(aboutRef); setMobileMenuOpen(false); }}
-              style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 'bold', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(0,0,0,0.05)', cursor: 'pointer', color: 'inherit' }}>ABOUT US</button>
-            <button onClick={() => { scrollToSection(blogRef); setMobileMenuOpen(false); }}
-              style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 'bold', background: 'transparent', border: 'none', cursor: 'pointer', color: 'inherit' }}>BLOG</button>
-          </nav>
-        </div>
-      </header>
-
+      
       {/* ── Hero Slider ── */}
       <section ref={heroRef} style={{
         position: 'relative', backgroundColor: 'black', paddingTop: '0rem', overflow: 'hidden',

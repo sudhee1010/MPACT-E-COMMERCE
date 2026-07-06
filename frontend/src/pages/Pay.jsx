@@ -162,7 +162,7 @@ const Pay = () => {
       <style>{`
         .pay-page {
           min-height: 100vh;
-          background: #2f2f2f;
+          background: #1b1b1b;
           display: flex;
           justify-content: center;
           align-items: center;

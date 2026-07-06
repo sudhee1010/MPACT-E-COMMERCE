@@ -79,7 +79,7 @@
 //   return (
 //     <>
 //       <style>{`
-//       body{background:#2f2f2f;color:#fff}
+//       body{background:#1b1b1b;color:#fff}
 
 //       .cart-page{max-width:1600px;margin:auto;padding:40px}
 //       h1{color:#ffeb00;margin-bottom:30px}
@@ -366,7 +366,7 @@ export default function Cart() {
   return (
     <>
       <style>{`
-      body{background:#2f2f2f;color:#fff}
+      body{background:#1b1b1b;color:#fff}
 
       .cart-page{max-width:1600px;margin:auto;padding:40px}
       h1{color:#ffeb00;margin-bottom:30px}

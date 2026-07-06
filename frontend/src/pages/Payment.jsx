@@ -73,7 +73,7 @@ export default function Payment() {
     <>
       <style>{`
 *{box-sizing:border-box}
-body{background:#2f2f2f;color:#fff;font-family:Arial}
+body{background:#1b1b1b;color:#fff;font-family:Arial}
 
 /* PAGE */
 .payment-page{

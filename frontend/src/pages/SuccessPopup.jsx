@@ -49,7 +49,7 @@ const SuccessPopup = ({ onClose }) => {
 }
 
 .popup-box {
-  background: #2f2f2f;
+  background: #1b1b1b;
   border-radius: 20px;
   padding: 40px 32px;
   max-width: 480px;

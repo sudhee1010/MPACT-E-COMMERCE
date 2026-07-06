@@ -6,7 +6,7 @@
 //       <style>{`
 //         .terms-page {
 //           min-height: 100vh;
-//           background: #2f2f2f;
+//           background: #1b1b1b;
 //           color: white;
 //           padding: 120px 20px 60px;
 //           font-family: 'Inter', sans-serif;
@@ -141,7 +141,7 @@ export default function TermsAndConditions() {
       <style>{`
         .terms-page {
           min-height: 100vh;
-          background: #2f2f2f;
+          background: #1b1b1b;
           color: white;
           padding: 120px 20px 60px;
           font-family: 'Inter', sans-serif;
