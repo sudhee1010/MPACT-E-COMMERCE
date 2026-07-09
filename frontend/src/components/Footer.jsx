@@ -257,7 +257,7 @@ export default function Footer() {
                   </div>
                 </a>
 
-                <a href="" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.facebook.com/share/193G5dxU8f/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer">
                   <div className="social-circle">
                     <Facebook size={20} strokeWidth={2} />
                   </div>
