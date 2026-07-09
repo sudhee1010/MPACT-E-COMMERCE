@@ -271,7 +271,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               <div key={i} style={{
                 border: "1px solid rgba(202,138,4,0.5)", borderRadius: "0.25rem",
                 padding: "0.125rem 0.375rem", fontSize: "12px",
-                fontWeight: "bold", textAlign: "center", color: "#facc15", fontFamily: "'Poppins', sans-serif"
+                fontWeight: "bold", textAlign: "center", color: "#facc15", fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px",
               }}>
                 {item}
               </div>
@@ -288,7 +288,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
               <span key={i} style={{ color: "#4b5563", fontSize: "1rem" }}>☆</span>
             ))}
           </div>
-          <span style={{ fontSize: "13px", color: "#9ca3af", fontFamily: "'Poppins', sans-serif" }}>
+          <span style={{ fontSize: "13px", color: "#9ca3af", fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px" }}>
             {product.numReviews || 0} Reviews
           </span>
         </div>
@@ -477,7 +477,7 @@ const MPACTLandingPage = () => {
       backgroundColor: '#171717',
       color: 'white',
       overflowX: 'hidden',
-      fontFamily: "'Jersey 25', sans-serif"
+      fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px"
     }}>
 
       
@@ -539,7 +539,7 @@ const MPACTLandingPage = () => {
             </p>
           )}
 
-          {loadingProducts && <p style={{ textAlign: "center", color: "#facc15", fontFamily: "'Poppins', sans-serif" }}>Loading products...</p>}
+          {loadingProducts && <p style={{ textAlign: "center", color: "#facc15", fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px" }}>Loading products...</p>}
           {productError && <p style={{ textAlign: "center", color: "red" }}>{productError}</p>}
 
           <div style={{

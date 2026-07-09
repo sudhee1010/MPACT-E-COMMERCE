@@ -58,7 +58,7 @@ const FuelEarnShareFloat = () => {
           width: hovered ? "170px" : "0px",
           opacity: hovered ? 1 : 0,
           transition: "all 0.35s ease",
-          fontFamily: "'Poppins', sans-serif"
+          fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px",
         }}
       >
         Fuel • Share • Earn

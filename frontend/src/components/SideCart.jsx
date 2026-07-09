@@ -953,7 +953,7 @@ export default function SideCart() {
                   border: "none",
                   cursor: "pointer",
                   fontSize: "16px",
-                  fontFamily: "'Jersey 25', sans-serif",
+                  fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px",
                 }}
               >
                 PLACE ORDER

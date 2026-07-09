@@ -7,7 +7,7 @@ import { useCart } from "../context/CartContext";
 import { ShoppingCart, User, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../api/axios";
-import MpactLogo from "../assets/favicon.png";
+import MpactLogo from "../assets/mpact-logo.png.png";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);

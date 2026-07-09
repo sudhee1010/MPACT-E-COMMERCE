@@ -90,7 +90,7 @@ function ProductCard({ product, wishlist, toggleWishlist, handleAddToCart, navig
       </div>
 
       {/* Description - Hidden on mobile via CSS */}
-      <p
+      {/* <p
         style={{
           fontSize: "13px",
           color: "#9ca3af",
@@ -99,7 +99,7 @@ function ProductCard({ product, wishlist, toggleWishlist, handleAddToCart, navig
         }}
       >
         {product.description}
-      </p>
+      </p> */}
 
       <div className="rating">
         {"★".repeat(Math.round(product.rating || 0))}

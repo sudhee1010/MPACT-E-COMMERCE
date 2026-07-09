@@ -151,7 +151,7 @@ function App() {
   ].some((path) => location.pathname.startsWith(path));
 
   return (
-    <>
+    <div className={!isAdminRoute ? "public-app" : ""}>
       {/* NAVBAR IS ALWAYS MOUNTED */}
       {!isAdminRoute && <Navbar />}
       <ScrollToTop />
@@ -307,7 +307,7 @@ function App() {
       </div>
 
 
-    </>
+    </div>
   );
 }
 

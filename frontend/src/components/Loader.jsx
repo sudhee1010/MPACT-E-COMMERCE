@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import logo from "../assets/mpact-logo.png.PNG"
+import logo from "../assets/mpact-logo.PNG"
 
 export default function Loader({ onFinish }) {
   const [progress, setProgress] = useState(0);

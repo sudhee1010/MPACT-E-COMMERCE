@@ -143,7 +143,7 @@ page:{
   position:"relative",
   overflow:"hidden",
   color:"white",
-  fontFamily:"system-ui, sans-serif"
+  fontFamily: "'Bebas Neue', cursive", letterSpacing: "1px",
 },
 
 /* soft grid */
