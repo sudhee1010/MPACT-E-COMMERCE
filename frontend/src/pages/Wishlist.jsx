@@ -892,7 +892,7 @@ import { addToCartApi } from "../api/cartApi";
 import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/mpact-logo.png.PNG";
+import logo from "../assets/mpact-logo.png.png";
 
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState([]);
