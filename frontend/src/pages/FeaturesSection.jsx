@@ -7,10 +7,10 @@ gsap.registerPlugin(ScrollTrigger);
 const NAVBAR_HEIGHT = 72;
 
 const BOXES = [
-  { id: "b1", cls: "box-1", rot: 3,  text: "Shelf Stable" },
-  { id: "b3", cls: "box-3", rot: -1, text: "Protein + Caffeine" },
-  { id: "b2", cls: "box-2", rot: 1,  text: "Infinitely Recyclable" },
-  { id: "b4", cls: "box-4", rot: -5, text: "Lactose Free" },
+  { id: "b1", cls: "box-1", rot: 3,  text: "NO ADDED SUGAR" },
+  { id: "b3", cls: "box-3", rot: -1, text: "PROTEIN+GOOD FATS" },
+  { id: "b2", cls: "box-2", rot: 1,  text: "NO PRESERVATIVES" },
+  { id: "b4", cls: "box-4", rot: -5, text: "REAL INGREDIENTS" },
 ];
 
 // Splits text into individually animatable char spans

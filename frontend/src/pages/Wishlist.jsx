@@ -893,6 +893,7 @@ import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/mpact-logo.png";
+import Loader from "../components/Loader";
 
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState([]);
@@ -1721,18 +1722,7 @@ export default function WishlistPage() {
         </main>
       </div>
 
-      {loading && (
-        <div className="loader">
-          <div className="logo-container">
-            <img src={logo} alt="MPACT Logo" className="loader-logo" />
-          </div>
-          <div className="tagline">FUEL YOUR FITNESS WITH MPACT</div>
-          <div className="bar">
-            <div className="bar-fill" />
-          </div>
-          <div className="percent">100%</div>
-        </div>
-      )}
+      {loading && <Loader onFinish={() => {}} />}
     </>
   );
 }

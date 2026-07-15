@@ -4,12 +4,13 @@ import Footer from "../components/Footer";
 import { useParams } from "react-router-dom";
 import api from "../services/api.js";
 import toast from "react-hot-toast";
-import { Package, CheckCircle, XCircle, AlertCircle, ShoppingCart } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { addToCartApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Loader from "../components/Loader";
 
 const ProductPage = () => {
   const [qty, setQty] = useState(1);
@@ -366,7 +367,7 @@ const ProductPage = () => {
       color: "#fff",
       fontSize: 22,
       cursor: "pointer",
-      transition: "all 0.25s ease",
+      transition: "none",
     },
     quantityButtonLeft: {
       borderRight: "1px solid #ffe600",
@@ -394,17 +395,17 @@ const ProductPage = () => {
       alignItems: "center",
       justifyContent: "center",
       gap: 10,
-      background: "#1b1b1b",
-      color: "#fff",
+      background: "#000",
+      color: "#ffe600",
       padding: "0 20px",
       fontSize: 23,
       fontWeight: 900,
       borderRadius: 11,
-      border: "2px solid #ffeb00",
+      border: "2px solid #ffe600",
       cursor: "pointer",
       textTransform: "uppercase",
       letterSpacing: "1px",
-      transition: "all 0.25s ease",
+      transition: "background 0.2s ease, color 0.2s ease, border-color 0.2s ease",
       fontFamily: "'Bebas Neue', cursive",
       textDecoration: "none",
       boxSizing: "border-box",
@@ -416,25 +417,25 @@ const ProductPage = () => {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#ffeb00",
-      color: "#000",
+      background: "#000",
+      color: "#ffe600",
       padding: "0 20px",
       fontSize: 23,
       fontWeight: 900,
       borderRadius: 11,
-      border: "2px solid #ffeb00",
+      border: "2px solid #ffe600",
       cursor: "pointer",
       textTransform: "uppercase",
       letterSpacing: "1px",
-      transition: "all 0.25s ease",
+      transition: "background 0.2s ease, color 0.2s ease, border-color 0.2s ease",
       fontFamily: "'Bebas Neue', cursive",
       textDecoration: "none",
       boxSizing: "border-box",
     },
 
     cartIcon: {
-      width: 26,
-      height: 26,
+      width: 46,
+      height: 46,
     },
     recommendedSection: {
       padding: "20px 0",
@@ -526,13 +527,13 @@ const ProductPage = () => {
     },
 
     loginButton: {
-      background: "#ffeb00",
-      color: "#000",
+      background: "#000",
+      color: "#ffe600",
     },
 
     cancelButton: {
-      background: "transparent",
-      color: "#fff",
+      background: "#000",
+      color: "#ffe600",
     },
 
     /* ================= REVIEWS SECTION ================= */
@@ -559,31 +560,32 @@ const ProductPage = () => {
     },
 
     writeReviewButton: {
-      background: "#ffe600",
+      background: "#000",
       width: 190,
       height: 52,
       fontWeight: "bold",
       borderRadius: 8,
-      border: "none",
+      border: "2px solid #ffe600",
       cursor: "pointer",
-      transition: "transform 0.2s ease",
+      transition: "background 0.2s ease, color 0.2s ease, border-color 0.2s ease",
       fontFamily: "'Bebas Neue', cursive",
       letterSpacing: "1px",
       fontSize: 18,
+      color: "#ffe600",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
     },
 
     topRatedButton: {
-      background: "transparent",
+      background: "#000",
       border: "2px solid #ffe600",
-      color: "#ffffff",
+      color: "#ffe600",
       width: 170,
       height: 52,
       borderRadius: 8,
       cursor: "pointer",
-      transition: "transform 0.2s ease",
+      transition: "background 0.2s ease, color 0.2s ease, border-color 0.2s ease",
       fontFamily: "'Bebas Neue', cursive",
       letterSpacing: "1px",
       fontSize: 18,
@@ -681,9 +683,9 @@ const ProductPage = () => {
       marginBottom: "clamp(16px, 3vh, 24px)",
     },
     popupAddPhotoButton: {
-      background: "#4a4a2f",
-      color: "#fff",
-      border: "none",
+      background: "#000",
+      color: "#ffe600",
+      border: "2px solid #ffe600",
       padding: "12px 26px",
       borderRadius: 30,
       cursor: "pointer",
@@ -697,9 +699,9 @@ const ProductPage = () => {
       marginTop: "12px",
     },
     popupButton: {
-      background: "#ffe600",
-      color: "#000",
-      border: "none",
+      background: "#000",
+      color: "#ffe600",
+      border: "2px solid #ffe600",
       padding: "12px 26px",
       fontWeight: 700,
       borderRadius: 8,
@@ -707,9 +709,9 @@ const ProductPage = () => {
       minWidth: 120,
     },
     popupPostButton: {
-      background: "#ffe600",
-      color: "#000",
-      border: "none",
+      background: "#000",
+      color: "#ffe600",
+      border: "2px solid #ffe600",
       padding: "12px 30px",
       fontWeight: 700,
       borderRadius: 8,
@@ -877,9 +879,9 @@ const ProductPage = () => {
     rangeCardButton: {
       width: "100%",
       height: 42,
-      background: "#ffe600",
-      color: "#000",
-      border: "none",
+      background: "#000",
+      color: "#ffe600",
+      border: "2px solid #ffe600",
       fontWeight: 900,
       cursor: "pointer",
       borderRadius: 8,
@@ -983,83 +985,6 @@ const ProductPage = () => {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jersey+25&display=swap');
         
-        /* ================= LUXURY LOADER ================= */
-        .loader-overlay {
-          position: fixed;
-          inset: 0;
-          background: radial-gradient(circle at center, #1a1a1a, #000);
-          backdrop-filter: blur(8px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-        }
-
-        .luxury-loader {
-          position: relative;
-          text-align: center;
-          color: #ffeb00;
-        }
-
-        .ring {
-          width: 120px;
-          height: 120px;
-          border: 3px solid transparent;
-          border-top: 3px solid #ffeb00;
-          border-right: 3px solid #ffeb00;
-          border-radius: 50%;
-          position: absolute;
-          top: -30px;
-          left: 50%;
-          transform: translateX(-50%);
-          animation: spin 1.5s linear infinite;
-          filter: drop-shadow(0 0 10px #ffeb00);
-        }
-
-        .icon-wrapper {
-          color: #ffeb00;
-          animation: floatPulse 1.6s infinite ease-in-out;
-          filter: drop-shadow(0 0 18px #ffeb00);
-        }
-
-        .shimmer-text {
-          margin-top: 40px;
-          font-family: "Jersey 25", cursive;
-          font-size: 26px;
-          letter-spacing: 2px;
-          background: linear-gradient(
-            90deg,
-            #ffeb00 25%,
-            #ffffff 50%,
-            #ffeb00 75%
-          );
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: shimmer 2s linear infinite;
-        }
-
-        @keyframes spin {
-          100% {
-            transform: translateX(-50%) rotate(360deg);
-          }
-        }
-
-        @keyframes floatPulse {
-          0%, 100% {
-            transform: translateY(0px) scale(1);
-          }
-          50% {
-            transform: translateY(-8px) scale(1.15);
-          }
-        }
-
-        @keyframes shimmer {
-          100% {
-            background-position: 200% center;
-          }
-        }
-
         /* ================= ERROR BOX ================= */
         .error-box {
           background: #151515;
@@ -1110,9 +1035,26 @@ const ProductPage = () => {
         }
 
         .retry-btn:hover {
-          background: #ffeb00;
+          background: #ffd84d;
           color: #000;
           transform: translateY(-2px);
+        }
+
+        .yellow-btn {
+          background: #000 !important;
+          color: #ffe600 !important;
+          border: 2px solid #ffe600 !important;
+          transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .yellow-btn:hover,
+        .yellow-btn:focus-visible,
+        .yellow-btn:active {
+          background: #ffe600 !important;
+          color: #000 !important;
+          border-color: #ffe600 !important;
+          box-shadow: none;
+          transform: none;
         }
 
         @keyframes shake {
@@ -1225,65 +1167,9 @@ const ProductPage = () => {
           }
         }
 
-        /* ================= RESPONSIVE CART ICON ================= */
-        .cart-icon {
-          display: inline;
-          vertical-align: middle;
-          flex-shrink: 0;
-        }
-        
-        .cart-icon-btn {
-          margin-right: clamp(4px, 2vw, 8px);
-        }
-
-        /* Desktop */
-        @media (min-width: 1025px) {
-          .cart-icon-btn {
-            width: 18px;
-            height: 18px;
-            margin-right: 6px;
-          }
-        }
-
-        /* Tablet (768px - 1024px) */
-        @media (max-width: 1024px) and (min-width: 769px) {
-          .cart-icon-btn {
-            width: 16px;
-            height: 16px;
-            margin-right: 5px;
-          }
-        }
-
-        /* Mobile (max 768px) */
-        @media (max-width: 768px) {
-          .cart-icon-btn {
-            width: 14px;
-            height: 14px;
-            margin-right: 4px;
-          }
-        }
-
-        /* Small phones (max 480px) */
-        @media (max-width: 480px) {
-          .cart-icon-btn {
-            width: 12px;
-            height: 12px;
-            margin-right: 3px;
-          }
-        }
       `}</style>
 
-      {loading && (
-        <div className="loader-overlay">
-          <div className="luxury-loader">
-            <div className="ring"></div>
-            <div className="icon-wrapper">
-              <Package size={60} />
-            </div>
-            <h2 className="shimmer-text">Loading...</h2>
-          </div>
-        </div>
-      )}
+      {loading && <Loader onFinish={() => {}} />}
 
       {!loading && error && (
         <div className="loader-overlay">
@@ -1414,7 +1300,7 @@ const ProductPage = () => {
                       ...styles.quantityButtonLeft,
                     }}
                   >
-                    −
+                    -
                   </button>
 
                   <div style={styles.quantityValue}>{qty}</div>
@@ -1453,14 +1339,15 @@ const ProductPage = () => {
           e.currentTarget.style.color = "#000";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = "#1b1b1b";
-          e.currentTarget.style.color = "#fff";
+          e.currentTarget.style.background = "#000";
+          e.currentTarget.style.color = "#ffe600";
         }}
       >
-        <ShoppingCart className="cart-icon cart-icon-btn" /> ADD TO CART
+        ADD TO CART
       </button>
 
       <button
+        className="yellow-btn"
         style={{
           ...styles.buyNowButton,
           opacity: loading ? 0.6 : 1,
@@ -1504,30 +1391,20 @@ const ProductPage = () => {
 
                 <div style={styles.reviewsButtons} className="reviews-buttons">
                   <button
+                    className="yellow-btn"
                     onClick={() => setShowReviewPopup(true)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "scale(1.06)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
                     style={styles.writeReviewButton}
                   >
                     WRITE A REVIEW
                   </button>
 
                   <button
+                    className="yellow-btn"
                     onClick={() => setShowTopRated((prev) => !prev)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "scale(1.06)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
                     style={{
                       ...styles.topRatedButton,
-                      background: showTopRated ? "#ffe600" : "#4a4a2f",
-                      color: showTopRated ? "#000" : "#fff",
+                      background: showTopRated ? "#ffe600" : "#ffe600",
+                      color: showTopRated ? "#000" : "#000",
                     }}
                   >
                     TOP RATED
@@ -1586,8 +1463,8 @@ const ProductPage = () => {
                   </div>
 
                   <div style={styles.popupAddPhoto}>
-                    <label style={styles.popupAddPhotoButton}>
-                      📷 Add Photos & images
+                    <label className="yellow-btn" style={styles.popupAddPhotoButton}>
+                      Add Photos & images
                       <input
                         type="file"
                         multiple
@@ -1606,6 +1483,7 @@ const ProductPage = () => {
 
                   <div style={styles.popupActions}>
                     <button
+                      className="yellow-btn"
                       onClick={() => setShowReviewPopup(false)}
                       style={styles.popupButton}
                     >
@@ -1613,6 +1491,7 @@ const ProductPage = () => {
                     </button>
 
                     <button
+                      className="yellow-btn"
                       onClick={submitReviewHandler}
                       disabled={submittingReview}
                       style={styles.popupPostButton}
@@ -1723,6 +1602,7 @@ const ProductPage = () => {
                     </div>
 
                     <button
+                      className="yellow-btn"
                       style={styles.rangeCardButton}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1745,6 +1625,7 @@ const ProductPage = () => {
 
                 <div style={styles.modalActions}>
                   <button
+                    className="yellow-btn"
                     style={{ ...styles.modalButton, ...styles.loginButton }}
                     onClick={() => navigate("/login")}
                   >
@@ -1752,6 +1633,7 @@ const ProductPage = () => {
                   </button>
 
                   <button
+                    className="yellow-btn"
                     style={{ ...styles.modalButton, ...styles.cancelButton }}
                     onClick={() => setShowLoginModal(false)}
                   >

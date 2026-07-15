@@ -265,6 +265,7 @@ import styles from "./About.module.css";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import api from "../../api/axios";
+import Loader from "../../components/Loader";
 
 function About() {
   const [about, setAbout] = useState(null);
@@ -283,7 +284,7 @@ function About() {
       });
   }, []);
 
-  if (loading) return null;
+  if (loading) return <Loader onFinish={() => {}} />;
   if (!about) return null;
 
   return (

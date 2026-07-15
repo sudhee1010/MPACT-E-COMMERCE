@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart } from "lucide-react";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { useCart } from "../context/CartContext";
 import OfferScrollBar from "../components/OfferScrollBar";
 import { useAuth } from "../context/AuthContext";
+import Loader from "../components/Loader";
 
 /* ================= CAROUSEL HOOK ================= */
 function useProductCarousel(images = []) {
@@ -125,7 +126,7 @@ function ProductCard({ product, wishlist, toggleWishlist, handleAddToCart, navig
                 handleAddToCart(product);
               }}
             >
-              <ShoppingCart className="cart-icon cart-icon-btn" /> Add to Cart
+              Add to Cart
             </button>
 
             <Link
@@ -298,11 +299,7 @@ export default function Products() {
   };
 
   if (loading) {
-    return (
-      <p style={{ textAlign: "center", marginTop: 100, color: "#ffeb00" }}>
-        Loading...
-      </p>
-    );
+    return <Loader onFinish={() => {}} />;
   }
 
   if (error) {
@@ -1077,76 +1074,6 @@ export default function Products() {
   }
 }
 
-/* ================= RESPONSIVE CART ICON ================= */
-.cart-icon {
-  display: inline;
-  vertical-align: middle;
-  flex-shrink: 0;
-}
-
-.cart-icon-btn {
-  margin-right: clamp(4px, 2vw, 8px);
-}
-
-.cart-icon-header {
-  margin-right: clamp(6px, 2vw, 12px);
-}
-
-/* Desktop */
-@media (min-width: 1025px) {
-  .cart-icon-btn {
-    width: 18px;
-    height: 18px;
-    margin-right: 6px;
-  }
-  .cart-icon-header {
-    width: 20px;
-    height: 20px;
-    margin-right: 8px;
-  }
-}
-
-/* Tablet (768px - 1024px) */
-@media (max-width: 1024px) and (min-width: 769px) {
-  .cart-icon-btn {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px;
-  }
-  .cart-icon-header {
-    width: 18px;
-    height: 18px;
-    margin-right: 6px;
-  }
-}
-
-/* Mobile (max 768px) */
-@media (max-width: 768px) {
-  .cart-icon-btn {
-    width: 14px;
-    height: 14px;
-    margin-right: 4px;
-  }
-  .cart-icon-header {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px;
-  }
-}
-
-/* Small phones (max 480px) */
-@media (max-width: 480px) {
-  .cart-icon-btn {
-    width: 12px;
-    height: 12px;
-    margin-right: 3px;
-  }
-  .cart-icon-header {
-    width: 14px;
-    height: 14px;
-    margin-right: 4px;
-  }
-}
 `}</style>
 
       <div className="page-wrapper">

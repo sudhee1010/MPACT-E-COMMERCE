@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Menu, X, Calendar, Clock, UserCircle } from "lucide-react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
+import Loader from "../../components/Loader";
 
 const MPACTBlog = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -535,9 +536,7 @@ const MPACTBlog = () => {
 
       <div className="blog-container" style={{ paddingBottom: "4rem" }}>
         {loading ? (
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-          </div>
+          <Loader onFinish={() => {}} />
         ) : (
           <>
             {/* Featured Articles */}

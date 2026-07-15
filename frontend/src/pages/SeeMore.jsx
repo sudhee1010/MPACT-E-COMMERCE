@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Footer from "../components/Footer";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 // import axios from "axios";
 import api from "../api/axios";
@@ -1622,52 +1622,6 @@ export default function ProductPage() {
           }
         }
         
-        /* ================= RESPONSIVE CART ICON ================= */
-        .cart-icon {
-          display: inline;
-          vertical-align: middle;
-          flex-shrink: 0;
-        }
-        
-        .cart-icon-btn {
-          margin-right: clamp(4px, 2vw, 8px);
-        }
-
-        /* Desktop */
-        @media (min-width: 1025px) {
-          .cart-icon-btn {
-            width: 18px;
-            height: 18px;
-            margin-right: 6px;
-          }
-        }
-
-        /* Tablet (768px - 1024px) */
-        @media (max-width: 1024px) and (min-width: 769px) {
-          .cart-icon-btn {
-            width: 16px;
-            height: 16px;
-            margin-right: 5px;
-          }
-        }
-
-        /* Mobile (max 768px) */
-        @media (max-width: 768px) {
-          .cart-icon-btn {
-            width: 14px;
-            height: 14px;
-            margin-right: 4px;
-          }
-        }
-
-        /* Small phones (max 480px) */
-        @media (max-width: 480px) {
-          .cart-icon-btn {
-            width: 12px;
-            height: 12px;
-            margin-right: 3px;
-          }
-        }
 
           .card {
   cursor: pointer;
@@ -1899,7 +1853,7 @@ const ProductCard = ({
                   handleAddToCart(product);
                 }}
               >
-                <ShoppingCart className="cart-icon cart-icon-btn" /> Add to Cart
+                Add to Cart
               </button>
 
               <Link
