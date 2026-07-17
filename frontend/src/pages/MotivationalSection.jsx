@@ -556,13 +556,20 @@ const MotivationalSection = () => {
 
         /* ── Large phone / small tablet (600px–767px) ── */
         @media screen and (max-width: 767px) {
-          .section-2_text-wrapper_1 { padding: 16vw 0; }
-          .grid-2 { padding-left: 4vw; padding-right: 4vw; }
+          .section-2_text-wrapper_1 { padding: 12vw 0 10vw; }
+          .grid-2 {
+            padding-left: 4vw;
+            padding-right: 4vw;
+            row-gap: 6px;
+          }
 
           .s2 {
             font-size: clamp(1.8rem, 10.5vw, 4rem);
             letter-spacing: -0.02em;
+            line-height: 0.98;
           }
+
+          .div-block-16 { margin-top: 0.5vw; margin-bottom: 0.5vw; }
 
           .heading-1.faeade {
             font-size: clamp(1.6rem, 10vw, 4rem);
@@ -577,22 +584,27 @@ const MotivationalSection = () => {
             outline-width: clamp(2px, 0.8vw, 5px);
           }
 
-          .paragraph { width: min(90vw, 520px); font-size: 14px; line-height: 1.55; }
-          .div-block-95 { margin-top: 6vw; }
+          .paragraph { width: min(90vw, 520px); font-size: 14px; line-height: 1.5; }
+          .div-block-95 { margin-top: 4vw; }
         }
 
         /* ── Phone (480px–599px) ── */
         @media screen and (max-width: 599px) {
-          .section-2_text-wrapper_1 { padding: 18vw 0 20vw; }
-          .grid-2 { padding-left: 5%; padding-right: 5%; }
+          .section-2_text-wrapper_1 { padding: 10vw 0 10vw; }
+          .grid-2 {
+            padding-left: 5%;
+            padding-right: 5%;
+            row-gap: 4px;
+          }
 
           .s2 {
             font-size: clamp(1.6rem, 9.5vw, 3rem);
             letter-spacing: -0.015em;
             margin-top: 0.1em;
+            line-height: 0.96;
           }
 
-          .div-block-16 { margin-top: 2vw; margin-bottom: 2vw; }
+          .div-block-16 { margin-top: 0.25vw; margin-bottom: 0.25vw; }
 
           .heading-1.faeade {
             font-size: clamp(1.5rem, 9vw, 3rem);
@@ -603,22 +615,26 @@ const MotivationalSection = () => {
             padding: 0 2.5vw 0.15em;
           }
 
-          .paragraph { width: min(92vw, 500px); font-size: 13.5px; }
-          .div-block-95 { margin-top: 7vw; }
+          .paragraph { width: min(92vw, 500px); font-size: 13.5px; line-height: 1.5; }
+          .div-block-95 { margin-top: 4vw; }
         }
 
         /* ── Small phone – iPhone SE, Galaxy S8 (375px–479px) ── */
         @media screen and (max-width: 479px) {
-          .section-2_text-wrapper_1 { padding: 20vw 0 22vw; }
-          .grid-2 { padding-left: 4%; padding-right: 4%; }
+          .section-2_text-wrapper_1 { padding: 10vw 0 10vw; }
+          .grid-2 {
+            padding-left: 4%;
+            padding-right: 4%;
+            row-gap: 3px;
+          }
 
           .s2 {
             font-size: clamp(3.2rem, 9vw, 2.6rem);
             letter-spacing: -0.01em;
-            line-height: 1.1;
+            line-height: 0.98;
           }
 
-          .div-block-16 { margin-top: 3vw; margin-bottom: 3vw; }
+          .div-block-16 { margin-top: 0.2vw; margin-bottom: 0.2vw; }
           .div-block-45 { margin-left: 0; }
 
           .heading-1.faeade {
@@ -632,8 +648,8 @@ const MotivationalSection = () => {
 
           .fuel-up_wrapper { outline-width: 2px; }
 
-          .paragraph { width: min(94vw, 480px); font-size: 13px; line-height: 1.6; }
-          .div-block-95 { margin-top: 8vw; }
+          .paragraph { width: min(94vw, 480px); font-size: 13px; line-height: 1.5; }
+          .div-block-95 { margin-top: 4vw; }
         }
 
         /* ── Extra small phone (max 374px) ── */

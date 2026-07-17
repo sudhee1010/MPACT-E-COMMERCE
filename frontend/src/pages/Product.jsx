@@ -331,8 +331,8 @@ export default function Products() {
   font-size: clamp(32px, 6vw, 72px);
   font-weight: 400;
   margin: 24px 0 40px;
-  color: black;
-  -webkit-text-stroke: 2px #ffeb00;
+  color: #ffeb00;
+  // -webkit-text-stroke: 2px #ffeb00;
 }
 
 /* ================= SECTION ================= */
