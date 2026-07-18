@@ -706,7 +706,7 @@ export default function VideoShowcaseSection() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: #523121;
+          background: #000;
           
           border-radius: 100vw;
           padding: .75em 3em;
@@ -718,7 +718,13 @@ export default function VideoShowcaseSection() {
           touch-action: manipulation;
         }
         .liquid-button:hover,
-        .liquid-button:active { background: #523121; }
+        .liquid-button:active { background: #000; }
+
+        .lottie-animation-2 path,
+        .lottie-animation-2 svg {
+          fill: #000 !important;
+          stroke: #000 !important;
+        }
         
 
         /* Responsive padding */
@@ -734,7 +740,7 @@ export default function VideoShowcaseSection() {
           font-size: clamp(.8rem, 1.1vw, 1.15rem);
           font-weight: 700;
           text-transform: uppercase;
-          color: #ffd700;
+          color: #ffd500;
           white-space: nowrap;
         }
           .button-text::hover,

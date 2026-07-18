@@ -115,7 +115,7 @@ const MPACTBlog = () => {
           border: 2px solid #facc15;
           border-radius: 12px;
           overflow: hidden;
-          background-color: #1f2937;
+          background-color: #000;
           transition: all 0.3s ease;
           cursor: pointer;
         }
@@ -236,7 +236,7 @@ const MPACTBlog = () => {
           border: 2px solid #facc15;
           border-radius: 12px;
           overflow: hidden;
-          background-color: #1f2937;
+          background-color: #000;
           display: flex;
           flex-direction: column;
           transition: all 0.3s ease;
@@ -439,7 +439,7 @@ const MPACTBlog = () => {
 
         .blog-search-input {
           width: 100%;
-          background-color: #1f2937;
+          background-color: #000;
           border: 2px solid #4b5563;
           border-radius: 0.5rem;
           padding: 0.75rem 1rem 0.75rem 3rem;
