@@ -185,9 +185,9 @@ export default function VideoShowcaseSection() {
         gsap.set(roundButtonRef.current, { opacity: 1, scale: 1 });
       } else {
         const sizes = {
-          laptop: { s: "12vw", e: "150vw" },
-          desktop: { s: "10vw", e: "150vw" },
-        }[screenSize] || { s: "10vw", e: "150vw" };
+          laptop: { s: "5cm", e: "150vw" },
+          desktop: { s: "5cm", e: "150vw" },
+        }[screenSize] || { s: "5cm", e: "150vw" };
 
         ScrollTrigger.create({
           trigger: roundWrapRef.current,
@@ -372,9 +372,9 @@ export default function VideoShowcaseSection() {
           will-change: width, height, scale;
           transition: box-shadow .3s;
           box-shadow: 0 0 40px rgba(0,0,0,0.45);
-          /* Desktop initial size */
-          width: clamp(80px, 10vw, 180px);
-          height: clamp(80px, 10vw, 180px);
+          /* Fixed physical size: 5cm diameter, matching .s1-play-btn */
+          width: 5cm;
+          height: 5cm;
         }
 
         /* Mobile / tablet: full-screen rectangle */
@@ -407,7 +407,8 @@ export default function VideoShowcaseSection() {
           display: block;
         }
 
-        /* Play button */
+        /* Play button — now nested inside .s1-circle so it clips to the
+           circle's bounds at every size instead of overhanging the edge */
         .s1-play-link {
           position: absolute;
           top: 50%;
@@ -428,14 +429,14 @@ export default function VideoShowcaseSection() {
           background: transparent;
           cursor: pointer;
           will-change: opacity, scale;
-          /* Responsive sizing with safe floor/ceiling */
-          width:  clamp(72px, 12vw, 180px);
-          height: clamp(72px, 12vw, 180px);
+          /* Fixed physical size: 5cm diameter, matching .s1-circle */
+          width: 5cm;
+          height: 5cm;
           touch-action: manipulation;
         }
-        /* Slightly larger on small phones */
+        /* Keep the same 5cm size on small phones too */
         @media (max-width: 479px) {
-          .s1-play-btn { width: 88px; height: 88px; }
+          .s1-play-btn { width: 5cm; height: 5cm; }
         }
 
         .s1-play-bg {
@@ -798,10 +799,10 @@ export default function VideoShowcaseSection() {
           justify-content: center;
           z-index: 9999;
           /* Respect safe areas (notch / home bar) */
-          padding: max(env(safe-area-inset-top), clamp(10px,3vw,30px))
-                   max(env(safe-area-inset-right), clamp(10px,3vw,30px))
-                   max(env(safe-area-inset-bottom), clamp(10px,3vw,30px))
-                   max(env(safe-area-inset-left), clamp(10px,3vw,30px));
+          padding: max(env(safe-area-inset-top), clamp(10px,3vw,5cm))
+                   max(env(safe-area-inset-right), clamp(10px,3vw,5cm))
+                   max(env(safe-area-inset-bottom), clamp(10px,3vw,5cm))
+                   max(env(safe-area-inset-left), clamp(10px,3vw,5cm));
           animation: vmFadeIn .25s ease;
           /* Prevent scroll bounce on iOS */
           overscroll-behavior: contain;
@@ -901,37 +902,14 @@ export default function VideoShowcaseSection() {
 
       {/* ════════════════════════════════════════════════════════════════
           SECTION 1 – Round expanding circle video
+          NOTE: play button is now nested INSIDE .s1-circle (after the
+          overlay/video) so it gets clipped by the circle's overflow:hidden
+          at every scroll-driven size, instead of overhanging the edge and
+          reading as a dark border where it meets the section background.
       ════════════════════════════════════════════════════════════════ */}
       <div className="s1" ref={roundSectionRef}>
         <div className="s1-wrap" ref={roundWrapRef}>
           <div className="s1-sticky" ref={roundCircleRef}>
-            <a
-              href="#"
-              className="s1-play-link"
-              onClick={(e) => {
-                e.preventDefault();
-                setModal({ src: "Videos/Video2.mp4" });
-              }}
-              aria-label="Play full video"
-            >
-              <div className="s1-play-btn" ref={roundButtonRef}>
-                <div className="s1-play-bg" />
-                <svg className="s1-svg-ring" viewBox="0 0 200 200">
-                  <defs>
-                    <path id="rp"
-                      d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"
-                      fill="none" />
-                  </defs>
-                  <text>
-                    <textPath href="#rp" startOffset="50%" textAnchor="middle">
-                      PLAY VIDEO • PLAY VIDEO • PLAY VIDEO •
-                    </textPath>
-                  </text>
-                </svg>
-                <span className="s1-play-icon" aria-hidden="true" />
-              </div>
-            </a>
-
             <div className="s1-circle" ref={roundElementRef}>
               <div className="s1-overlay" ref={roundOverlayRef} />
               <div className="s1-vid-wrap">
@@ -947,6 +925,33 @@ export default function VideoShowcaseSection() {
                   <source src="Videos/Video2.mp4" type="video/mp4" />
                 </video>
               </div>
+
+              <a
+                href="#"
+                className="s1-play-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setModal({ src: "Videos/Video2.mp4" });
+                }}
+                aria-label="Play full video"
+              >
+                <div className="s1-play-btn" ref={roundButtonRef}>
+                  <div className="s1-play-bg" />
+                  <svg className="s1-svg-ring" viewBox="0 0 200 200">
+                    <defs>
+                      <path id="rp"
+                        d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"
+                        fill="none" />
+                    </defs>
+                    <text>
+                      <textPath href="#rp" startOffset="50%" textAnchor="middle">
+                        PLAY VIDEO • PLAY VIDEO • PLAY VIDEO •
+                      </textPath>
+                    </text>
+                  </svg>
+                  <span className="s1-play-icon" aria-hidden="true" />
+                </div>
+              </a>
             </div>
           </div>
         </div>
