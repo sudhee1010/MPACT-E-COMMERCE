@@ -335,7 +335,7 @@ export default function VideoShowcaseSection() {
         ════════════════════════════════════════════════════════════ */
         .s1 {
           position: relative;
-          background: #523122;
+          background: #000;
           overflow: hidden;
           width: 100%;
           z-index: 10;
@@ -778,7 +778,7 @@ export default function VideoShowcaseSection() {
           will-change: transform;
           user-select: none;
         }
-        .sf-bg-line.orange { color: #523121; }
+        .sf-bg-line.orange { color: #000; }
         .sf-bg-line.right  { text-align: right; width: 100%; }
 
         /* Scale text down a touch on very small screens */
@@ -846,7 +846,7 @@ export default function VideoShowcaseSection() {
           top: -46px;
           right: 0;
           background: #fff;
-          color: #523122;
+          color: #000;
           border: none;
           border-radius: 50%;
           font-size: 22px;
@@ -873,7 +873,7 @@ export default function VideoShowcaseSection() {
         }
         .vmodal-close:hover,
         .vmodal-close:active {
-          background: #523122;
+          background: #000;
           color: #fff;
           transform: scale(1.12);
         }
