@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock, KeyRound, ArrowLeft } from "lucide-react";
+import { MessageCircle, Lock, KeyRound, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
@@ -105,12 +105,12 @@ export default function ForgotPassword() {
   // STEP 1: SEND OTP
   const sendOtpHandler = async (e) => {
     e.preventDefault();
-    if (!email) return toast.error("Email required");
+    if (!email) return toast.error("WhatsApp number required");
 
     try {
       setLoading(true);
       await api.post("/api/auth/forgot-password", { email });
-      toast.success("OTP sent to your email");
+      toast.success("OTP sent to your WhatsApp");
       setStep(2);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to send OTP");
@@ -156,19 +156,19 @@ export default function ForgotPassword() {
           <h1 style={styles.title}>Forgot Password</h1>
           <p style={styles.subtitle}>
             {step === 1
-              ? "We’ll send you an OTP to reset your password"
-              : "Enter OTP & set new password"}
+              ? "We’ll send you an OTP on WhatsApp to reset your password"
+              : "Enter the WhatsApp OTP & set new password"}
           </p>
 
           {step === 1 && (
             <form onSubmit={sendOtpHandler}>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Email</label>
+                <label style={styles.label}>WhatsApp Number</label>
                 <div style={styles.inputWrapper}>
-                  <Mail size={20} style={styles.icon} />
+                  <MessageCircle size={20} style={styles.icon} />
                   <input
-                    type="email"
-                    placeholder="Enter your email"
+                    type="tel"
+                    placeholder="Enter your WhatsApp number"
                     style={styles.input}
                     className="input"
                     value={email}
