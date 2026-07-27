@@ -79,7 +79,7 @@ import { generateSecureOTP } from "../utils/otpHelper.js";
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
-
+const formattedPhone = formatPhoneNumber(phone);
     let user = await User.findOne({ email });
 
     const otp = generateOTP();
@@ -94,12 +94,15 @@ export const registerUser = async (req, res) => {
       user.otpExpiry = Date.now() + 10 * 60 * 1000;
       await user.save();
 
-      await sendEmail({
-        to: email,
-        subject: "Your OTP Code",
-        text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
-      });
-
+      // await sendEmail({
+      //   to: email,
+      //   subject: "Your OTP Code",
+      //   text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
+      // });
+await sendWhatsappOTP({
+  phone: formattedPhone,
+  otp,
+});
       return res.json({
         message: "User already registered but not verified. OTP resent.",
       });
@@ -111,18 +114,22 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      phone,
+       phone: formattedPhone,
       isEmailVerified: false,
       role: "customer",
       otp: hashedOTP,
       otpExpiry: Date.now() + 10 * 60 * 1000,
     });
 
-    await sendEmail({
-      to: email,
-      subject: "Your OTP Code",
-      text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
-    });
+    // await sendEmail({
+    //   to: email,
+    //   subject: "Your OTP Code",
+    //   text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
+    // });
+    await sendWhatsappOTP({
+     phone: formattedPhone,
+    otp,
+});
 
     res.status(201).json({
       message: "Registered successfully. OTP sent to email.",
@@ -522,13 +529,14 @@ export const verifyOTP = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
-
     const { email } = req.body;
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
 
     const otp = generateOTP();
@@ -539,17 +547,19 @@ export const forgotPassword = async (req, res) => {
 
     await user.save();
 
-    await sendEmail({
-      to: email,
-      subject: "Password Reset OTP",
-      text: `Your password reset OTP is ${otp}`,
+    await sendWhatsappOTP({
+      phone: formatPhoneNumber(user.phone),
+      otp,
     });
 
-    res.json({ message: "OTP sent to email" });
-
+    res.status(200).json({
+      message: "Password reset OTP sent successfully.",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
