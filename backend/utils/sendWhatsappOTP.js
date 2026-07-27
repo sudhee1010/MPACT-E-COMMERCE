@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const sendWhatsappOTP = async ({ phone, otp }) => {
+export const sendWhatsappOTP = async ({ phone, otp }) => {
   try {
     const response = await axios.post(
       `${process.env.HAPPILEE_BASE_URL}/api/v1/sendTemplateMessage`,

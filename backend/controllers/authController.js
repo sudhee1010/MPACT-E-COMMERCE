@@ -7,7 +7,7 @@ import { verifyGoogleToken } from "../utils/googleVerify.js";
 import cloudinary from "../config/cloudinary.js";
 import { generateSecureOTP } from "../utils/otpHelper.js";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber.js";
-import sendWhatsappOTP from "../utils/sendWhatsappOTP.js";
+import { sendWhatsappOTP } from "../utils/sendWhatsappOTP.js";
 /* ===========================
    EMAIL REGISTER LOGIN
 =========================== */
