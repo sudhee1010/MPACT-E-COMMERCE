@@ -6,7 +6,7 @@ import sendEmail from "../utils/sendEmail.js";
 import { verifyGoogleToken } from "../utils/googleVerify.js";
 import cloudinary from "../config/cloudinary.js";
 import { generateSecureOTP } from "../utils/otpHelper.js";
-
+import { formatPhoneNumber } from "../utils/formatPhoneNumber.js";
 
 /* ===========================
    EMAIL REGISTER LOGIN
