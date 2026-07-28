@@ -9,36 +9,21 @@ import fs from "fs";
 
 const COLORS = {
   black: "#1a1a1a",
-  gray: "#6b6b6b",
-  lightGray: "#9a9a9a",
-  line: "#dcdcdc",
+  gray: "#555555",
+  line: "#222222",
+  lightLine: "#d9d9d9",
   headerFill: "#f4f4f4",
 };
 
-// Try to use a unicode font that supports the ₹ symbol.
-// Falls back to the built-in Helvetica + "Rs." prefix if not found,
-// so the code never breaks even if the font file isn't bundled yet.
-const registerRupeeFont = (doc) => {
-  const fontPath = path.join(process.cwd(), "public/fonts/NotoSans-Regular.ttf");
-  const boldFontPath = path.join(process.cwd(), "public/fonts/NotoSans-Bold.ttf");
+const FONT = { regular: "Helvetica", bold: "Helvetica-Bold" };
 
-  if (fs.existsSync(fontPath)) {
-    doc.registerFont("Body", fontPath);
-    doc.registerFont("Bold", fs.existsSync(boldFontPath) ? boldFontPath : fontPath);
-    return { regular: "Body", bold: "Bold", currency: "₹" };
-  }
-
-  return { regular: "Helvetica", bold: "Helvetica-Bold", currency: "Rs. " };
-};
-
-const money = (currencySymbol, value) => `${currencySymbol}${Number(value).toFixed(2)}`;
+const money = (value) => `RS: ${Number(value).toFixed(2)}`;
 
 /* =========================================================
    Core drawing routine (shared by both invoice types)
    ========================================================= */
 
-const renderInvoice = (doc, { order, invoiceNumber, statusRows }) => {
-  const fonts = registerRupeeFont(doc);
+const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   const pageLeft = doc.page.margins.left;
   const pageRight = doc.page.width - doc.page.margins.right;
   const contentWidth = pageRight - pageLeft;
@@ -47,241 +32,241 @@ const renderInvoice = (doc, { order, invoiceNumber, statusRows }) => {
 
   const logoPath = path.join(process.cwd(), "public/logo.png");
   const hasLogo = fs.existsSync(logoPath);
+  const brandX = pageLeft + (hasLogo ? 55 : 0);
 
   if (hasLogo) {
     doc.image(logoPath, pageLeft, 40, { width: 44 });
   }
 
   doc
-    .font(fonts.bold)
-    .fontSize(26)
-    .fillColor(COLORS.black)
-    .text("MPACT", pageLeft + (hasLogo ? 55 : 0), 42);
-
-  doc
-    .font(fonts.regular)
-    .fontSize(11)
-    .fillColor(COLORS.gray)
-    .text("Official Invoice", pageLeft + (hasLogo ? 55 : 0), 72);
-
-  doc
-    .font(fonts.bold)
+    .font(FONT.bold)
     .fontSize(30)
     .fillColor(COLORS.black)
-    .text("INVOICE", pageLeft, 45, { width: contentWidth, align: "right" });
+    .text("MPACT", brandX, 40);
 
   doc
-    .moveTo(pageLeft, 110)
-    .lineTo(pageRight, 110)
+    .font(FONT.bold)
+    .fontSize(13)
+    .fillColor(COLORS.black)
+    .text("Pvt Ltd", brandX, 75);
+
+  doc
+    .font(FONT.bold)
+    .fontSize(24)
+    .fillColor(COLORS.black)
+    .text("TAX INVOICE", pageLeft, 42, { width: contentWidth, align: "right" });
+
+  const metaLine = (label, value, top) => {
+    const labelText = `${label} `;
+    doc.font(FONT.bold).fontSize(10.5).fillColor(COLORS.black);
+    const labelWidth = doc.widthOfString(labelText);
+    doc.font(FONT.regular);
+    const valueWidth = doc.widthOfString(value);
+    const totalWidth = labelWidth + valueWidth;
+    const startX = pageRight - totalWidth;
+
+    doc.font(FONT.bold).text(labelText, startX, top, { continued: true });
+    doc.font(FONT.regular).text(value);
+  };
+
+  metaLine("Invoice No:", invoiceNumber, 80);
+  metaLine("Date:", new Date(order.createdAt).toLocaleDateString("en-GB"), 98);
+
+  doc
+    .moveTo(pageLeft, 128)
+    .lineTo(pageRight, 128)
     .strokeColor(COLORS.line)
     .lineWidth(1)
     .stroke();
 
-  /* ---------------- ORDER META ROWS ---------------- */
+  /* ---------------- COMPANY BLOCK ---------------- */
 
-  let y = 128;
-  const rowGap = 22;
-  const labelWidth = 90;
+  let y = 148;
 
-  statusRows.forEach(({ label, value, bold }) => {
-    doc
-      .font(fonts.bold)
-      .fontSize(11)
-      .fillColor(COLORS.black)
-      .text(label, pageLeft, y, { width: labelWidth });
+  doc.font(FONT.bold).fontSize(11).fillColor(COLORS.black).text("MPACT Pvt Ltd", pageLeft, y);
+  y += 17;
+  doc.font(FONT.regular).fontSize(10.5).fillColor(COLORS.black).text("GSTIN: 32ABCDE1234F1Z5", pageLeft, y);
+  y += 16;
+  doc.text("Kerala, India", pageLeft, y);
+  y += 16;
+  doc.text("Email: support@mpact.com", pageLeft, y);
 
-    doc
-      .font(bold ? fonts.bold : fonts.regular)
-      .fontSize(11)
-      .fillColor(COLORS.black)
-      .text(value, pageLeft + labelWidth, y);
+  y += 34;
 
-    y += rowGap;
-  });
+  /* ---------------- BILL TO (+ optional status column) ---------------- */
 
   doc
-    .moveTo(pageLeft, y + 4)
-    .lineTo(pageRight, y + 4)
-    .strokeColor(COLORS.line)
-    .stroke();
-
-  y += 22;
-
-  /* ---------------- BILL TO ---------------- */
-
-  doc
-    .font(fonts.bold)
-    .fontSize(12)
+    .font(FONT.bold)
+    .fontSize(11)
     .fillColor(COLORS.black)
-    .text("Bill To:", pageLeft, y, { underline: true });
-
-  y += 18;
-
-  const addr = order.shippingAddress || {};
-
-  const billLines = [
-    addr.name,
-    addr.address,
-    `${addr.city || "—"}, ${addr.state || ""} - ${addr.pincode || "—"}`,
-    `Phone: ${addr.phone || "—"}`,
-  ].filter(Boolean);
-
-  doc.font(fonts.regular).fontSize(10.5).fillColor(COLORS.black);
-
-  billLines.forEach((line) => {
-    doc.text(line, pageLeft, y);
-    y += 16;
-  });
-
-  y += 8;
-
-  doc
-    .moveTo(pageLeft, y)
-    .lineTo(pageRight, y)
-    .strokeColor(COLORS.line)
-    .stroke();
+    .text("BILL TO:", pageLeft, y, { underline: true });
 
   y += 20;
+  const billToTop = y;
+
+  const addr = order.shippingAddress || {};
+  const billLines = [
+    { text: addr.name || "Customer", bold: true },
+    { text: addr.address || "—", bold: false },
+    { text: `${addr.city || "—"}, ${addr.state || ""} - ${addr.pincode || "—"}`, bold: false },
+    { text: `Phone: ${addr.phone || "—"}`, bold: false },
+  ];
+
+  billLines.forEach((line) => {
+    doc
+      .font(line.bold ? FONT.bold : FONT.regular)
+      .fontSize(line.bold ? 11 : 10.5)
+      .fillColor(COLORS.black)
+      .text(line.text, pageLeft, y);
+    y += 17;
+  });
+
+  if (extraMeta && extraMeta.length) {
+    const metaX = pageLeft + contentWidth * 0.55;
+    const metaWidth = contentWidth * 0.45;
+    let metaY = billToTop;
+
+    extraMeta.forEach(({ label, value }) => {
+      doc.font(FONT.bold).fontSize(10.5).fillColor(COLORS.black);
+      doc.text(`${label} `, metaX, metaY, { continued: true, width: metaWidth });
+      doc.font(FONT.regular).text(value);
+      metaY += 26;
+    });
+
+    y = Math.max(y, metaY);
+  }
+
+  y += 24;
 
   /* ---------------- TABLE ---------------- */
 
   const col = {
     item: { x: pageLeft, width: contentWidth * 0.42 },
-    qty: { x: pageLeft + contentWidth * 0.42, width: contentWidth * 0.16 },
-    price: { x: pageLeft + contentWidth * 0.58, width: contentWidth * 0.2 },
-    total: { x: pageLeft + contentWidth * 0.78, width: contentWidth * 0.22 },
+    qty: { x: pageLeft + contentWidth * 0.42, width: contentWidth * 0.15 },
+    price: { x: pageLeft + contentWidth * 0.57, width: contentWidth * 0.22 },
+    total: { x: pageLeft + contentWidth * 0.79, width: contentWidth * 0.21 },
   };
 
-  const headerRowHeight = 28;
+  const headerRowHeight = 30;
+
+  doc.rect(pageLeft, y, contentWidth, headerRowHeight).fillColor(COLORS.headerFill).fill();
 
   doc
-    .rect(pageLeft, y, contentWidth, headerRowHeight)
-    .fillColor(COLORS.headerFill)
-    .fill();
-
-  doc
-    .font(fonts.bold)
+    .font(FONT.bold)
     .fontSize(11)
     .fillColor(COLORS.black)
-    .text("Item", col.item.x + 10, y + 9, { width: col.item.width - 10 })
-    .text("Qty", col.qty.x, y + 9, { width: col.qty.width, align: "center" })
-    .text("Price", col.price.x, y + 9, { width: col.price.width, align: "center" })
-    .text("Total", col.total.x, y + 9, { width: col.total.width - 10, align: "right" });
+    .text("Item", col.item.x + 12, y + 10, { width: col.item.width - 12 })
+    .text("Qty", col.qty.x, y + 10, { width: col.qty.width, align: "center" })
+    .text("Price", col.price.x, y + 10, { width: col.price.width, align: "center" })
+    .text("Total", col.total.x, y + 10, { width: col.total.width - 12, align: "right" });
 
   let rowY = y + headerRowHeight;
-  const rowHeight = 30;
+  const rowHeight = 32;
 
-  doc.font(fonts.regular).fontSize(10.5);
+  doc.font(FONT.regular).fontSize(10.5);
 
   order.orderItems.forEach((item) => {
     doc
       .fillColor(COLORS.black)
-      .text(item.name, col.item.x + 10, rowY + 9, { width: col.item.width - 20 })
-      .text(String(item.quantity), col.qty.x, rowY + 9, { width: col.qty.width, align: "center" })
-      .text(money(fonts.currency, item.price), col.price.x, rowY + 9, {
-        width: col.price.width,
-        align: "center",
-      })
-      .text(money(fonts.currency, item.price * item.quantity), col.total.x, rowY + 9, {
-        width: col.total.width - 10,
+      .text(item.name, col.item.x + 12, rowY + 10, { width: col.item.width - 20 })
+      .text(String(item.quantity), col.qty.x, rowY + 10, { width: col.qty.width, align: "center" })
+      .text(money(item.price), col.price.x, rowY + 10, { width: col.price.width, align: "center" })
+      .text(money(item.price * item.quantity), col.total.x, rowY + 10, {
+        width: col.total.width - 12,
         align: "right",
       });
 
     rowY += rowHeight;
   });
 
-  const tableBottom = rowY;
   const tableTop = y;
+  const tableBottom = rowY;
 
-  // Outer border
   doc
     .rect(pageLeft, tableTop, contentWidth, tableBottom - tableTop)
     .strokeColor(COLORS.line)
     .lineWidth(1)
     .stroke();
 
-  // Horizontal row separators
   for (let lineY = tableTop + headerRowHeight; lineY <= tableBottom; lineY += rowHeight) {
-    doc
-      .moveTo(pageLeft, lineY)
-      .lineTo(pageRight, lineY)
-      .strokeColor(COLORS.line)
-      .stroke();
+    doc.moveTo(pageLeft, lineY).lineTo(pageRight, lineY).strokeColor(COLORS.lightLine).stroke();
   }
 
-  // Vertical column separators
   [col.qty.x, col.price.x, col.total.x].forEach((x) => {
-    doc
-      .moveTo(x, tableTop)
-      .lineTo(x, tableBottom)
-      .strokeColor(COLORS.line)
-      .stroke();
+    doc.moveTo(x, tableTop).lineTo(x, tableBottom).strokeColor(COLORS.lightLine).stroke();
   });
 
-  /* ---------------- TOTALS ---------------- */
+  /* ---------------- TOTALS BOX ---------------- */
 
   const subtotal = order.totalAmount - order.taxAmount;
-  const tax = order.taxAmount;
+  const cgst = order.taxAmount / 2;
+  const sgst = order.taxAmount / 2;
 
-  let totalsY = tableBottom + 20;
-  const totalsLabelX = col.price.x;
-  const totalsValueWidth = col.total.width - 10;
+  const totalsBoxWidth = contentWidth * 0.5;
+  const totalsBoxX = pageRight - totalsBoxWidth;
+  const totalsLabelX = totalsBoxX + 14;
+  const totalsValueWidth = totalsBoxWidth - 28;
+  const totalsRowHeight = 30;
+
+  let totalsY = tableBottom + 26;
+  const totalsBoxTop = totalsY;
+
+  const totalsRow = (label, value, opts = {}) => {
+    doc
+      .font(opts.bold ? FONT.bold : FONT.regular)
+      .fontSize(opts.bold ? 13 : 10.5)
+      .fillColor(COLORS.black)
+      .text(label, totalsLabelX, totalsY + (opts.bold ? 9 : 10))
+      .text(value, totalsLabelX, totalsY + (opts.bold ? 9 : 10), {
+        width: totalsValueWidth,
+        align: "right",
+      });
+    totalsY += opts.bold ? 38 : totalsRowHeight;
+  };
+
+  totalsRow("Subtotal", money(subtotal));
+  totalsRow("CGST (9%)", money(cgst));
+  totalsRow("SGST (9%)", money(sgst));
 
   doc
-    .font(fonts.regular)
-    .fontSize(11)
-    .fillColor(COLORS.black)
-    .text("Subtotal:", totalsLabelX, totalsY, { width: col.price.width, align: "left" })
-    .text(money(fonts.currency, subtotal), col.total.x, totalsY, {
-      width: totalsValueWidth,
-      align: "right",
-    });
-
-  totalsY += 20;
-
-  doc
-    .text("Tax:", totalsLabelX, totalsY, { width: col.price.width, align: "left" })
-    .text(money(fonts.currency, tax), col.total.x, totalsY, {
-      width: totalsValueWidth,
-      align: "right",
-    });
-
-  totalsY += 22;
-
-  doc
-    .moveTo(totalsLabelX, totalsY)
+    .moveTo(totalsBoxX, totalsY)
     .lineTo(pageRight, totalsY)
-    .strokeColor(COLORS.black)
+    .strokeColor(COLORS.line)
     .lineWidth(1)
     .stroke();
 
-  totalsY += 10;
+  totalsRow("Grand Total", money(order.totalAmount), { bold: true });
+
+  const totalsBoxBottom = totalsY;
 
   doc
-    .font(fonts.bold)
-    .fontSize(14)
-    .fillColor(COLORS.black)
-    .text("Total:", totalsLabelX, totalsY, { width: col.price.width, align: "left" })
-    .text(money(fonts.currency, order.totalAmount), col.total.x, totalsY, {
-      width: totalsValueWidth,
-      align: "right",
-    });
+    .rect(totalsBoxX, totalsBoxTop, totalsBoxWidth, totalsBoxBottom - totalsBoxTop)
+    .strokeColor(COLORS.line)
+    .lineWidth(1)
+    .stroke();
+
+  // internal row separators (subtle)
+  [totalsBoxTop + totalsRowHeight, totalsBoxTop + totalsRowHeight * 2].forEach((lineY) => {
+    doc.moveTo(totalsBoxX, lineY).lineTo(pageRight, lineY).strokeColor(COLORS.lightLine).stroke();
+  });
 
   /* ---------------- FOOTER ---------------- */
 
-  const footerY = doc.page.height - doc.page.margins.bottom - 40;
+  const footerY = doc.page.height - doc.page.margins.bottom - 50;
+
+  doc.moveTo(pageLeft, footerY - 14).lineTo(pageRight, footerY - 14).strokeColor(COLORS.lightLine).stroke();
 
   doc
-    .moveTo(pageLeft, footerY - 12)
-    .lineTo(pageRight, footerY - 12)
-    .strokeColor(COLORS.line)
-    .stroke();
+    .font(FONT.bold)
+    .fontSize(11)
+    .fillColor(COLORS.black)
+    .text("Thank you for your business!", pageLeft, footerY, { width: contentWidth, align: "center" });
 
   doc
-    .font(fonts.regular)
-    .fontSize(10)
+    .font(FONT.regular)
+    .fontSize(9.5)
     .fillColor(COLORS.gray)
-    .text("Thank you for shopping with MPACT!", pageLeft, footerY, {
+    .text("For any queries, contact us at support@mpact.com", pageLeft, footerY + 16, {
       width: contentWidth,
       align: "center",
     });
@@ -317,14 +302,7 @@ export const downloadInvoice = async (req, res) => {
     renderInvoice(doc, {
       order,
       invoiceNumber,
-      statusRows: [
-        { label: "Order ID:", value: invoiceNumber },
-        {
-          label: "Date:",
-          value: new Date(order.createdAt).toLocaleDateString("en-IN"),
-        },
-        { label: "Status:", value: "PAID", bold: true },
-      ],
+      extraMeta: null,
     });
 
     doc.end();
@@ -360,14 +338,9 @@ export const adminDownloadInvoice = async (req, res) => {
     renderInvoice(doc, {
       order,
       invoiceNumber,
-      statusRows: [
-        { label: "Order ID:", value: invoiceNumber },
-        {
-          label: "Date:",
-          value: new Date(order.createdAt).toLocaleDateString("en-IN"),
-        },
-        { label: "Order Status:", value: order.orderStatus.toUpperCase(), bold: true },
-        { label: "Payment:", value: order.paymentStatus.toUpperCase(), bold: true },
+      extraMeta: [
+        { label: "Order Status:", value: order.orderStatus.toUpperCase() },
+        { label: "Payment Status:", value: order.paymentStatus.toUpperCase() },
       ],
     });
 
