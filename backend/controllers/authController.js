@@ -529,10 +529,13 @@ export const verifyOTP = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { phone } = req.body;
 
-    const user = await User.findOne({ email });
+const formattedPhone = formatPhoneNumber(phone);
 
+const user = await User.findOne({
+    phone: formattedPhone,
+});
     if (!user) {
       return res.status(404).json({
         message: "User not found",
@@ -548,7 +551,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     await sendWhatsappOTP({
-      phone: formatPhoneNumber(user.phone),
+phone: formattedPhone,
       otp,
     });
 
@@ -592,9 +595,16 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
 
-    const { email, otp, newPassword } = req.body;
+const { phone, otp, newPassword } = req.body;
 
-    const user = await User.findOne({ email }).select("+password +otp");
+// const { phone, otp, newPassword } = req.body;
+
+const formattedPhone = formatPhoneNumber(phone);
+
+const user = await User.findOne({
+    phone: formattedPhone,
+})
+    .select("+password +otp");
 
     if (!user || user.otpExpiry < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
