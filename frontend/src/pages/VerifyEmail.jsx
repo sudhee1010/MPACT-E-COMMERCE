@@ -66,7 +66,7 @@ const [loading, setLoading] = useState(false);
       // update AuthContext
       setUser(res.data);
 
-      toast.success("Email verified successfully");
+      toast.success("WhatsApp number verified successfully");
 
       navigate("/");
 

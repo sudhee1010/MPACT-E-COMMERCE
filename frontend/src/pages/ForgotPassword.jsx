@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { MessageCircle, Lock, KeyRound, ArrowLeft } from "lucide-react";
+// import { Mail, Lock, KeyRound, ArrowLeft } from "lucide-react";
+import { Phone, Lock, KeyRound, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
@@ -97,7 +98,8 @@ export default function ForgotPassword() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -105,12 +107,17 @@ export default function ForgotPassword() {
   // STEP 1: SEND OTP
   const sendOtpHandler = async (e) => {
     e.preventDefault();
-    if (!email) return toast.error("WhatsApp number required");
+if (!phone) {
+  return toast.error("Phone number is required");
+}
 
+if (phone.length !== 10) {
+  return toast.error("Please enter a valid 10-digit WhatsApp number");
+}
     try {
       setLoading(true);
-      await api.post("/api/auth/forgot-password", { email });
-      toast.success("OTP sent to your WhatsApp");
+      await api.post("/api/auth/forgot-password", { phone });
+      toast.success("OTP sent to your registered WhatsApp number");
       setStep(2);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to send OTP");
@@ -129,7 +136,7 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       await api.post("/api/auth/reset-password", {
-        email,
+        phone,
         otp,
         newPassword,
       });
@@ -156,24 +163,28 @@ export default function ForgotPassword() {
           <h1 style={styles.title}>Forgot Password</h1>
           <p style={styles.subtitle}>
             {step === 1
-              ? "We’ll send you an OTP on WhatsApp to reset your password"
-              : "Enter the WhatsApp OTP & set new password"}
+              ? "We’ll send an OTP to your registered WhatsApp number"
+              : "Enter OTP & set new password"}
           </p>
 
           {step === 1 && (
             <form onSubmit={sendOtpHandler}>
               <div style={styles.formGroup}>
-                <label style={styles.label}>WhatsApp Number</label>
+                <label style={styles.label}>Phone Number</label>
                 <div style={styles.inputWrapper}>
-                  <MessageCircle size={20} style={styles.icon} />
+                  <Phone size={20} style={styles.icon} />
                   <input
-                    type="tel"
-                    placeholder="Enter your WhatsApp number"
-                    style={styles.input}
-                    className="input"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+  type="tel"
+  placeholder="Enter your WhatsApp number"
+  style={styles.input}
+  className="input"
+  value={phone}
+  maxLength={10}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    setPhone(value);
+  }}
+/>
                 </div>
               </div>
 

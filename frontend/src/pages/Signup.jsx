@@ -268,7 +268,7 @@ export default function CreateAccount() {
         }
       );
 
-      toast.success("Account created. Please verify your email.");
+      toast.success("Account created. Please verify your WhatsApp number.");
       navigate("/verify-email", {
         state: { email: formData.email }
       });
