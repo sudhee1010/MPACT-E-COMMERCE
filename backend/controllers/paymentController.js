@@ -4,6 +4,7 @@ import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
+import { sendOrderConfirmationWhatsapp } from "../utils/sendWhatsappOTP.js";
 
 
 /* =========================================================
@@ -106,7 +107,7 @@ export const verifyPayment = async (req, res) => {
     }
 
     // const order = await Order.findById(orderId);
-    const order = await Order.findById(orderId).populate("user", "email name");
+    const order = await Order.findById(orderId).populate("user", "email name phone");
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
@@ -217,6 +218,21 @@ Thank you for shopping with us!`
     }
 
 
+    /* ================= WHATSAPP NOTIFICATION ================= */
+    try {
+      if (order.user?.phone) {
+        await sendOrderConfirmationWhatsapp({
+          phone: order.user.phone,
+          customerName: order.user.name,
+          orderId: order._id,
+          amount: order.totalAmount
+        });
+      } else {
+        console.warn("⚠️ WhatsApp skipped: user phone missing");
+      }
+    } catch (whatsappError) {
+      console.error("WhatsApp notification failed:", whatsappError.message);
+    }
 
     /* ================= COUPON LOCKING ================= */
     if (order.appliedCoupon?.code) {

@@ -3,6 +3,7 @@ import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import Product from "../models/Product.js";
+import { sendOrderConfirmationWhatsapp } from "../utils/sendWhatsappOTP.js";
 
 
 /* =========================================================
@@ -114,6 +115,8 @@ export const placeOrder = async (req, res) => {
 
 
     /* ================= CREATE ORDER ================= */
+    const isCOD = paymentMethod === "COD";
+    
     const order = await Order.create({
       user: req.user._id,
       orderItems,
@@ -123,11 +126,24 @@ export const placeOrder = async (req, res) => {
       discount,
       taxAmount,
       totalAmount,
-      // orderStatus: "placed",
-      orderStatus: "initiated",
+      orderStatus: isCOD ? "placed" : "initiated",
       paymentStatus: "pending",
       orderType
     });
+
+    /* ================= WHATSAPP NOTIFICATION FOR COD ================= */
+    if (isCOD) {
+      try {
+        await sendOrderConfirmationWhatsapp({
+          phone: req.user.phone,
+          customerName: req.user.name,
+          orderId: order._id,
+          amount: order.totalAmount
+        });
+      } catch (whatsappError) {
+        console.error("WhatsApp notification failed:", whatsappError.message);
+      }
+    }
 
     /* ================= EMAIL ================= */
     //     await sendEmail({
@@ -300,4 +316,3 @@ export const updatePaymentMethod = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
