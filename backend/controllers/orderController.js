@@ -4,6 +4,7 @@ import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import Product from "../models/Product.js";
 import { sendOrderConfirmationWhatsapp } from "../utils/sendWhatsappOTP.js";
+import { formatPhoneNumber } from "../utils/formatPhoneNumber.js";
 
 
 /* =========================================================
@@ -133,16 +134,30 @@ export const placeOrder = async (req, res) => {
 
     /* ================= WHATSAPP NOTIFICATION FOR COD ================= */
     if (isCOD) {
+      console.log("[Order Controller COD] isCOD=true, triggering WhatsApp order confirmation...");
+      console.log("[Order Controller COD] User data for WhatsApp:", {
+        userId: req.user._id,
+        userPhone: req.user.phone,
+        userName: req.user.name,
+        orderId: order._id,
+        orderTotal: order.totalAmount
+      });
       try {
+        const formattedPhone = formatPhoneNumber(req.user.phone);
+        console.log("[Order Controller COD] Formatted phone:", formattedPhone);
         await sendOrderConfirmationWhatsapp({
-          phone: req.user.phone,
+          phone: formattedPhone,
           customerName: req.user.name,
           orderId: order._id,
           amount: order.totalAmount
         });
+        console.log("[Order Controller COD] sendOrderConfirmationWhatsapp completed without error");
       } catch (whatsappError) {
-        console.error("WhatsApp notification failed:", whatsappError.message);
+        console.error("[Order Controller COD] WhatsApp notification FAILED:", whatsappError.message);
+        console.error("[Order Controller COD] Full WhatsApp error stack:", whatsappError.stack);
       }
+    } else {
+      console.log("[Order Controller COD] isCOD=false (paymentMethod=", paymentMethod, "), skipping WhatsApp in placeOrder (will send after payment verification)");
     }
 
     /* ================= EMAIL ================= */

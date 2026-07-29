@@ -5,6 +5,7 @@ import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import { sendOrderConfirmationWhatsapp } from "../utils/sendWhatsappOTP.js";
+import { formatPhoneNumber } from "../utils/formatPhoneNumber.js";
 
 
 /* =========================================================
@@ -219,19 +220,36 @@ Thank you for shopping with us!`
 
 
     /* ================= WHATSAPP NOTIFICATION ================= */
+    console.log("[Payment Controller] About to send WhatsApp order confirmation...");
+    console.log("[Payment Controller] Populated order.user data:", {
+      userId: order.user._id,
+      userPhone: order.user.phone,
+      userName: order.user.name,
+      userEmail: order.user.email
+    });
+    console.log("[Payment Controller] Order data:", {
+      orderId: order._id,
+      orderTotal: order.totalAmount,
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.orderStatus
+    });
     try {
       if (order.user?.phone) {
+        const formattedPhone = formatPhoneNumber(order.user.phone);
+        console.log("[Payment Controller] Formatted phone:", formattedPhone);
         await sendOrderConfirmationWhatsapp({
-          phone: order.user.phone,
+          phone: formattedPhone,
           customerName: order.user.name,
           orderId: order._id,
           amount: order.totalAmount
         });
+        console.log("[Payment Controller] sendOrderConfirmationWhatsapp completed without error");
       } else {
-        console.warn("⚠️ WhatsApp skipped: user phone missing");
+        console.warn("[Payment Controller] ⚠️ WhatsApp SKIPPED: order.user.phone is MISSING. User object:", JSON.stringify(order.user));
       }
     } catch (whatsappError) {
-      console.error("WhatsApp notification failed:", whatsappError.message);
+      console.error("[Payment Controller] WhatsApp notification FAILED:", whatsappError.message);
+      console.error("[Payment Controller] Full WhatsApp error stack:", whatsappError.stack);
     }
 
     /* ================= COUPON LOCKING ================= */
