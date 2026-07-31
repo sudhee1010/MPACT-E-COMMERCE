@@ -176,7 +176,7 @@ export const registerAdmin = async (req, res) => {
       // secure: process.env.NODE_ENV === "production",
       // sameSite: "strict",
        secure: true,        // MUST be true in production
-  sameSite: "None",    // MUST for cross-origin
+  sameSite: "lax",    // MUST for cross-origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -284,10 +284,10 @@ export const loginUser = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      // sameSite: "lax",
+      sameSite: "lax",
       // secure: process.env.NODE_ENV === "production",
        secure: true,        // MUST be true in production
-  sameSite: "None",    // MUST for cross-origin
+  // sameSite: "None",    // MUST for cross-origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -480,10 +480,10 @@ export const verifyOTP = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      // sameSite: "lax",
+      sameSite: "lax",
       // secure: process.env.NODE_ENV === "production",
        secure: true,        // MUST be true in production
-  sameSite: "None",    // MUST for cross-origin
+  // sameSite: "None",    // MUST for cross-origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -783,8 +783,8 @@ export const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     // secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    // sameSite: "lax",
+    // sameSite: "none",
+    sameSite: "lax",
     secure: true,
   });
 
