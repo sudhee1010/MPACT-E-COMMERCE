@@ -46,19 +46,47 @@ connectDB();
 // Middlewares
 // app.use(cors());
 app.set("trust proxy", 1);
+// app.use(
+//   cors({
+//     origin: "https://www.mpact.fit",
+//     // origin: "https://mpact-e-commerce.onrender.com",
+//     // origin: ["https://mpact-e-commerce.onrender.com",
+//     // "http://13.48.193.184:3000"],
+//     // origin: "http://localhost:3000",
+//     // origin:"https://mpact-e-commerce-1-0222.onrender.com",
+//     // origin: ["https://mpact-e-commerce-1-0222.onrender.com","https://mpact-e-commerce.onrender.com" ],
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     credentials: true,
+//   })
+// );
+
+const allowedOrigins = [
+  "https://www.mpact.fit",
+  "https://mpact.fit",
+  "https://mpact-e-commerce.onrender.com",
+  "http://localhost:3000",
+  "http://localhost:5173",
+];
+
 app.use(
   cors({
-    origin: "https://www.mpact.fit",
-    // origin: "https://mpact-e-commerce.onrender.com",
-    // origin: ["https://mpact-e-commerce.onrender.com",
-    // "http://13.48.193.184:3000"],
-    // origin: "http://localhost:3000",
-    // origin:"https://mpact-e-commerce-1-0222.onrender.com",
-    // origin: ["https://mpact-e-commerce-1-0222.onrender.com","https://mpact-e-commerce.onrender.com" ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: (origin, callback) => {
+      // Allow requests without an Origin header (Postman, mobile apps, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("Blocked CORS Origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
