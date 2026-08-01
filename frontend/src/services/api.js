@@ -1,20 +1,29 @@
 import axios from "axios";
 
+const getStoredToken = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+};
+
 const api = axios.create({
-  // baseURL: "/api",
   baseURL: "https://mpact-e-commerce-2-elbb.onrender.com/api",
-  // baseURL: "http://localhost:5000/api",
-  // baseURL: "http://13.48.193.184:5000/api",
-  withCredentials: true, // Important: enables cookies
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor to add auth token from cookies if needed
 api.interceptors.request.use(
   (config) => {
-    // Cookies are automatically sent with withCredentials: true
+    const token = getStoredToken();
+
+    if (token) {
+      config.headers = {
+        ...(config.headers || {}),
+        Authorization: `Bearer ${token}`,
+      };
+    }
+
     return config;
   },
   (error) => {

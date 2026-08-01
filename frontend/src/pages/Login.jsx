@@ -149,7 +149,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { login } = useAuth();
 
 
 // const handleSubmit = async (e) => {
@@ -188,8 +188,9 @@ const handleSubmit = async (e) => {
     const res = await api.post("/api/auth/login", { email, password });
 
     const user = res.data.user;
+    const token = res.data.token;
 
-    setUser(user);
+    login(user, token);
     toast.success("Login successful");
 
     // 🔥 THIS LINE IS THE KEY
