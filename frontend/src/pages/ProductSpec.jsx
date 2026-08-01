@@ -257,7 +257,7 @@ const ProductPage = () => {
     mainImage: {
       width: "100%",
       height: "100%",
-      objectFit: "fill",
+      objectFit: "cover",
       display: "block",
     },
     thumbnailsContainer: {
