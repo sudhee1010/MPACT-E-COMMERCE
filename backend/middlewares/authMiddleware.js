@@ -1,10 +1,20 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+export const getTokenFromRequest = (req) => {
+  const authHeader = req.headers?.authorization || req.headers?.Authorization;
+
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.split(" ")[1];
+  }
+
+  return req.cookies?.token || null;
+};
+
 export const protect = async (req, res, next) => {
   try {
-    // 1️⃣ Read token from HTTP-only cookie
-    const token = req.cookies.token;
+    // 1️⃣ Read token from Authorization header first, then from HTTP-only cookie
+    const token = getTokenFromRequest(req);
 
     if (!token) {
       return res.status(401).json({ message: "Not authorized, no token" });

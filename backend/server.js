@@ -48,15 +48,11 @@ connectDB();
 app.set("trust proxy", 1);
 app.use(
   cors({
-    origin: "https://www.mpact.fit",
-    // origin: "https://mpact-e-commerce.onrender.com",
-    // origin: ["https://mpact-e-commerce.onrender.com",
-    // "http://13.48.193.184:3000"],
-    // origin: "http://localhost:3000",
-    // origin:"https://mpact-e-commerce-1-0222.onrender.com",
-    // origin: ["https://mpact-e-commerce-1-0222.onrender.com","https://mpact-e-commerce.onrender.com" ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: ["https://www.mpact.fit", "https://mpact.fit"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    exposedHeaders: ["set-cookie"],
   })
 );
 app.use(express.json());
