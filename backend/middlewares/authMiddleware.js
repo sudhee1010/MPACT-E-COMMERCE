@@ -2,44 +2,33 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
-  console.log("========== AUTH DEBUG ==========");
-  console.log("Origin:", req.headers.origin);
-  console.log("Cookie Header:", req.headers.cookie);
-  console.log("Parsed Cookies:", req.cookies);
-
   try {
+    // 1️⃣ Read token from HTTP-only cookie
     const token = req.cookies.token;
 
-    console.log("Token:", token);
-
     if (!token) {
-      console.log("❌ No token found");
       return res.status(401).json({ message: "Not authorized, no token" });
     }
 
+    // 2️⃣ Verify JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded:", decoded);
 
+    // 3️⃣ Attach user to request (exclude password)
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
-      console.log("❌ User not found");
       return res.status(401).json({ message: "User not found" });
     }
 
+    // 🔐 IMPORTANT: Check email verification
     if (!user.isEmailVerified) {
-      console.log("❌ Email not verified");
-      return res
-        .status(403)
-        .json({ message: "Please verify your email first" });
+      return res.status(403).json({ message: "Please verify your email first" });
     }
 
     req.user = user;
-    console.log("✅ Authenticated:", user.email);
-
     next();
   } catch (error) {
-    console.error("JWT Error:", error);
     return res.status(401).json({ message: "Not authorized, token invalid" });
   }
 };
+
