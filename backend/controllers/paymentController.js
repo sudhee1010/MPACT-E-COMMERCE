@@ -4,6 +4,7 @@ import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
+import { sendOrderConfirmation } from "../utils/sendWhatsappOTP.js";
 
 
 /* =========================================================
@@ -137,6 +138,20 @@ export const verifyPayment = async (req, res) => {
     };
 
     await order.save();
+
+    /* ================= RAZORPAY ORDER CONFIRMATION ================= */
+    // Only after successful payment verification do we send the order
+    // confirmation WhatsApp, because a pending or failed order must not send
+    // a confirmation message prematurely.
+    try {
+      const orderWithDetails = await Order.findById(order._id)
+        .populate("user", "name phone email")
+        .populate("orderItems.product", "name");
+
+      await sendOrderConfirmation(orderWithDetails);
+    } catch (error) {
+      console.error("Razorpay order WhatsApp send failed:", error.message || error);
+    }
 
     /* ================= COUPON REDEEM ================= */
 

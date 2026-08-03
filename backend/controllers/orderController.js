@@ -3,6 +3,7 @@ import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import Product from "../models/Product.js";
+import { sendOrderConfirmation } from "../utils/sendWhatsappOTP.js";
 
 
 /* =========================================================
@@ -128,6 +129,22 @@ export const placeOrder = async (req, res) => {
       paymentStatus: "pending",
       orderType
     });
+
+    /* ================= COD ORDER CONFIRMATION ================= */
+    // For COD orders we can send the WhatsApp confirmation immediately after
+    // the order document is successfully created. Razorpay confirmation is
+    // deferred until payment verification succeeds inside paymentController.js.
+    if ((paymentMethod || "Razorpay").toLowerCase() === "cod") {
+      try {
+        const orderWithDetails = await Order.findById(order._id)
+          .populate("user", "name phone email")
+          .populate("orderItems.product", "name");
+
+        await sendOrderConfirmation(orderWithDetails);
+      } catch (error) {
+        console.error("COD order WhatsApp send failed:", error.message || error);
+      }
+    }
 
     /* ================= EMAIL ================= */
     //     await sendEmail({
