@@ -3,40 +3,72 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const maskApiKey = (value) => {
-  if (!value) return "<missing>";
-  if (value.length <= 8) return "****";
-  return `${value.slice(0, 4)}...${value.slice(-4)}`;
-};
+// Private helper function for common API request
+const sendWhatsAppTemplate = async ({ phone, templateId, templateParams }) => {
+  // DEBUG LOG: HAPPILEE REQUEST
+  const apiKey = process.env.HAPPILEE_API_KEY || "";
+  const maskedApiKey = apiKey ? `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}` : "<missing>";
+  const url = `${process.env.HAPPILEE_BASE_URL}/api/v1/sendTemplateMessage`;
+  const payload = {
+    candidate_details: {
+      phone_number: phone
+    },
+    template_message_id: templateId,
+    template_params: templateParams
+  };
+  const headers = {
+    "x-api-key": maskedApiKey,
+    "Content-Type": "application/json",
+    Accept: "application/json"
+  };
 
-const logHappileeConfig = () => {
-  console.log("======== HAPPILEE CONFIG ========");
-  console.log("HAPPILEE_BASE_URL:", process.env.HAPPILEE_BASE_URL || "<missing>");
-  console.log("HAPPILEE_API_KEY:", maskApiKey(process.env.HAPPILEE_API_KEY));
-  console.log("HAPPILEE_ORDER_TEMPLATE_ID:", process.env.HAPPILEE_ORDER_TEMPLATE_ID || "<missing>");
-  console.log("HAPPILEE_OTP_TEMPLATE_ID:", process.env.HAPPILEE_OTP_TEMPLATE_ID || "<missing>");
+  console.log("====================================");
+  console.log("WHATSAPP REQUEST");
+  console.log("====================================");
+  console.log("Request URL:", url);
+  console.log("HTTP Method:", "POST");
+  console.log("Headers:", headers);
+  console.log("Request Body:", JSON.stringify(payload, null, 2));
+  console.log("Phone Number:", phone);
+  console.log("Template ID:", templateId);
+  console.log("Template Params:", JSON.stringify(templateParams, null, 2));
+
+  try {
+    const response = await axios.post(
+      url,
+      payload,
+      {
+        headers: {
+          "x-api-key": process.env.HAPPILEE_API_KEY,
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        }
+      }
+    );
+
+    console.log("====================================");
+    console.log("WHATSAPP RESPONSE");
+    console.log("====================================");
+    console.log("Status Code:", response?.status);
+    console.log("Response Body:", JSON.stringify(response?.data, null, 2));
+
+    return response.data;
+  } catch (error) {
+    console.error("====================================");
+    console.error("FUNCTION NAME: sendWhatsAppTemplate");
+    console.error("Axios Error Message:", error?.message || error);
+    console.error("HTTP Status:", error?.response?.status);
+    console.error("Response Data:", JSON.stringify(error?.response?.data, null, 2));
+    console.error("Request Payload:", JSON.stringify({ url, headers, payload }, null, 2));
+    console.error("Stack Trace:", error?.stack || error);
+    console.error("====================================");
+    throw error;
+  }
 };
 
 const normalizePhoneNumber = (phone) => {
   if (!phone) return "";
-
-  const cleaned = String(phone).replace(/[^\d+]/g, "").trim();
-
-  if (!cleaned) return "";
-
-  if (cleaned.startsWith("+")) {
-    return cleaned;
-  }
-
-  if (cleaned.startsWith("91") && cleaned.length === 12) {
-    return `+${cleaned}`;
-  }
-
-  if (cleaned.length === 10) {
-    return `+91${cleaned}`;
-  }
-
-  return cleaned;
+  return String(phone).replace(/[^\d+]/g, "").trim();
 };
 
 const formatCurrency = (value) => {
@@ -65,137 +97,8 @@ const formatDisplayDate = (value) => {
   });
 };
 
-const validateOrder = (order) => {
-  console.log("======== VALIDATE ORDER ========");
-
-  if (!order || !order._id) {
-    console.error("Order confirmation failed: missing order data");
-    return null;
-  }
-
-  const user = order.user || {};
-  const shippingAddress = order.shippingAddress || {};
-  const customerName = user.name || "Customer";
-  const originalPhone = user.phone || shippingAddress.phone || order.phone;
-  const normalizedPhone = normalizePhoneNumber(originalPhone);
-
-  console.log("Customer Name:", customerName);
-  console.log("Original phone:", originalPhone || "<missing>");
-  console.log("Normalized phone:", normalizedPhone || "<missing>");
-  console.log("Order ID:", String(order._id));
-  console.log("Products:", (order.orderItems || []).map((item) => ({
-    name: item.name || item.product?.name || "Product",
-    quantity: item.quantity || 1,
-    price: item.price || 0
-  })));
-  console.log("Quantity:", (order.orderItems || []).reduce((sum, item) => sum + (item.quantity || 1), 0));
-  console.log("Total:", formatCurrency(order.totalAmount || order.subtotal || 0));
-  console.log("Payment Status:", order.paymentStatus || "Unknown");
-  console.log("Payment Method:", order.paymentMethod || "Unknown");
-  console.log("Shipping Address:", shippingAddress);
-
-  if (!customerName || !normalizedPhone) {
-    console.error("Order confirmation failed: missing required customer fields");
-    return null;
-  }
-
-  return {
-    customerName,
-    orderId: String(order._id),
-    normalizedPhone,
-    paymentStatus: order.paymentStatus || "Unknown",
-    paymentMethod: order.paymentMethod || "Unknown",
-    createdAt: order.createdAt,
-    totalAmount: order.totalAmount || order.subtotal || 0,
-    shippingAddress,
-    orderItems: order.orderItems || []
-  };
-};
-
-const buildOrderTemplateParams = (validatedOrder) => {
-  console.log("======== BUILD TEMPLATE PARAMS ========");
-
-  const productSummary = validatedOrder.orderItems
-    .map((item) => {
-      const itemName = item.name || item.product?.name || "Product";
-      const quantity = item.quantity || 1;
-      return `${itemName} x ${quantity}`;
-    })
-    .join(" | ");
-
-  const templateParams = [
-    {
-      name: "1",
-      value: validatedOrder.customerName
-    },
-    {
-      name: "2",
-      value: validatedOrder.orderId
-    },
-    {
-      name: "3",
-      value: productSummary || "Not available"
-    },
-    {
-      name: "4",
-      value: formatCurrency(validatedOrder.totalAmount || 0)
-    }
-  ];
-
-  console.log("template_params:", templateParams);
-
-  if (templateParams.length !== 4) {
-    throw new Error("Order WhatsApp template must contain exactly four params");
-  }
-
-  return templateParams;
-};
-
-const sendWhatsAppTemplate = async ({ phone, templateId, templateParams }) => {
-  const url = `${process.env.HAPPILEE_BASE_URL}/api/v1/sendTemplateMessage`;
-  const payload = {
-    candidate_details: {
-      phone_number: phone
-    },
-    template_message_id: templateId,
-    template_params: templateParams
-  };
-
-  const headers = {
-    "x-api-key": process.env.HAPPILEE_API_KEY,
-    "Content-Type": "application/json",
-    Accept: "application/json"
-  };
-
-  console.log("======== HAPPILEE REQUEST ========");
-  console.log("URL:", url);
-  console.log("Headers:", headers);
-  console.log("Body:", JSON.stringify(payload, null, 2));
-  console.log("template_message_id:", templateId);
-  console.log("template_params:", templateParams);
-  console.log("candidate_details:", payload.candidate_details);
-
-  try {
-    const response = await axios.post(url, payload, { headers });
-
-    console.log("======== HAPPILEE RESPONSE ========");
-    console.log(response?.data);
-    return response.data;
-  } catch (error) {
-    console.error("======== HAPPILEE ERROR ========");
-    console.error("error.response.status:", error?.response?.status);
-    console.error("error.response.data:", error?.response?.data);
-    console.error("error.response.headers:", error?.response?.headers);
-    console.error("axios request payload:", { url, headers, payload });
-    console.error("stack trace:", error?.stack || error);
-    throw error;
-  }
-};
-
 // Keep OTP flow unchanged.
 export const sendWhatsappOTP = async ({ phone, otp }) => {
-  logHappileeConfig();
-
   const response = await sendWhatsAppTemplate({
     phone,
     templateId: process.env.HAPPILEE_OTP_TEMPLATE_ID,
@@ -222,29 +125,132 @@ export const sendWhatsappOTP = async ({ phone, otp }) => {
  * the order flow remain independent.
  */
 export const sendOrderConfirmation = async (order) => {
-  console.log("======== CALLING ORDER WHATSAPP ========");
-  logHappileeConfig();
+  // DEBUG LOG: ORDER CONFIRMATION START
+  console.log("====================================");
+  console.log("ORDER CONFIRMATION START");
+  console.log("====================================");
+  console.log("Complete order object:", JSON.stringify(order, null, 2));
 
   try {
-    const validatedOrder = validateOrder(order);
-    if (!validatedOrder) {
+    if (!order || !order._id) {
+      console.error("====================================");
+      console.error("FUNCTION NAME: sendOrderConfirmation");
+      console.error("Order confirmation failed: missing order data");
+      console.error("====================================");
       return false;
     }
 
-    const templateParams = buildOrderTemplateParams(validatedOrder);
+    const user = order.user || {};
+    const shippingAddress = order.shippingAddress || {};
+    const customerName = user.name || "Customer";
+    const phone = normalizePhoneNumber(
+      user.phone || shippingAddress.phone || order.phone
+    );
+
+    console.log("Customer Name:", customerName);
+    console.log("Phone Number:", phone);
+    console.log("Template ID:", process.env.HAPPILEE_ORDER_TEMPLATE_ID);
+    console.log("Products:", JSON.stringify(order.orderItems || [], null, 2));
+    console.log("Grand Total:", formatCurrency(order.totalAmount || 0));
+    console.log("Payment Status:", order.paymentStatus || "Unknown");
+    console.log("Delivery Address:", JSON.stringify(shippingAddress, null, 2));
+
+    if (!phone) {
+      console.error("====================================");
+      console.error("FUNCTION NAME: sendOrderConfirmation");
+      console.error("Order confirmation failed: missing customer phone number");
+      console.error("====================================");
+      return false;
+    }
+
+    const productLines = (order.orderItems || [])
+      .map((item) => {
+        const itemName = item.name || item.product?.name || "Product";
+        const quantity = item.quantity || 1;
+        const price = formatCurrency(item.price || 0);
+        return `${itemName} x ${quantity} @ ${price}`;
+      })
+      .join(" | ");
+
+    const deliveryAddress = [
+      shippingAddress.address,
+      shippingAddress.city,
+      shippingAddress.pincode,
+      shippingAddress.phone
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    const messageSummary = [
+      `Customer Name: ${customerName}`,
+      `Order ID: ${String(order._id)}`,
+      `Order Date: ${formatDisplayDate(order.createdAt)}`,
+      `Products: ${productLines || "Not available"}`,
+      `Individual Price: ${formatCurrency(order.subtotal || order.totalAmount || 0)}`,
+      `Grand Total: ${formatCurrency(order.totalAmount || 0)}`,
+      `Payment Method: ${order.paymentMethod || "Unknown"}`,
+      `Payment Status: ${order.paymentStatus || "Unknown"}`,
+      `Delivery Address: ${deliveryAddress || "Not available"}`,
+      `Estimated Delivery Date: ${
+        order.estimatedDeliveryDate
+          ? formatDisplayDate(order.estimatedDeliveryDate)
+          : "Not available"
+      }`
+    ].join("\n");
+
+    if (!productLines || !messageSummary.trim()) {
+      console.error("====================================");
+      console.error("FUNCTION NAME: sendOrderConfirmation");
+      console.error("Order confirmation failed: template variables are empty");
+      console.error("====================================");
+      return false;
+    }
+
+    const templateParams = [
+      {
+        name: "1",
+        value: customerName
+      },
+      {
+        name: "2",
+        value: String(order._id)
+      },
+      {
+        name: "3",
+        value: messageSummary
+      }
+    ];
+
+    console.log("Template Parameters:", JSON.stringify(templateParams, null, 2));
+
+    console.log("====================================");
+    console.log("Before sendWhatsAppTemplate()");
+    console.log("====================================");
 
     const response = await sendWhatsAppTemplate({
-      phone: validatedOrder.normalizedPhone,
+      phone,
       templateId: process.env.HAPPILEE_ORDER_TEMPLATE_ID,
       templateParams
     });
+
+    console.log("====================================");
+    console.log("After sendWhatsAppTemplate()");
+    console.log("API response:", JSON.stringify(response, null, 2));
+    console.log("====================================");
 
     console.log("Order confirmation WhatsApp sent successfully");
     console.log(response);
     return response;
   } catch (error) {
-    console.error("Order confirmation WhatsApp failed:", error?.message || error);
-    console.error("stack trace:", error?.stack || error);
+    console.error("====================================");
+    console.error("FUNCTION NAME: sendOrderConfirmation");
+    console.error(error);
+    console.error(error.stack);
+    if (error.response) {
+      console.error("STATUS:", error.response.status);
+      console.error("DATA:", JSON.stringify(error.response.data, null, 2));
+    }
+    console.error("====================================");
     return false;
   }
 };
