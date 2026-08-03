@@ -27,6 +27,7 @@ const Checkout = () => {
     pincode: "",
   });
 
+  const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [errors, setErrors] = useState({});
   /* ================= FETCH ADDRESS ================= */
   useEffect(() => {
@@ -103,8 +104,11 @@ const Checkout = () => {
           pincode: form.pincode,
           phone: form.phone
         },
-        paymentMethod: "Razorpay"
+        paymentMethod,
       };
+
+      console.log("Selected Payment Method:", paymentMethod);
+      console.log("Order Payload:", orderPayload);
 
       if (isDirectBuy && directProduct) {
         orderPayload.orderItems = [

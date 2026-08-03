@@ -14,6 +14,7 @@ const Pay = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [taxAmount, setTaxAmount] = useState(0);
@@ -88,6 +89,9 @@ const Pay = () => {
   /* ================= RAZORPAY PAYMENT ================= */
   const handlePay = async () => {
     try {
+      setPaymentMethod("Razorpay");
+      console.log("Selected Payment Method:", paymentMethod);
+
       const { data } = await api.post("/api/payment/create-order", { orderId });
 
       const options = {
@@ -134,6 +138,9 @@ const Pay = () => {
   /* ================= COD ================= */
   const handleCOD = async () => {
     try {
+      setPaymentMethod("COD");
+      console.log("Selected Payment Method:", paymentMethod);
+
       await api.put("/api/orders/update-payment-method", {
         orderId,
         paymentMethod: "COD",
