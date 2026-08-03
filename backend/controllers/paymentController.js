@@ -79,6 +79,9 @@ export const createPaymentOrder = async (req, res) => {
 ========================================================= */
 export const verifyPayment = async (req, res) => {
   try {
+    console.log("======== VERIFY PAYMENT ========");
+    console.log("request body:", req.body);
+
     const {
       razorpay_order_id,
       razorpay_payment_id,
@@ -120,8 +123,6 @@ export const verifyPayment = async (req, res) => {
       return res.status(400).json({ message: "Order was cancelled" });
     }
 
-
-
     // 🔐 Prevent duplicate verification
     if (order.paymentStatus === "paid") {
       return res.status(400).json({ message: "Order already paid" });
@@ -138,12 +139,17 @@ export const verifyPayment = async (req, res) => {
     };
 
     await order.save();
+    console.log("======== PAYMENT VERIFIED AND ORDER SAVED ========");
+    console.log("Order ID:", String(order._id));
+    console.log("paymentStatus:", order.paymentStatus);
+    console.log("orderStatus:", order.orderStatus);
 
     /* ================= RAZORPAY ORDER CONFIRMATION ================= */
     // Only after successful payment verification do we send the order
     // confirmation WhatsApp, because a pending or failed order must not send
     // a confirmation message prematurely.
     try {
+      console.log("======== RAZORPAY ORDER WHATSAPP ========");
       const orderWithDetails = await Order.findById(order._id)
         .populate("user", "name phone email")
         .populate("orderItems.product", "name");
@@ -151,6 +157,7 @@ export const verifyPayment = async (req, res) => {
       await sendOrderConfirmation(orderWithDetails);
     } catch (error) {
       console.error("Razorpay order WhatsApp send failed:", error.message || error);
+      console.error("stack trace:", error?.stack || error);
     }
 
     /* ================= COUPON REDEEM ================= */

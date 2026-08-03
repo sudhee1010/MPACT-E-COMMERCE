@@ -130,12 +130,16 @@ export const placeOrder = async (req, res) => {
       orderType
     });
 
+    console.log("======== ORDER CREATED ========");
+    console.log("Order ID:", String(order._id));
+
     /* ================= COD ORDER CONFIRMATION ================= */
     // For COD orders we can send the WhatsApp confirmation immediately after
     // the order document is successfully created. Razorpay confirmation is
     // deferred until payment verification succeeds inside paymentController.js.
     if ((paymentMethod || "Razorpay").toLowerCase() === "cod") {
       try {
+        console.log("======== COD ORDER WHATSAPP ========");
         const orderWithDetails = await Order.findById(order._id)
           .populate("user", "name phone email")
           .populate("orderItems.product", "name");
