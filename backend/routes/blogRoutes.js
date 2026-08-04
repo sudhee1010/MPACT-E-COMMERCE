@@ -8,7 +8,7 @@ import {
   deleteBlog,
 } from "../controllers/blogController.js";
 
-import upload from "../middlewares/uploadMiddleware.js";
+import upload from "../middlewares/blogUploadMiddleware.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import { isAdmin } from "../middlewares/adminMiddleware.js";
 
