@@ -3,6 +3,7 @@ import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import Product from "../models/Product.js";
+import { sendOrderConfirmation } from "../utils/sendWhatsappOTP.js";
 
 
 /* =========================================================
@@ -17,6 +18,14 @@ import Product from "../models/Product.js";
 export const placeOrder = async (req, res) => {
   try {
     const { shippingAddress, paymentMethod, orderItems: directOrderItems } = req.body;
+
+    console.log("====================================");
+    console.log("PLACE ORDER START");
+    console.log("====================================");
+    console.log("Request User ID:", req.user?._id?.toString());
+    console.log("Request Body:", JSON.stringify(req.body, null, 2));
+    console.log("Payment Method:", paymentMethod || "Razorpay");
+    console.log("Order Type:", directOrderItems?.length ? "direct" : "cart");
 
     let orderItems = [];
     let subtotal = 0;
@@ -129,6 +138,68 @@ export const placeOrder = async (req, res) => {
       orderType
     });
 
+    console.log("====================================");
+    console.log("After Order.create()");
+    console.log("Order ID:", String(order._id));
+    console.log("Order Status:", order?.orderStatus);
+    console.log("Payment Status:", order?.paymentStatus);
+    console.log("====================================");
+
+    /* ================= COD ORDER CONFIRMATION ================= */
+    // For COD orders we can send the WhatsApp confirmation immediately after
+    // the order document is successfully created. Razorpay confirmation is
+    // deferred until payment verification succeeds inside paymentController.js.
+    console.log("====================================");
+    console.log("Before entering the COD block");
+    console.log("====================================");
+
+    if ((paymentMethod || "Razorpay").toLowerCase() === "cod") {
+      console.log("====================================");
+      console.log("COD condition matched");
+      console.log("====================================");
+
+      try {
+        console.log("====================================");
+        console.log("Before populate()");
+        console.log("====================================");
+
+        const orderWithDetails = await Order.findById(order._id)
+          .populate("user", "name phone email")
+          .populate("orderItems.product", "name")
+          .populate("shippingAddress");
+
+        console.log("====================================");
+        console.log("After populate()");
+        console.log("Populated order object:", JSON.stringify(orderWithDetails, null, 2));
+        console.log("====================================");
+
+        console.log("====================================");
+        console.log("Before calling sendOrderConfirmation()");
+        console.log("====================================");
+
+        await sendOrderConfirmation(orderWithDetails);
+
+        console.log("====================================");
+        console.log("After sendOrderConfirmation()");
+        console.log("WhatsApp order confirmation completed.");
+        console.log("====================================");
+      } catch (error) {
+        console.error("====================================");
+        console.error("FUNCTION NAME: placeOrder -> COD sendOrderConfirmation");
+        console.error(error);
+        console.error(error.stack);
+        if (error.response) {
+          console.error("STATUS:", error.response.status);
+          console.error("DATA:", JSON.stringify(error.response.data, null, 2));
+        }
+        console.error("====================================");
+      }
+    } else {
+      console.log("====================================");
+      console.log("COD condition skipped");
+      console.log("====================================");
+    }
+
     /* ================= EMAIL ================= */
     //     await sendEmail({
     //       to: req.user.email,
@@ -151,7 +222,15 @@ export const placeOrder = async (req, res) => {
     res.status(201).json(order);
 
   } catch (error) {
-    console.error("Place Order Error:", error);
+    console.error("====================================");
+    console.error("FUNCTION NAME: placeOrder");
+    console.error(error);
+    console.error(error.stack);
+    if (error.response) {
+      console.error("STATUS:", error.response.status);
+      console.error("DATA:", JSON.stringify(error.response.data, null, 2));
+    }
+    console.error("====================================");
     res.status(500).json({ message: error.message });
   }
 };

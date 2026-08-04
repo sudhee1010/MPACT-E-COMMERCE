@@ -4,6 +4,7 @@ import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
+import { sendOrderConfirmation } from "../utils/sendWhatsappOTP.js";
 
 
 /* =========================================================
@@ -85,6 +86,14 @@ export const verifyPayment = async (req, res) => {
       orderId
     } = req.body;
 
+    console.log("====================================");
+    console.log("PAYMENT VERIFICATION START");
+    console.log("====================================");
+    console.log("Order ID:", orderId);
+    console.log("Razorpay Order ID:", razorpay_order_id);
+    console.log("Payment ID:", razorpay_payment_id);
+    console.log("Request Body:", JSON.stringify(req.body, null, 2));
+
     if (
       !razorpay_order_id ||
       !razorpay_payment_id ||
@@ -96,10 +105,20 @@ export const verifyPayment = async (req, res) => {
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
+    console.log("====================================");
+    console.log("Before signature verification");
+    console.log("====================================");
+
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body)
       .digest("hex");
+
+    console.log("====================================");
+    console.log("After signature verification");
+    console.log("Expected Signature:", expectedSignature);
+    console.log("Received Signature:", razorpay_signature);
+    console.log("====================================");
 
     if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({ message: "Payment verification failed" });
@@ -119,14 +138,16 @@ export const verifyPayment = async (req, res) => {
       return res.status(400).json({ message: "Order was cancelled" });
     }
 
-
-
     // 🔐 Prevent duplicate verification
     if (order.paymentStatus === "paid") {
       return res.status(400).json({ message: "Order already paid" });
     }
 
     /* ================= UPDATE ORDER ================= */
+    console.log("====================================");
+    console.log("Before updating order");
+    console.log("====================================");
+
     order.paymentStatus = "paid";
     order.orderStatus = "placed";
     // order.isVisible = true;
@@ -137,6 +158,54 @@ export const verifyPayment = async (req, res) => {
     };
 
     await order.save();
+
+    console.log("====================================");
+    console.log("After updating order");
+    console.log("Order Status:", order?.orderStatus);
+    console.log("Payment Status:", order?.paymentStatus);
+    console.log("====================================");
+
+    /* ================= RAZORPAY ORDER CONFIRMATION ================= */
+    // Only after successful payment verification do we send the order
+    // confirmation WhatsApp, because a pending or failed order must not send
+    // a confirmation message prematurely.
+    try {
+      console.log("====================================");
+      console.log("Before populate()");
+      console.log("====================================");
+
+      const orderWithDetails = await Order.findById(order._id)
+        .populate("user", "name phone email")
+        .populate("orderItems.product", "name")
+        .populate("shippingAddress");
+
+      console.log("====================================");
+      console.log("After populate()");
+      console.log("Populated order:", JSON.stringify(orderWithDetails, null, 2));
+      console.log("====================================");
+
+      console.log("====================================");
+      console.log("Before sendOrderConfirmation()");
+      console.log("====================================");
+
+      await sendOrderConfirmation(orderWithDetails);
+
+      console.log("====================================");
+      console.log("After sendOrderConfirmation()");
+      console.log("PAYMENT VERIFIED");
+      console.log("WhatsApp order confirmation completed.");
+      console.log("====================================");
+    } catch (error) {
+      console.error("====================================");
+      console.error("FUNCTION NAME: verifyPayment -> sendOrderConfirmation");
+      console.error(error);
+      console.error(error.stack);
+      if (error.response) {
+        console.error("STATUS:", error.response.status);
+        console.error("DATA:", JSON.stringify(error.response.data, null, 2));
+      }
+      console.error("====================================");
+    }
 
     /* ================= COUPON REDEEM ================= */
 
@@ -282,7 +351,15 @@ Thank you for shopping with us!`
     });
 
   } catch (error) {
-    console.error("Verify payment error:", error);
+    console.error("====================================");
+    console.error("FUNCTION NAME: verifyPayment");
+    console.error(error);
+    console.error(error.stack);
+    if (error.response) {
+      console.error("STATUS:", error.response.status);
+      console.error("DATA:", JSON.stringify(error.response.data, null, 2));
+    }
+    console.error("====================================");
     res.status(500).json({
       message: "Payment verification error",
       error: error.message
