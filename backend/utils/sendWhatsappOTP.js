@@ -3,18 +3,35 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const sanitizeTemplateValue = (value) => {
+  if (value === null || value === undefined) return "";
+
+  return String(value)
+    .replace(/\r/g, "")
+    .replace(/\n/g, "")
+    .replace(/\t/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
+
 // Private helper function for common API request
 const sendWhatsAppTemplate = async ({ phone, templateId, templateParams }) => {
   // DEBUG LOG: HAPPILEE REQUEST
   const apiKey = process.env.HAPPILEE_API_KEY || "";
   const maskedApiKey = apiKey ? `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}` : "<missing>";
   const url = `${process.env.HAPPILEE_BASE_URL}/api/v1/sendTemplateMessage`;
+
+  const sanitizedTemplateParams = (templateParams || []).map((param) => ({
+    name: sanitizeTemplateValue(param?.name),
+    value: sanitizeTemplateValue(param?.value)
+  }));
+
   const payload = {
     candidate_details: {
       phone_number: phone
     },
     template_message_id: templateId,
-    template_params: templateParams
+    template_params: sanitizedTemplateParams
   };
   const headers = {
     "x-api-key": maskedApiKey,
@@ -196,7 +213,7 @@ export const sendOrderConfirmation = async (order) => {
           ? formatDisplayDate(order.estimatedDeliveryDate)
           : "Not available"
       }`
-    ].join("\n");
+    ].join(" | ");
 
     if (!productLines || !messageSummary.trim()) {
       console.error("====================================");
@@ -238,7 +255,14 @@ export const sendOrderConfirmation = async (order) => {
     console.log("API response:", JSON.stringify(response, null, 2));
     console.log("====================================");
 
-    console.log("Order confirmation WhatsApp sent successfully");
+    if (response?.error === true) {
+      throw new Error("Happilee WhatsApp order confirmation returned an error response");
+    }
+
+    if (response?.error === false) {
+      console.log("WhatsApp sent successfully");
+    }
+
     console.log(response);
     return response;
   } catch (error) {
