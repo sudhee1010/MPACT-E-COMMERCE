@@ -81,7 +81,7 @@ const [loading, setLoading] = useState(false);
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>
-          <ShieldCheck size={28} /> Verify Email
+          <ShieldCheck size={28} /> Verify Whatsapp Number
         </h2>
 
         {step === 1 && (
