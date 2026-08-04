@@ -27,7 +27,6 @@ const Checkout = () => {
     pincode: "",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [errors, setErrors] = useState({});
   /* ================= FETCH ADDRESS ================= */
   useEffect(() => {
@@ -85,7 +84,8 @@ const Checkout = () => {
 
     try {
       setLoading(true);
-      await api.post("/api/address", {
+
+      const addressPayload = {
         addressType: addressType === "work" ? "Work" : "Home",
         fullName: form.name,
         phoneNumber: form.phone,
@@ -95,48 +95,28 @@ const Checkout = () => {
         city: form.city,
         state: form.state,
         pincode: form.pincode,
-      });
-
-      const orderPayload = {
-        shippingAddress: {
-          address: form.address1,
-          city: form.city,
-          pincode: form.pincode,
-          phone: form.phone
-        },
-        paymentMethod,
       };
 
-      console.log("Selected Payment Method:", paymentMethod);
-      console.log("Order Payload:", orderPayload);
+      console.log("Selected Payment Method:", "Pending - payment selection happens on the Payment page");
+      console.log("Request Payload:", addressPayload);
 
-      if (isDirectBuy && directProduct) {
-        orderPayload.orderItems = [
-          {
-            product: directProduct._id,
-            name: directProduct.name,
-            qty: directProduct.qty,
-            price: directProduct.price,
-            image: directProduct.image
-          }
-        ];
-      }
+      await api.post("/api/address", addressPayload);
 
-      // navigate("/pay");
-      // const res = await api.post("/api/orders", {
-      //   shippingAddress: {
-      //     address: form.address1,
-      //     city: form.city,
-      //     pincode: form.pincode,
-      //     phone: form.phone
-      //   },
-      //   paymentMethod: "Razorpay"
-      // });
-
-      const res = await api.post("/api/orders", orderPayload);
-      navigate("/pay", { state: { orderId: res.data._id } });
-
-
+      navigate("/pay", {
+        state: {
+          shippingAddress: {
+            address: form.address1,
+            city: form.city,
+            pincode: form.pincode,
+            phone: form.phone,
+            state: form.state,
+            name: form.name,
+            email: form.email,
+          },
+          directBuy: isDirectBuy,
+          product: directProduct,
+        },
+      });
     } catch (error) {
       toast.error("Failed to save address. Please try again.");
     } finally {
