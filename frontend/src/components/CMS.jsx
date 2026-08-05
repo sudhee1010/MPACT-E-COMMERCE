@@ -1980,6 +1980,51 @@ export default function CMS() {
   }, [about]);
 
 
+  // ─── BLOG ERROR / VALIDATION HELPER ───────────────────────────────────────
+  const extractErrorMessage = (err, fallback = "Something went wrong. Please try again.") => {
+    return (
+      err?.response?.data?.message ||
+      err?.message ||
+      fallback
+    );
+  };
+
+  const validateBlogForm = (isEdit = false) => {
+    if (!blogForm.title || !blogForm.title.trim()) {
+      toast.error("Title is required.");
+      return false;
+    }
+    if (!blogForm.description || !blogForm.description.trim()) {
+      toast.error("Description is required.");
+      return false;
+    }
+    if (!blogForm.category || !blogForm.category.trim()) {
+      toast.error("Category is required.");
+      return false;
+    }
+    if (!blogForm.content || !blogForm.content.trim()) {
+      toast.error("Blog content is required.");
+      return false;
+    }
+    if (!isEdit && !blogForm.coverImage) {
+      toast.error("Please upload a featured image.");
+      return false;
+    }
+    if (blogForm.coverImage && blogForm.coverImage instanceof File) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      if (!allowedTypes.includes(blogForm.coverImage.type)) {
+        toast.error("Only JPG, JPEG, PNG, and WEBP images are allowed.");
+        return false;
+      }
+      const maxSize = 5 * 1024 * 1024; // 5 MB
+      if (blogForm.coverImage.size > maxSize) {
+        toast.error("Image size must be less than 5 MB.");
+        return false;
+      }
+    }
+    return true;
+  };
+
   // ─── BLOG FUNCTIONS ───────────────────────────────────────────────────────
   useEffect(() => {
     fetchCategories();
@@ -1991,7 +2036,7 @@ export default function CMS() {
       const { data } = await api.get("/api/blog-categories");
       setCategories(data);
     } catch (err) {
-      toast.error("Failed to load categories");
+      toast.error(extractErrorMessage(err, "Failed to load categories"));
     }
   };
 
@@ -1999,15 +2044,17 @@ export default function CMS() {
     try {
       setBlogLoading(true);
       const { data } = await api.get("/api/blogs");
-      setBlogs(data);
-    } catch {
-      toast.error("Failed to load blogs");
+      setBlogs(Array.isArray(data) ? data : data.data || []);
+    } catch (err) {
+      toast.error(extractErrorMessage(err, "Failed to load blogs"));
     } finally {
       setBlogLoading(false);
     }
   };
 
   const handleCreateBlog = async () => {
+    if (!validateBlogForm(false)) return;
+
     try {
       setBlogSaving(true);
 
@@ -2016,49 +2063,55 @@ export default function CMS() {
         if (key === "coverImage") {
           if (blogForm.coverImage)
             formData.append("coverImage", blogForm.coverImage);
-        } else {
+        } else if (key !== "imagePreview") {
           formData.append(key, blogForm[key]);
         }
       });
 
-      await api.post("/api/blogs", formData);
+      const res = await api.post("/api/blogs", formData);
 
-      toast.success("Blog created");
+      const successMsg = res.data?.message || "Blog created successfully.";
+      toast.success(successMsg);
       resetBlogForm();
       setIsBlogDialogOpen(false);
       fetchBlogs();
 
-    } catch {
-      toast.error("Create failed");
+    } catch (err) {
+      console.error(err);
+      toast.error(extractErrorMessage(err, "Failed to save blog."));
     } finally {
       setBlogSaving(false);
     }
   };
 
   const handleUpdateBlog = async () => {
+    if (!validateBlogForm(true)) return;
+
     try {
       setBlogSaving(true);
 
       const formData = new FormData();
       Object.keys(blogForm).forEach((key) => {
         if (key === "coverImage") {
-          if (blogForm.coverImage)
+          if (blogForm.coverImage && blogForm.coverImage instanceof File)
             formData.append("coverImage", blogForm.coverImage);
-        } else {
+        } else if (key !== "imagePreview") {
           formData.append(key, blogForm[key]);
         }
       });
 
-      await api.put(`/api/blogs/${editingBlog._id}`, formData);
+      const res = await api.put(`/api/blogs/${editingBlog._id}`, formData);
 
-      toast.success("Blog updated");
+      const successMsg = res.data?.message || "Blog updated successfully.";
+      toast.success(successMsg);
       setEditingBlog(null);
       resetBlogForm();
       setIsBlogDialogOpen(false);
       fetchBlogs();
 
-    } catch {
-      toast.error("Update failed");
+    } catch (err) {
+      console.error(err);
+      toast.error(extractErrorMessage(err, "Failed to save blog."));
     } finally {
       setBlogSaving(false);
     }
@@ -2068,17 +2121,19 @@ export default function CMS() {
     openConfirm(async () => {
       try {
         setConfirmLoading(true);
-        await api.delete(`/api/blogs/${id}`);
-        toast.success("Blog deleted successfully");
+        const res = await api.delete(`/api/blogs/${id}`);
+        const successMsg = res.data?.message || "Blog deleted successfully.";
+        toast.success(successMsg);
         fetchBlogs();
-      } catch {
-        toast.error("Delete failed");
+      } catch (err) {
+        toast.error(extractErrorMessage(err, "Delete failed"));
       } finally {
         setConfirmLoading(false);
         setConfirmOpen(false);
       }
     });
   };
+
 
 
   // ─── HOME VIDEOS FUNCTIONS ────────────────────────────────────────────────

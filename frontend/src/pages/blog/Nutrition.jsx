@@ -30,16 +30,17 @@ const BlogArticlePage = () => {
             params: { category: res.data.category._id }
           });
 
+          const relatedData = Array.isArray(relatedRes.data) ? relatedRes.data : relatedRes.data?.data || [];
           // Filter out current blog and limit to 3
           setRelatedBlogs(
-            relatedRes.data
+            relatedData
               .filter((b) => b.slug !== slug)
               .slice(0, 3)
           );
         }
       } catch (error) {
         console.error("Error loading blog", error);
-        toast.error("Failed to load blog article");
+        toast.error(error.response?.data?.message || error.message || "Failed to load blog article");
       } finally {
         setLoading(false);
       }

@@ -25,7 +25,7 @@ const MPACTBlog = () => {
         setCategories(["All", ...res.data.map((cat) => cat.name)]);
       } catch (error) {
         console.error("Error fetching categories:", error);
-        toast.error("Failed to load categories");
+        toast.error(error.response?.data?.message || error.message || "Failed to load categories");
       }
     };
     fetchCategories();
@@ -58,15 +58,16 @@ const MPACTBlog = () => {
       const blogsRes = await api.get("/blogs", { params: queryParams });
       
       // Split blogs into featured and latest based on isFeatured
-      const featured = blogsRes.data.filter((blog) => blog.isFeatured);
-      const latest = blogsRes.data.filter((blog) => !blog.isFeatured);
+      const blogsData = Array.isArray(blogsRes.data) ? blogsRes.data : blogsRes.data?.data || [];
+      const featured = blogsData.filter((blog) => blog.isFeatured);
+      const latest = blogsData.filter((blog) => !blog.isFeatured);
       
       setFeaturedArticles(featured);
       setLatestArticles(latest);
 
     } catch (error) {
       console.error("Error fetching blogs:", error);
-      toast.error("Failed to load blogs");
+      toast.error(error.response?.data?.message || error.message || "Failed to load blogs");
     } finally {
       setLoading(false);
     }
