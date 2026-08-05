@@ -21,6 +21,7 @@ import App from "./App";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import "./utils/emailPasswordFontToggle";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

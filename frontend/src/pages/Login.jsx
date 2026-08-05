@@ -314,6 +314,7 @@ const mediaStyles = `
                 </div>
                 <input
                   type="email"
+                  name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
@@ -332,6 +333,7 @@ const mediaStyles = `
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"

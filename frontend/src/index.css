@@ -77,6 +77,51 @@ body {
   letter-spacing: 1px !important;
 }
 
+/* Only change font for email and password inputs when they have content or are focused.
+   Placeholders and other UI elements keep the Bebas Neue font. */
+.public-app input[type="email"],
+.public-app input[name="email"],
+.public-app input[type="password"],
+.public-app input[name="password"] {
+  font-family: 'Bebas Neue', cursive !important;
+  letter-spacing: 1px !important;
+}
+
+/* Ensure placeholder text itself uses the Bebas Neue UI font */
+.public-app input[type="email"]::placeholder,
+.public-app input[name="email"]::placeholder,
+.public-app input[type="password"]::placeholder,
+.public-app input[name="password"]::placeholder,
+.public-app input[type="email"]::-webkit-input-placeholder,
+.public-app input[name="email"]::-webkit-input-placeholder,
+.public-app input[type="password"]::-webkit-input-placeholder,
+.public-app input[name="password"]::-webkit-input-placeholder,
+.public-app input[type="email"]::-moz-placeholder,
+.public-app input[name="email"]::-moz-placeholder,
+.public-app input[type="password"]::-moz-placeholder,
+.public-app input[name="password"]::-moz-placeholder,
+.public-app input[type="email"]:-ms-input-placeholder,
+.public-app input[name="email"]:-ms-input-placeholder,
+.public-app input[type="password"]:-ms-input-placeholder,
+.public-app input[name="password"]:-ms-input-placeholder {
+  font-family: 'Bebas Neue', cursive !important;
+  letter-spacing: 1px !important;
+  opacity: 1; /* keep visible */
+}
+
+.public-app input[type="email"].has-value,
+.public-app input[name="email"].has-value,
+.public-app input[type="password"].has-value,
+.public-app input[name="password"].has-value,
+.public-app input[type="email"]:not(:placeholder-shown),
+.public-app input[name="email"]:not(:placeholder-shown),
+.public-app input[type="password"]:not(:placeholder-shown),
+.public-app input[name="password"]:not(:placeholder-shown) {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif !important;
+  letter-spacing: normal !important;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas,
     'Courier New', monospace;

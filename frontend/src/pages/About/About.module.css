@@ -2,7 +2,7 @@
 
 .aboutPage {
   background: #0f0f0f;
-  color: #ffffff;
+  color: #facc15;
   overflow-x: hidden;
 }
 
@@ -20,7 +20,7 @@
   font-weight: 800;
   letter-spacing: 1px;
   margin-bottom: 40px;
-  background: linear-gradient(90deg, #ffffff, #FFD700);
+  background: linear-gradient(90deg, #facc15, #FFD700);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

@@ -506,6 +506,8 @@ const Pay = () => {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPayDisabled, setIsPayDisabled] = useState(false);
+  const [isCodDisabled, setIsCodDisabled] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [taxAmount, setTaxAmount] = useState(0);
@@ -589,7 +591,7 @@ const Pay = () => {
     setCouponError("");
 
     try {
-      console.log("Selected Payment Method:", paymentMethod);
+      console.log("Applying coupon", { orderId });
       console.log("Request Payload:", {
         orderId,
         code: couponCode.trim(),
@@ -615,7 +617,10 @@ const Pay = () => {
 
   /* ================= RAZORPAY PAYMENT ================= */
   const handlePay = async () => {
+    if (isPayDisabled) return;
+
     try {
+      setIsPayDisabled(true);
       const orderPayload = {
         shippingAddress,
         paymentMethod: "Razorpay",
@@ -684,6 +689,7 @@ const Pay = () => {
           ondismiss: function () {
             document.body.style.overflow = "auto";
             setShowCancelModal(true);
+            setIsPayDisabled(false);
           },
         },
 
@@ -694,13 +700,17 @@ const Pay = () => {
       razorpay.open();
     } catch (err) {
       console.error(err);
+      setIsPayDisabled(false);
       toast.error("Payment failed");
     }
   };
 
   /* ================= COD ================= */
   const handleCOD = async () => {
+    if (isCodDisabled) return;
+
     try {
+      setIsCodDisabled(true);
       const orderPayload = {
         shippingAddress,
         paymentMethod: "COD",
@@ -726,6 +736,7 @@ const Pay = () => {
       navigate("/order-success", { state: { orderId: data._id } });
     } catch (err) {
       console.error(err);
+      setIsCodDisabled(false);
       toast.error("Failed to place order");
     }
   };
@@ -828,6 +839,12 @@ const Pay = () => {
         }
 
         .pay-coupon-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .pay-btn:disabled,
+        .pay-cod-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
         }
@@ -1021,11 +1038,11 @@ const Pay = () => {
             <span>₹{finalAmount.toFixed(2)}</span>
           </div>
 
-          <button className="pay-btn" onClick={handlePay}>
+          <button className="pay-btn" onClick={handlePay} disabled={isPayDisabled}>
             PROCEED TO PAY
           </button>
 
-          <button className="pay-cod-btn" onClick={handleCOD}>
+          <button className="pay-cod-btn" onClick={handleCOD} disabled={isCodDisabled}>
             CASH ON DELIVERY
           </button>
         </div>
