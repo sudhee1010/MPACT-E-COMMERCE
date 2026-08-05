@@ -46,7 +46,7 @@ const [loading, setLoading] = useState(false);
   /* ======================
      VERIFY OTP
   ====================== */
-  const { setUser } = useAuth();
+  const { login } = useAuth();
 
   const verifyOtp = async () => {
     if (!otp) {
@@ -57,14 +57,9 @@ const [loading, setLoading] = useState(false);
     try {
       setLoading(true);
 
-      // verify OTP
-      await api.post("/api/auth/verify-otp", { email, otp });
+      const res = await api.post("/api/auth/verify-otp", { email, otp });
 
-      // fetch logged in user
-      const res = await api.get("/api/auth/profile");
-
-      // update AuthContext
-      setUser(res.data);
+      login(res.data.user, res.data.token);
 
       toast.success("WhatsApp number verified successfully");
 
