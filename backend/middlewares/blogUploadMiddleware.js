@@ -1,23 +1,46 @@
 import multer from "multer";
 import cloudinary from "../config/cloudinary.js";
 
-// ─── Use memoryStorage so we can handle the upload ourselves ─────────────────
-// This avoids multer-storage-cloudinary swallowing Cloudinary errors as plain
-// objects (non-Error instances) that turn into "[object Object]" in logs.
 const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
   fileFilter: (_req, file, cb) => {
     const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed: jpg, png, webp`));
+      cb(new Error("Only JPG, JPEG, PNG, and WEBP images are allowed."));
     }
   },
 });
+
+export const handleBlogUpload = (singleFieldName) => {
+  return (req, res, next) => {
+    upload.single(singleFieldName)(req, res, (err) => {
+      if (err) {
+        if (err instanceof multer.MulterError) {
+          if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({
+              success: false,
+              message: "Image size must be less than 5 MB.",
+            });
+          }
+          return res.status(400).json({
+            success: false,
+            message: err.message,
+          });
+        }
+        return res.status(400).json({
+          success: false,
+          message: err.message || "File upload failed.",
+        });
+      }
+      next();
+    });
+  };
+};
 
 /**
  * Upload a buffer to Cloudinary and return the result.
@@ -25,13 +48,10 @@ const upload = multer({
  */
 export async function uploadToCloudinary(buffer, folder = "blog-covers") {
   return new Promise((resolve, reject) => {
-    console.log("Cloudinary Config:", cloudinary.config());
     const stream = cloudinary.uploader.upload_stream(
       { folder, resource_type: "image" },
       (err, result) => {
         if (err) {
-          // Cloudinary returns plain objects, not Error instances.
-          // Wrap them so err.message works everywhere.
           const message =
             (typeof err === "object" && err.message) ||
             (typeof err === "string" && err) ||
@@ -46,3 +66,4 @@ export async function uploadToCloudinary(buffer, folder = "blog-covers") {
 }
 
 export default upload;
+

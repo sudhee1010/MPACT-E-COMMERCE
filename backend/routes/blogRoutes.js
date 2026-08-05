@@ -4,14 +4,13 @@ import {
   getBlogs,
   getFeaturedBlogs,
   getBlogBySlug,
-   updateBlog,
+  updateBlog,
   deleteBlog,
 } from "../controllers/blogController.js";
 
-import upload from "../middlewares/blogUploadMiddleware.js";
+import { handleBlogUpload } from "../middlewares/blogUploadMiddleware.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import { isAdmin } from "../middlewares/adminMiddleware.js";
-
 
 const router = express.Router();
 
@@ -20,11 +19,10 @@ router.get("/", getBlogs);
 router.get("/featured", getFeaturedBlogs);
 router.get("/:slug", getBlogBySlug);
 
-
 /* ADMIN */
-router.post("/", protect, isAdmin, upload.single("coverImage"), createBlog);
-router.put("/:id", protect, isAdmin, upload.single("coverImage"), updateBlog);
+router.post("/", protect, isAdmin, handleBlogUpload("coverImage"), createBlog);
+router.put("/:id", protect, isAdmin, handleBlogUpload("coverImage"), updateBlog);
 router.delete("/:id", protect, isAdmin, deleteBlog);
 
-
 export default router;
+

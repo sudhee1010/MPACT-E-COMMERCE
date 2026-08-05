@@ -5,41 +5,8 @@ import slugify from "slugify";
 import { uploadToCloudinary } from "../middlewares/blogUploadMiddleware.js";
 
 /* CREATE BLOG (ADMIN) */
-// export const createBlog = async (req, res) => {
-//   const {
-//     title,
-//     description,
-//     content,
-//     category,
-//     tags,
-//     readTime,
-//     isFeatured,
-//     author,
-//   } = req.body;
-
-//   const blog = await Blog.create({
-//     title,
-//     slug: slugify(title, { lower: true }),
-//     description,
-//     content,
-//     category,
-//     tags: tags ? tags.split(",") : [],
-//     readTime,
-//     isFeatured,
-//     author:  author || "MPACT Team",
-//     coverImage: req.file?.path,
-//   });
-
-//   res.status(201).json(blog);
-// };
-
 export const createBlog = async (req, res) => {
   try {
-    console.log("========== CREATE BLOG ==========");
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file ? `${req.file.originalname} (${req.file.mimetype}, ${req.file.size} bytes)` : "none");
-    console.log("USER:", req.user?._id, req.user?.role);
-
     const {
       title,
       description,
@@ -52,40 +19,64 @@ export const createBlog = async (req, res) => {
     } = req.body;
 
     // ── Validate required fields early ───────────────────────────────────────
-    if (!title) return res.status(400).json({ success: false, message: "title is required" });
-    if (!description) return res.status(400).json({ success: false, message: "description is required" });
-    if (!content) return res.status(400).json({ success: false, message: "content is required" });
-    if (!category) return res.status(400).json({ success: false, message: "category is required" });
-    if (!req.file) return res.status(400).json({ success: false, message: "coverImage is required" });
+    if (!title || !title.trim()) {
+      return res.status(400).json({ success: false, message: "Title is required." });
+    }
+    if (!description || !description.trim()) {
+      return res.status(400).json({ success: false, message: "Description is required." });
+    }
+    if (!category || !category.trim()) {
+      return res.status(400).json({ success: false, message: "Category is required." });
+    }
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: "Blog content is required." });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Please upload a featured image." });
+    }
 
     // ── Upload image to Cloudinary ────────────────────────────────────────────
-    console.log("Uploading image to Cloudinary...");
-    const cloudResult = await uploadToCloudinary(req.file.buffer, "blog-covers");
-    console.log("Cloudinary upload success:", cloudResult.secure_url);
+    let cloudResult;
+    try {
+      cloudResult = await uploadToCloudinary(req.file.buffer, "blog-covers");
+    } catch (uploadError) {
+      return res.status(500).json({
+        success: false,
+        message: uploadError.message || "Cloudinary upload failed.",
+      });
+    }
 
     // ── Save blog to MongoDB ──────────────────────────────────────────────────
-    const blog = await Blog.create({
-      title,
-      slug: slugify(title, { lower: true, strict: true }),
-      description,
-      content,
-      category,
-      tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
-      readTime: readTime ? Number(readTime) : 5,
-      isFeatured: isFeatured === true || isFeatured === "true",
-      author: author || "MPACT Team",
-      coverImage: cloudResult.secure_url,
+    let blog;
+    try {
+      blog = await Blog.create({
+        title: title.trim(),
+        slug: slugify(title.trim(), { lower: true, strict: true }),
+        description: description.trim(),
+        content: content.trim(),
+        category: category.trim(),
+        tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+        readTime: readTime ? Number(readTime) : 5,
+        isFeatured: isFeatured === true || isFeatured === "true",
+        author: author ? author.trim() : "MPACT Team",
+        coverImage: cloudResult.secure_url,
+      });
+    } catch (dbErr) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save blog.",
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Blog created successfully.",
+      data: blog,
     });
 
-    console.log("Blog created:", blog._id);
-    res.status(201).json(blog);
-
   } catch (err) {
-    // Always log the real error object, never coerce it to string
     console.error("========== BLOG CREATE ERROR ==========");
     console.error(err);
-    if (err.message) console.error("message:", err.message);
-    if (err.stack) console.error("stack:", err.stack);
 
     // Handle Mongoose duplicate-slug error
     if (err.code === 11000) {
@@ -115,108 +106,170 @@ export const createBlog = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: err.message || "Failed to create blog",
-      stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      message: err.message || "Something went wrong. Please try again.",
     });
   }
 };
 
-
-
 /* GET BLOGS (ALL / CATEGORY / SEARCH) */
 export const getBlogs = async (req, res) => {
-  const { category, search } = req.query;
+  try {
+    const { category, search } = req.query;
 
-  let query = { isPublished: true };
+    let query = { isPublished: true };
 
-  // Category filter
-  if (category && category !== "all") {
-    query.category = category;
-  }
+    // Category filter
+    if (category && category !== "all") {
+      query.category = category;
+    }
 
-  // Search
-  if (search) {
+    // Search
+    if (search) {
+      const matchingCategories = await BlogCategory.find({
+        name: { $regex: search, $options: "i" }
+      });
       
-    // First, find categories that match the search term
-    const matchingCategories = await BlogCategory.find({
-      name: { $regex: search, $options: "i" }
+      const categoryIds = matchingCategories.map(cat => cat._id);
+
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
+        { category: { $in: categoryIds } },
+      ];
+    }
+
+    const blogs = await Blog.find(query)
+      .populate("category", "name slug")
+      .sort({ createdAt: -1 });
+
+    res.json(blogs);
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message || "Failed to load blogs.",
     });
-    
-    const categoryIds = matchingCategories.map(cat => cat._id);
-
-    query.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
-      { tags: { $regex: search, $options: "i" } },
-      { category: { $in: categoryIds } },
-    ];
   }
-
-  const blogs = await Blog.find(query)
-    .populate("category", "name slug")
-    .sort({ createdAt: -1 });
-
-  res.json(blogs);
 };
 
 /* FEATURED BLOGS */
 export const getFeaturedBlogs = async (req, res) => {
-  const blogs = await Blog.find({
-    isFeatured: true,
-    isPublished: true,
-  })
-    .populate("category", "name")
-    .limit(5);
+  try {
+    const blogs = await Blog.find({
+      isFeatured: true,
+      isPublished: true,
+    })
+      .populate("category", "name")
+      .limit(5);
 
-  res.json(blogs);
+    res.json(blogs);
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message || "Failed to load featured blogs.",
+    });
+  }
 };
 
 /* SINGLE BLOG (READ MORE PAGE) */
 export const getBlogBySlug = async (req, res) => {
-  const blog = await Blog.findOne({
-    slug: req.params.slug,
-    isPublished: true,
-  }).populate("category", "name");
+  try {
+    const blog = await Blog.findOne({
+      slug: req.params.slug,
+      isPublished: true,
+    }).populate("category", "name");
 
-  if (!blog) {
-    return res.status(404).json({ message: "Blog not found" });
+    if (!blog) {
+      return res.status(404).json({ success: false, message: "Blog not found." });
+    }
+
+    res.json(blog);
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message || "Failed to load blog article.",
+    });
   }
-
-  res.json(blog);
 };
+
 /* UPDATE BLOG (ADMIN) */
 export const updateBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
 
     if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
+      return res.status(404).json({ success: false, message: "Blog not found." });
     }
 
-    blog.title = req.body.title || blog.title;
-    blog.slug = slugify(blog.title, { lower: true, strict: true });
-    blog.description = req.body.description || blog.description;
-    blog.content = req.body.content || blog.content;
-    blog.category = req.body.category || blog.category;
-    blog.tags = req.body.tags
-      ? req.body.tags.split(",").map((t) => t.trim()).filter(Boolean)
-      : blog.tags;
-    blog.readTime = req.body.readTime || blog.readTime;
-    blog.isFeatured = req.body.isFeatured ?? blog.isFeatured;
+    const {
+      title,
+      description,
+      content,
+      category,
+      tags,
+      readTime,
+      isFeatured,
+    } = req.body;
+
+    if (title !== undefined && (!title || !title.trim())) {
+      return res.status(400).json({ success: false, message: "Title is required." });
+    }
+    if (description !== undefined && (!description || !description.trim())) {
+      return res.status(400).json({ success: false, message: "Description is required." });
+    }
+    if (category !== undefined && (!category || !category.trim())) {
+      return res.status(400).json({ success: false, message: "Category is required." });
+    }
+    if (content !== undefined && (!content || !content.trim())) {
+      return res.status(400).json({ success: false, message: "Blog content is required." });
+    }
+
+    if (title) {
+      blog.title = title.trim();
+      blog.slug = slugify(blog.title, { lower: true, strict: true });
+    }
+    if (description) blog.description = description.trim();
+    if (content) blog.content = content.trim();
+    if (category) blog.category = category.trim();
+    if (tags !== undefined) {
+      blog.tags = tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+    }
+    if (readTime !== undefined) blog.readTime = Number(readTime) || blog.readTime;
+    if (isFeatured !== undefined) {
+      blog.isFeatured = isFeatured === true || isFeatured === "true";
+    }
 
     if (req.file) {
-      console.log("Uploading updated cover image to Cloudinary...");
-      const cloudResult = await uploadToCloudinary(req.file.buffer, "blog-covers");
-      blog.coverImage = cloudResult.secure_url;
+      try {
+        const cloudResult = await uploadToCloudinary(req.file.buffer, "blog-covers");
+        blog.coverImage = cloudResult.secure_url;
+      } catch (uploadError) {
+        return res.status(500).json({
+          success: false,
+          message: uploadError.message || "Cloudinary upload failed.",
+        });
+      }
     }
 
-    const updatedBlog = await blog.save();
-    res.json(updatedBlog);
+    let updatedBlog;
+    try {
+      updatedBlog = await blog.save();
+    } catch (saveErr) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save blog.",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Blog updated successfully.",
+      data: updatedBlog,
+    });
 
   } catch (err) {
     console.error("========== BLOG UPDATE ERROR ==========");
     console.error(err);
-    if (err.message) console.error("message:", err.message);
 
     if (err.code === 11000) {
       return res.status(400).json({
@@ -237,20 +290,27 @@ export const updateBlog = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: err.message || "Failed to update blog",
-      stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+      message: err.message || "Something went wrong. Please try again.",
     });
   }
 };
 
 /* DELETE BLOG (ADMIN) */
 export const deleteBlog = async (req, res) => {
-  const blog = await Blog.findById(req.params.id);
+  try {
+    const blog = await Blog.findById(req.params.id);
 
-  if (!blog) {
-    return res.status(404).json({ message: "Blog not found" });
+    if (!blog) {
+      return res.status(404).json({ success: false, message: "Blog not found." });
+    }
+
+    await blog.deleteOne();
+    res.json({ success: true, message: "Blog deleted successfully." });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message || "Something went wrong. Please try again.",
+    });
   }
-
-  await blog.deleteOne();
-  res.json({ message: "Blog deleted successfully" });
 };
+
