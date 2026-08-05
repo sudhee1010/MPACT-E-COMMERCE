@@ -165,21 +165,6 @@ export const registerAdmin = async (req, res) => {
       role: "admin",
     });
 
-    // res.status(201).json({
-    //   token: generateToken(user._id), user
-    // });
-
-    const token = generateToken(user._id);
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      // secure: process.env.NODE_ENV === "production",
-      // sameSite: "strict",
-       secure: true,        // MUST be true in production
-  sameSite: "None",    // MUST for cross-origin
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
     res.status(201).json({
       message: "Admin registered",
       user,
@@ -191,17 +176,7 @@ export const registerAdmin = async (req, res) => {
 
 /* ===========================
    EMAIL LOGIN
-=========================== */
-
-
-
-
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     const user = await User.findOne({ email }).select("+password");
-//     if (!user) {
+*/
 //       return res.status(401).json({ message: "Invalid credentials" });
 //     }
 
@@ -281,15 +256,6 @@ export const loginUser = async (req, res) => {
     }
 
     const token = generateToken(user._id);
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      // sameSite: "lax",
-      // secure: process.env.NODE_ENV === "production",
-       secure: true,        // MUST be true in production
-  sameSite: "None",    // MUST for cross-origin
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
 
     res.json({
       message: "Login successful",
@@ -380,14 +346,12 @@ export const sendOTP = async (req, res) => {
 
     user.otp = hashedOTP;
     user.otpExpiry = Date.now() + 10 * 60 * 1000;
-
     await user.save();
 
     await sendEmail({
       to: email,
       subject: "MPACT Email Verification OTP",
       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,
-      // text:otp,
     });
 
     res.json({ message: "OTP sent successfully" });
@@ -479,18 +443,11 @@ export const verifyOTP = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      // sameSite: "lax",
-      // secure: process.env.NODE_ENV === "production",
-       secure: true,        // MUST be true in production
-  sameSite: "None",    // MUST for cross-origin
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
 
     res.json({
-      message: "Email verified successfully",
-      user
+      message: "verification successfull",
+      user,
+      token,
     });
 
   } catch (error) {
@@ -714,16 +671,10 @@ export const googleLogin = async (req, res) => {
 
     const tokens = generateToken(user._id);
 
-    res.cookie("token", tokens, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
     res.json({
       message: "Google login successful",
       user,
+      token: tokens,
     });
   } catch (error) {
     res.status(401).json({ message: "Invalid Google token" });
@@ -781,14 +732,6 @@ export const getMyProfile = async (req, res) => {
 
 //LOGOUT USER
 export const logoutUser = (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    // secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    // sameSite: "lax",
-    secure: true,
-  });
-
   res.json({ message: "Logged out successfully" });
 };
 
@@ -826,14 +769,6 @@ export const deleteMe = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.user._id);
 
-    res.clearCookie("token", {
-      httpOnly: true,
-      // sameSite: "strict",
-      // sameSite: "none",
-      sameSite: "lax",
-      secure: true,
-    });
-
     res.json({ message: "Account deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -843,16 +778,18 @@ export const deleteMe = async (req, res) => {
 // UPDATE CUSTOMER PROFILE
 export const updateCustomerProfile = async (req, res) => {
   try {
+    const { name, email, phone, address } = req.body;
+
     const user = await User.findById(req.user._id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update fields
-    user.name = req.body.name || user.name;
-    user.phone = req.body.phone || user.phone;
-    user.address = req.body.address || user.address;
+    user.name = name ?? user.name;
+    user.email = email ?? user.email;
+    user.phone = phone ?? user.phone;
+    user.address = address ?? user.address;
 
     const updatedUser = await user.save();
 
