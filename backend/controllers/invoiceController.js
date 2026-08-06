@@ -140,14 +140,10 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   infoLine(drawMailIcon, "Email: support@mpact.in");
   infoLine(drawPhoneIcon, "Phone: 8075711893");
 
-  doc.font(FONT.bold).fontSize(9).fillColor(COLORS.black).text("BILL TO:", rightColX, rightY, { underline: true });
-  rightY += 16;
-
   const addr = order.shippingAddress || {};
+  const customerName = addr.name || "Customer";
 
-  doc.font(FONT.bold).fontSize(11).fillColor(COLORS.black).text(addr.name || "Customer", rightColX, rightY, {
-    width: rightColWidth,
-  });
+  doc.font(FONT.bold).fontSize(9).fillColor(COLORS.black).text(`BILL TO: ${customerName}`, rightColX, rightY, { underline: true });
   rightY += 18;
 
   const billLines = [
