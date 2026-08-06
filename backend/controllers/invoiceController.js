@@ -141,9 +141,14 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   infoLine(drawPhoneIcon, "Phone: 8075711893");
 
   const addr = order.shippingAddress || {};
-  const customerName = addr.name || "Customer";
+  const customerName = addr.name || order.user?.name || "Customer";
 
-  doc.font(FONT.bold).fontSize(9).fillColor(COLORS.black).text(`BILL TO: ${customerName}`, rightColX, rightY, { underline: true });
+  doc.font(FONT.bold).fontSize(9).fillColor(COLORS.black).text("BILL TO:", rightColX, rightY, { underline: true });
+  rightY += 16;
+
+  doc.font(FONT.bold).fontSize(11).fillColor(COLORS.black).text(customerName, rightColX, rightY, {
+    width: rightColWidth,
+  });
   rightY += 18;
 
   const billLines = [
