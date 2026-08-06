@@ -27,6 +27,16 @@ const dashedLine = (doc, x1, y, x2) => {
   doc.restore();
 };
 
+// Prints a line of text and returns the y-position the next line should
+// start at, based on the ACTUAL height the text needs (accounts for
+// wrapping when a name/address/item is longer than the column).
+const printLine = (doc, { x, y, width, text, font = FONT.regular, size = 8.5, color = COLORS.black, gap = 4 }) => {
+  doc.font(font).fontSize(size).fillColor(color);
+  const height = doc.heightOfString(text, { width });
+  doc.text(text, x, y, { width });
+  return y + height + gap;
+};
+
 /* ---------------- tiny vector icons (no external font/image needed) ---------------- */
 
 const drawPinIcon = (doc, x, y) => {
@@ -80,6 +90,28 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   const halfWidth = contentWidth / 2;
   const rightColX = pageLeft + halfWidth + 12;
   const rightColWidth = halfWidth - 12;
+  const pageBottom = doc.page.height - doc.page.margins.bottom;
+
+  const col = {
+    item: { x: pageLeft, width: contentWidth * 0.42 },
+    qty: { x: pageLeft + contentWidth * 0.42, width: contentWidth * 0.15 },
+    price: { x: pageLeft + contentWidth * 0.57, width: contentWidth * 0.22 },
+    total: { x: pageLeft + contentWidth * 0.79, width: contentWidth * 0.21 },
+  };
+
+  const drawTableHeaderRow = (topY) => {
+    const headerRowHeight = 22;
+    doc.rect(pageLeft, topY, contentWidth, headerRowHeight).fillColor(COLORS.black).fill();
+    doc
+      .font(FONT.bold)
+      .fontSize(9)
+      .fillColor(COLORS.white)
+      .text("ITEM", col.item.x + 10, topY + 7, { width: col.item.width - 10 })
+      .text("QTY", col.qty.x, topY + 7, { width: col.qty.width, align: "center" })
+      .text("PRICE", col.price.x, topY + 7, { width: col.price.width, align: "center" })
+      .text("TOTAL", col.total.x, topY + 7, { width: col.total.width - 10, align: "right" });
+    return topY + headerRowHeight;
+  };
 
   /* ---------------- HEADER ---------------- */
 
@@ -122,17 +154,18 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   let leftY = 98;
   let rightY = 98;
 
-  doc.font(FONT.bold).fontSize(10.5).fillColor(COLORS.black).text("MPACT", pageLeft, leftY);
-  leftY += 16;
+  leftY = printLine(doc, { x: pageLeft, y: leftY, width: halfWidth - 12, text: "MPACT", font: FONT.bold, size: 10.5, gap: 6 });
 
   const infoLine = (icon, text) => {
     if (icon) icon(doc, pageLeft, leftY);
-    doc
-      .font(FONT.regular)
-      .fontSize(8.5)
-      .fillColor(COLORS.black)
-      .text(text, pageLeft + (icon ? 15 : 0), leftY + 1);
-    leftY += 15;
+    const textWidth = halfWidth - 12 - (icon ? 15 : 0);
+    leftY = printLine(doc, {
+      x: pageLeft + (icon ? 15 : 0),
+      y: leftY + 1,
+      width: textWidth,
+      text,
+      gap: 4,
+    });
   };
 
   infoLine(null, "GST : 32GRGPM6809G1ZO");
@@ -143,13 +176,32 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   const addr = order.shippingAddress || {};
   const customerName = addr.name || order.user?.name || "Customer";
 
-  doc.font(FONT.bold).fontSize(9).fillColor(COLORS.black).text("BILL TO:", rightColX, rightY, { underline: true });
-  rightY += 16;
-
-  doc.font(FONT.bold).fontSize(11).fillColor(COLORS.black).text(customerName, rightColX, rightY, {
+  rightY = printLine(doc, {
+    x: rightColX,
+    y: rightY,
     width: rightColWidth,
+    text: "BILL TO:",
+    font: FONT.bold,
+    size: 9,
+    gap: 6,
   });
-  rightY += 18;
+  // underline "BILL TO:" manually since printLine doesn't support the option
+  doc
+    .moveTo(rightColX, rightY - 6)
+    .lineTo(rightColX + doc.widthOfString("BILL TO:"), rightY - 6)
+    .strokeColor(COLORS.black)
+    .lineWidth(0.6)
+    .stroke();
+
+  rightY = printLine(doc, {
+    x: rightColX,
+    y: rightY,
+    width: rightColWidth,
+    text: customerName,
+    font: FONT.bold,
+    size: 11,
+    gap: 5,
+  });
 
   const billLines = [
     addr.address || "—",
@@ -157,23 +209,30 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
     `Phone: ${addr.phone || "—"}`,
   ];
 
-  doc.font(FONT.regular).fontSize(8.5).fillColor(COLORS.black);
   billLines.forEach((line) => {
-    doc.text(line, rightColX, rightY, { width: rightColWidth });
-    rightY += 14;
+    rightY = printLine(doc, { x: rightColX, y: rightY, width: rightColWidth, text: line, gap: 3 });
   });
 
   if (extraMeta && extraMeta.length) {
     rightY += 4;
     extraMeta.forEach(({ label, value }) => {
+      const labelText = `${label} `;
       doc.font(FONT.bold).fontSize(8.5).fillColor(COLORS.black);
-      doc.text(`${label} `, rightColX, rightY, { continued: true, width: rightColWidth });
-      doc.font(FONT.regular).text(value);
-      rightY += 14;
+      const labelWidth = doc.widthOfString(labelText);
+      const valueWidth = rightColWidth - labelWidth;
+      const valueHeight = doc.font(FONT.regular).heightOfString(value, { width: valueWidth });
+
+      // Explicit x-offset positions (rather than pdfkit's `continued` text
+      // flow) so measuring the value's height beforehand can't disturb
+      // where it actually gets drawn.
+      doc.font(FONT.bold).text(labelText, rightColX, rightY, { width: labelWidth });
+      doc.font(FONT.regular).text(value, rightColX + labelWidth, rightY, { width: valueWidth });
+
+      rightY += Math.max(14, valueHeight + 4);
     });
   }
 
-  let y = Math.max(leftY, rightY) + 14;
+  let y = Math.max(leftY, rightY) + 10;
 
   doc
     .moveTo(pageLeft, y)
@@ -184,40 +243,48 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
 
   y += 14;
 
-  /* ---------------- TABLE ---------------- */
+  /* ---------------- TABLE (with pagination for long item lists) ---------------- */
 
-  const col = {
-    item: { x: pageLeft, width: contentWidth * 0.42 },
-    qty: { x: pageLeft + contentWidth * 0.42, width: contentWidth * 0.15 },
-    price: { x: pageLeft + contentWidth * 0.57, width: contentWidth * 0.22 },
-    total: { x: pageLeft + contentWidth * 0.79, width: contentWidth * 0.21 },
+  const MIN_ROW_HEIGHT = 26;
+  const ROW_TEXT_PAD = 8;
+  const ROW_VERTICAL_PAD = 16;
+  const BOTTOM_RESERVE = 20; // breathing room before the page edge while still adding rows
+
+  const drawSegmentBorders = (top, bottom) => {
+    doc.rect(pageLeft, top, contentWidth, bottom - top).strokeColor(COLORS.line).lineWidth(1).stroke();
+    [col.qty.x, col.price.x, col.total.x].forEach((x) => {
+      doc.moveTo(x, top).lineTo(x, bottom).strokeColor(COLORS.lightLine).stroke();
+    });
   };
 
-  const headerRowHeight = 22;
-
-  doc.rect(pageLeft, y, contentWidth, headerRowHeight).fillColor(COLORS.black).fill();
-
-  doc
-    .font(FONT.bold)
-    .fontSize(9)
-    .fillColor(COLORS.white)
-    .text("ITEM", col.item.x + 10, y + 7, { width: col.item.width - 10 })
-    .text("QTY", col.qty.x, y + 7, { width: col.qty.width, align: "center" })
-    .text("PRICE", col.price.x, y + 7, { width: col.price.width, align: "center" })
-    .text("TOTAL", col.total.x, y + 7, { width: col.total.width - 10, align: "right" });
-
-  let rowY = y + headerRowHeight;
-  const rowHeight = 26;
+  let tableTop = drawTableHeaderRow(y);
+  let segmentTop = y;
+  let rowY = tableTop;
 
   doc.font(FONT.regular).fontSize(9);
 
   order.orderItems.forEach((item) => {
+    const itemTextHeight = doc.heightOfString(item.name, { width: col.item.width - 16 });
+    const rowHeight = Math.max(MIN_ROW_HEIGHT, itemTextHeight + ROW_VERTICAL_PAD);
+
+    if (rowY + rowHeight > pageBottom - BOTTOM_RESERVE) {
+      // Close out this segment's border *now*, while still on the page it belongs to,
+      // then move to a new page for the rest of the table.
+      drawSegmentBorders(segmentTop, rowY);
+      doc.addPage();
+      rowY = doc.page.margins.top;
+      segmentTop = rowY;
+      rowY = drawTableHeaderRow(rowY);
+    }
+
     doc
+      .font(FONT.regular)
+      .fontSize(9)
       .fillColor(COLORS.black)
-      .text(item.name, col.item.x + 10, rowY + 8, { width: col.item.width - 16 })
-      .text(String(item.quantity), col.qty.x, rowY + 8, { width: col.qty.width, align: "center" })
-      .text(money(item.price), col.price.x, rowY + 8, { width: col.price.width, align: "center" })
-      .text(money(item.price * item.quantity), col.total.x, rowY + 8, {
+      .text(item.name, col.item.x + 10, rowY + ROW_TEXT_PAD, { width: col.item.width - 16 })
+      .text(String(item.quantity), col.qty.x, rowY + ROW_TEXT_PAD, { width: col.qty.width, align: "center" })
+      .text(money(item.price), col.price.x, rowY + ROW_TEXT_PAD, { width: col.price.width, align: "center" })
+      .text(money(item.price * item.quantity), col.total.x, rowY + ROW_TEXT_PAD, {
         width: col.total.width - 10,
         align: "right",
       });
@@ -225,22 +292,9 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
     rowY += rowHeight;
   });
 
-  const tableTop = y;
+  drawSegmentBorders(segmentTop, rowY);
+
   const tableBottom = rowY;
-
-  doc
-    .rect(pageLeft, tableTop, contentWidth, tableBottom - tableTop)
-    .strokeColor(COLORS.line)
-    .lineWidth(1)
-    .stroke();
-
-  for (let lineY = tableTop + headerRowHeight; lineY <= tableBottom; lineY += rowHeight) {
-    doc.moveTo(pageLeft, lineY).lineTo(pageRight, lineY).strokeColor(COLORS.lightLine).stroke();
-  }
-
-  [col.qty.x, col.price.x, col.total.x].forEach((x) => {
-    doc.moveTo(x, tableTop).lineTo(x, tableBottom).strokeColor(COLORS.lightLine).stroke();
-  });
 
   /* ---------------- TOTALS BOX ---------------- */
 
@@ -254,7 +308,18 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   const totalsValueWidth = totalsBoxWidth - 24;
   const totalsRowHeight = 22;
 
-  let totalsY = tableBottom + 18;
+  const TOTALS_BLOCK_HEIGHT = totalsRowHeight * 3 + 26; // 3 plain rows + 1 dark grand-total row
+  const FOOTER_BLOCK_HEIGHT = 60;
+  const GAP_BEFORE_TOTALS = 18;
+
+  let totalsY = tableBottom + GAP_BEFORE_TOTALS;
+
+  // If the totals + footer won't fit on the current page, start a fresh page for them.
+  if (totalsY + TOTALS_BLOCK_HEIGHT + FOOTER_BLOCK_HEIGHT > pageBottom) {
+    doc.addPage();
+    totalsY = doc.page.margins.top + GAP_BEFORE_TOTALS;
+  }
+
   const totalsBoxTop = totalsY;
 
   const totalsRow = (label, value, opts = {}) => {
@@ -292,7 +357,9 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
 
   /* ---------------- FOOTER ---------------- */
 
-  const footerY = doc.page.height - doc.page.margins.bottom - 36;
+  // Sits near the bottom of whichever page the totals ended up on, but never
+  // overlaps the totals box if that box runs long.
+  const footerY = Math.max(doc.page.height - doc.page.margins.bottom - 36, totalsBoxBottom + 24);
 
   dashedLine(doc, pageLeft, footerY - 12, pageRight);
 
