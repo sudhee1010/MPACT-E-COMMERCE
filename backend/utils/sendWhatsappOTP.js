@@ -203,7 +203,8 @@ export const sendOrderConfirmation = async (order) => {
       `Order ID: ${String(order._id)}`,
       `Order Date: ${formatDisplayDate(order.createdAt)}`,
       `Products: ${productLines || "Not available"}`,
-      `Individual Price: ${formatCurrency(order.subtotal || order.totalAmount || 0)}`,
+      `Subtotal: ${formatCurrency(order.subtotal || order.totalAmount || 0)}`,
+      order.discount > 0 ? `Discount: -${formatCurrency(order.discount)}` : null,
       `Grand Total: ${formatCurrency(order.totalAmount || 0)}`,
       `Payment Method: ${order.paymentMethod || "Unknown"}`,
       `Payment Status: ${order.paymentStatus || "Unknown"}`,
@@ -213,7 +214,7 @@ export const sendOrderConfirmation = async (order) => {
           ? formatDisplayDate(order.estimatedDeliveryDate)
           : "Not available"
       }`
-    ].join(" | ");
+    ].filter(Boolean).join(" | ");
 
     if (!productLines || !messageSummary.trim()) {
       console.error("====================================");
