@@ -514,6 +514,7 @@ const Pay = () => {
   const [finalAmount, setFinalAmount] = useState(0);
   const [couponError, setCouponError] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
+  const [couponApplied, setCouponApplied] = useState(false);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const currentIsDirectBuy = directBuy || order?.orderType === "direct";
@@ -528,18 +529,15 @@ const Pay = () => {
 
           const res = await getOrderByIdApi(orderId);
           setOrder(res.data);
+          setCouponCode(res.data.appliedCoupon?.code || "");
           setDiscount(res.data.discount || 0);
           setTaxAmount(res.data.taxAmount || 0);
           setFinalAmount(res.data.totalAmount || 0);
+          setCouponApplied(Boolean(res.data.discount));
           return;
         }
 
         if (!directBuy && cartItems.length > 0) {
-          const totalMRP = cartItems.reduce(
-            (sum, item) => sum + (item.originalPrice || item.product?.originalPrice || item.price) * item.quantity,
-            0
-          );
-
           const currentSubtotal = cartItems.reduce(
             (sum, item) => sum + (item.price || item.product?.price || 0) * item.quantity,
             0
@@ -551,14 +549,15 @@ const Pay = () => {
               : 0;
 
           const draftTaxAmount = currentSubtotal * taxRate;
-          const draftDiscount = totalMRP - currentSubtotal;
 
-          setDiscount(draftDiscount);
+          setDiscount(0);
+          setCouponApplied(false);
           setTaxAmount(draftTaxAmount);
           setFinalAmount(currentSubtotal + draftTaxAmount);
         } else if (directBuy && directProduct) {
           const directSubtotal = Number(directProduct.price || 0) * Number(directProduct.qty || 1);
           setDiscount(0);
+          setCouponApplied(false);
           setTaxAmount(0);
           setFinalAmount(directSubtotal);
         }
@@ -591,25 +590,71 @@ const Pay = () => {
     setCouponError("");
 
     try {
-      console.log("Applying coupon", { orderId });
-      console.log("Request Payload:", {
-        orderId,
-        code: couponCode.trim(),
+      let effectiveOrderId = order?._id || orderId;
+      let currentOrder = order;
+
+      if (!effectiveOrderId) {
+        if (!shippingAddress) {
+          throw new Error("Shipping address is required before applying a coupon.");
+        }
+
+        const orderPayload = {
+          shippingAddress,
+          paymentMethod: "Razorpay",
+        };
+
+        if (directBuy && directProduct) {
+          orderPayload.orderItems = [
+            {
+              product: directProduct._id,
+              name: directProduct.name,
+              qty: directProduct.qty,
+              price: directProduct.price,
+              image: directProduct.image,
+            },
+          ];
+        }
+
+        const { data: createdOrder } = await api.post("/api/orders", orderPayload);
+        currentOrder = createdOrder;
+        effectiveOrderId = createdOrder._id;
+
+        setOrder(createdOrder);
+        setDiscount(createdOrder.discount || 0);
+        setTaxAmount(createdOrder.taxAmount || 0);
+        setFinalAmount(createdOrder.totalAmount || 0);
+      }
+
+      console.log("Applying coupon", {
+        orderId: orderId || null,
+        effectiveOrderId,
+        shippingAddress: Boolean(shippingAddress),
       });
 
       const { data } = await api.post("/api/coupons/apply-on-order", {
-        orderId,
+        orderId: effectiveOrderId,
         code: couponCode.trim(),
       });
 
+      const updatedOrder = {
+        ...(currentOrder || {}),
+        discount: data.discount,
+        taxAmount: data.taxAmount,
+        totalAmount: data.totalAmount,
+        appliedCoupon: { code: couponCode.trim(), discount: data.discount },
+      };
+
+      setOrder(updatedOrder);
       setDiscount(data.discount);
       setTaxAmount(data.taxAmount);
       setFinalAmount(data.totalAmount);
+      setCouponApplied(true);
     } catch (err) {
-      setCouponError(err.response?.data?.message || "Failed to apply coupon");
-      setDiscount(order.discount || 0);
-      setTaxAmount(order.taxAmount || 0);
-      setFinalAmount(order.totalAmount || 0);
+      setCouponError(err.response?.data?.message || err.message || "Failed to apply coupon");
+      setCouponApplied(false);
+      setDiscount(order?.discount || 0);
+      setTaxAmount(order?.taxAmount || 0);
+      setFinalAmount(order?.totalAmount || 0);
     } finally {
       setCouponLoading(false);
     }
@@ -621,33 +666,39 @@ const Pay = () => {
 
     try {
       setIsPayDisabled(true);
-      const orderPayload = {
-        shippingAddress,
-        paymentMethod: "Razorpay",
-      };
+      let currentOrder = order;
+      let createdOrderId = orderId || order?._id;
 
-      if (directBuy && directProduct) {
-        orderPayload.orderItems = [
-          {
-            product: directProduct._id,
-            name: directProduct.name,
-            qty: directProduct.qty,
-            price: directProduct.price,
-            image: directProduct.image,
-          },
-        ];
+      if (!createdOrderId) {
+        const orderPayload = {
+          shippingAddress,
+          paymentMethod: "Razorpay",
+        };
+
+        if (directBuy && directProduct) {
+          orderPayload.orderItems = [
+            {
+              product: directProduct._id,
+              name: directProduct.name,
+              qty: directProduct.qty,
+              price: directProduct.price,
+              image: directProduct.image,
+            },
+          ];
+        }
+
+        console.log("Selected Payment Method:", "Razorpay");
+        console.log("Request Payload:", orderPayload);
+
+        const { data: orderData } = await api.post("/api/orders", orderPayload);
+        currentOrder = orderData;
+        createdOrderId = orderData._id;
+
+        setOrder(orderData);
+        setDiscount(orderData.discount || 0);
+        setTaxAmount(orderData.taxAmount || 0);
+        setFinalAmount(orderData.totalAmount || 0);
       }
-
-      console.log("Selected Payment Method:", "Razorpay");
-      console.log("Request Payload:", orderPayload);
-
-      const { data: orderData } = await api.post("/api/orders", orderPayload);
-      const createdOrderId = orderData._id;
-
-      setOrder(orderData);
-      setDiscount(orderData.discount || 0);
-      setTaxAmount(orderData.taxAmount || 0);
-      setFinalAmount(orderData.totalAmount || 0);
 
       console.log("Selected Payment Method:", "Razorpay");
       console.log("Request Payload:", { orderId: createdOrderId });
@@ -711,29 +762,37 @@ const Pay = () => {
 
     try {
       setIsCodDisabled(true);
-      const orderPayload = {
-        shippingAddress,
-        paymentMethod: "COD",
-      };
+      let createdOrderId = orderId || order?._id;
+      let createdOrder = order;
 
-      if (directBuy && directProduct) {
-        orderPayload.orderItems = [
-          {
-            product: directProduct._id,
-            name: directProduct.name,
-            qty: directProduct.qty,
-            price: directProduct.price,
-            image: directProduct.image,
-          },
-        ];
+      if (!createdOrderId) {
+        const orderPayload = {
+          shippingAddress,
+          paymentMethod: "COD",
+        };
+
+        if (directBuy && directProduct) {
+          orderPayload.orderItems = [
+            {
+              product: directProduct._id,
+              name: directProduct.name,
+              qty: directProduct.qty,
+              price: directProduct.price,
+              image: directProduct.image,
+            },
+          ];
+        }
+
+        console.log("Selected Payment Method:", "COD");
+        console.log("Request Payload:", orderPayload);
+
+        const { data } = await api.post("/api/orders", orderPayload);
+        createdOrder = data;
+        createdOrderId = data._id;
       }
 
-      console.log("Selected Payment Method:", "COD");
-      console.log("Request Payload:", orderPayload);
-
-      const { data } = await api.post("/api/orders", orderPayload);
       toast.success("Order placed successfully (Cash on Delivery)");
-      navigate("/order-success", { state: { orderId: data._id } });
+      navigate("/order-success", { state: { orderId: createdOrderId } });
     } catch (err) {
       console.error(err);
       setIsCodDisabled(false);
@@ -1003,23 +1062,30 @@ const Pay = () => {
               type="text"
               placeholder="Enter coupon code"
               value={couponCode}
-              disabled={discount > 0}
-              onChange={(e) => setCouponCode(e.target.value)}
+              onChange={(e) => {
+                setCouponCode(e.target.value);
+                if (couponApplied) {
+                  setCouponApplied(false);
+                }
+                if (couponError) {
+                  setCouponError("");
+                }
+              }}
               className="pay-coupon-input"
-              style={{ opacity: discount > 0 ? 0.6 : 1 }}
+              style={{ opacity: couponLoading ? 0.6 : 1 }}
             />
             <button
               className="pay-coupon-btn"
               onClick={applyCoupon}
-              disabled={couponLoading || discount > 0}
+              disabled={couponLoading}
             >
-              {discount > 0 ? "Applied" : couponLoading ? "Applying..." : "Apply"}
+              {couponLoading ? "Applying..." : "Apply"}
             </button>
           </div>
 
           {couponError && <p className="pay-error">{couponError}</p>}
 
-          {discount > 0 && (
+          {couponApplied && (
             <div className="pay-discount-row">
               <span>Coupon Discount</span>
               <span>-₹{discount}</span>
