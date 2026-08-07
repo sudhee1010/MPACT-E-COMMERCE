@@ -271,7 +271,7 @@ export default function Footer() {
               <h3>GET IN TOUCH</h3>
               <div className="contact-item">
                 {/* <span className="icon">📱</span> */}
-                <span>+91 8075711893</span>
+                <span>+91 8891413187</span>
               </div>
               <div className="contact-item">
                 {/* <span className="icon">✉️</span> */}
