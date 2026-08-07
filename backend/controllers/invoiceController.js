@@ -298,9 +298,12 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
 
   /* ---------------- TOTALS BOX ---------------- */
 
-  const subtotal = order.totalAmount - order.taxAmount;
-  const cgst = order.taxAmount / 2;
-  const sgst = order.taxAmount / 2;
+  const itemsSubtotal = (order.orderItems || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = order.subtotal || itemsSubtotal;
+  const discount = order.discount || 0;
+  const hasDiscount = discount > 0;
+  const cgst = (order.taxAmount || 0) / 2;
+  const sgst = (order.taxAmount || 0) / 2;
 
   const totalsBoxWidth = contentWidth * 0.56;
   const totalsBoxX = pageRight - totalsBoxWidth;
@@ -308,7 +311,8 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   const totalsValueWidth = totalsBoxWidth - 24;
   const totalsRowHeight = 22;
 
-  const TOTALS_BLOCK_HEIGHT = totalsRowHeight * 3 + 26; // 3 plain rows + 1 dark grand-total row
+  const plainRowsCount = hasDiscount ? 4 : 3;
+  const TOTALS_BLOCK_HEIGHT = totalsRowHeight * plainRowsCount + 26; // plain rows + 1 dark grand-total row
   const FOOTER_BLOCK_HEIGHT = 60;
   const GAP_BEFORE_TOTALS = 18;
 
@@ -339,8 +343,12 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   };
 
   totalsRow("Subtotal", money(subtotal));
-  totalsRow("CGST (5%)", money(cgst));
-  totalsRow("SGST (5%)", money(sgst));
+  if (hasDiscount) {
+    const couponLabel = order.appliedCoupon?.code ? `Discount (${order.appliedCoupon.code})` : "Discount";
+    totalsRow(couponLabel, `- ${money(discount)}`);
+  }
+  totalsRow("CGST (2.5%)", money(cgst));
+  totalsRow("SGST (2.5%)", money(sgst));
   totalsRow("GRAND TOTAL", money(order.totalAmount), { bold: true, dark: true });
 
   const totalsBoxBottom = totalsY;
@@ -351,9 +359,10 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
     .lineWidth(1)
     .stroke();
 
-  [totalsBoxTop + totalsRowHeight, totalsBoxTop + totalsRowHeight * 2].forEach((lineY) => {
+  for (let i = 1; i <= plainRowsCount - 1; i++) {
+    const lineY = totalsBoxTop + totalsRowHeight * i;
     doc.moveTo(totalsBoxX, lineY).lineTo(pageRight, lineY).strokeColor(COLORS.lightLine).stroke();
-  });
+  }
 
   /* ---------------- FOOTER ---------------- */
 
