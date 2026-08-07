@@ -167,14 +167,18 @@ export const createCoupon = async (req, res) => {
 
 
 export const applyCouponOnOrder = async (req, res) => {
-try {
+  try {
+    const { orderId, code } = req.body;
 
-const { orderId, code } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ message: "Order ID is required to apply a coupon" });
+    }
 
-const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId);
 
-if (!order)
-return res.status(404).json({ message: "Order not found" });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
 if (order.couponApplied)
 return res.status(400).json({ message: "Coupon already applied" });
