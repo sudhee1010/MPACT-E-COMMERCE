@@ -174,16 +174,20 @@ const { orderId, code } = req.body;
 const order = await Order.findById(orderId);
 
 if (!order)
-return res.status(404).json({ message: "Order not found" });
-
-if (order.couponApplied)
-return res.status(400).json({ message: "Coupon already applied" });
+  return res.status(404).json({ message: "Order not found" });
 
 const coupon = await Coupon.findOne({
-code: code.toUpperCase(),
-isActive: true,
-expiryDate: { $gte: new Date() }
+  code: code.toUpperCase(),
+  isActive: true,
+  expiryDate: { $gte: new Date() }
 });
+
+if (!coupon)
+  return res.status(400).json({ message: "Invalid coupon" });
+
+if (order.couponApplied && order.appliedCoupon?.code === coupon.code) {
+  return res.status(400).json({ message: "Coupon already applied" });
+}
 
 if (!coupon)
 return res.status(400).json({ message: "Invalid coupon" });
