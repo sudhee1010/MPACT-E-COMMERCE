@@ -85,26 +85,7 @@ const sendWhatsAppTemplate = async ({ phone, templateId, templateParams }) => {
 
 const normalizePhoneNumber = (phone) => {
   if (!phone) return "";
-
-  let normalized = String(phone).replace(/[^\d+]/g, "").trim();
-
-  if (normalized.startsWith("00")) {
-    normalized = normalized.replace(/^00/, "+");
-  }
-
-  if (normalized.startsWith("0") && normalized.length === 11) {
-    normalized = "+91" + normalized.slice(1);
-  }
-
-  if (!normalized.startsWith("+") && normalized.length === 10) {
-    normalized = "+91" + normalized;
-  }
-
-  if (normalized.startsWith("91") && normalized.length === 12) {
-    normalized = "+" + normalized;
-  }
-
-  return normalized;
+  return String(phone).replace(/[^\d+]/g, "").trim();
 };
 
 const formatCurrency = (value) => {
@@ -180,7 +161,7 @@ export const sendOrderConfirmation = async (order) => {
     const shippingAddress = order.shippingAddress || {};
     const customerName = user.name || "Customer";
     const phone = normalizePhoneNumber(
-      shippingAddress.phone || user.phone || order.shippingAddress?.phone || order.phone
+      user.phone || shippingAddress.phone || order.phone
     );
 
     console.log("Customer Name:", customerName);
