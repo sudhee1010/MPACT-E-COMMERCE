@@ -176,7 +176,8 @@ export const verifyPayment = async (req, res) => {
 
       const orderWithDetails = await Order.findById(order._id)
         .populate("user", "name phone email")
-        .populate("orderItems.product", "name");
+        .populate("orderItems.product", "name")
+        .populate("shippingAddress");
 
       console.log("====================================");
       console.log("After populate()");

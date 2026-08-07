@@ -123,7 +123,6 @@ export const placeOrder = async (req, res) => {
 
 
     /* ================= CREATE ORDER ================= */
-    const isCod = (paymentMethod || "Razorpay").toLowerCase() === "cod";
     const order = await Order.create({
       user: req.user._id,
       orderItems,
@@ -133,11 +132,8 @@ export const placeOrder = async (req, res) => {
       discount,
       taxAmount,
       totalAmount,
-      appliedCoupon: cart?.appliedCoupon
-        ? { code: cart.appliedCoupon.code, discount: cart.appliedCoupon.discount }
-        : undefined,
-      couponApplied: Boolean(cart?.appliedCoupon),
-      orderStatus: isCod ? "placed" : "initiated",
+      // orderStatus: "placed",
+      orderStatus: "initiated",
       paymentStatus: "pending",
       orderType
     });
@@ -157,7 +153,7 @@ export const placeOrder = async (req, res) => {
     console.log("Before entering the COD block");
     console.log("====================================");
 
-    if (isCod) {
+    if ((paymentMethod || "Razorpay").toLowerCase() === "cod") {
       console.log("====================================");
       console.log("COD condition matched");
       console.log("====================================");
@@ -169,7 +165,8 @@ export const placeOrder = async (req, res) => {
 
         const orderWithDetails = await Order.findById(order._id)
           .populate("user", "name phone email")
-          .populate("orderItems.product", "name");
+          .populate("orderItems.product", "name")
+          .populate("shippingAddress");
 
         console.log("====================================");
         console.log("After populate()");
@@ -369,68 +366,16 @@ export const updatePaymentMethod = async (req, res) => {
 
     order.paymentMethod = paymentMethod;
 
-    if (String(paymentMethod).toUpperCase() === "COD") {
+    if (paymentMethod === "COD") {
       order.orderStatus = "placed";
-      order.paymentStatus = "pending";
-
-      /* 🎟 REDEEM COUPON FOR COD ORDER */
-      if (order.appliedCoupon?.code) {
-        const coupon = await Coupon.findOne({
-          code: order.appliedCoupon.code
-        });
-
-        if (coupon) {
-          const userId = order.user;
-          if (!coupon.usersUsed.some(id => id.toString() === userId.toString())) {
-            coupon.usersUsed.push(userId);
-          }
-          coupon.usedCount = (coupon.usedCount || 0) + 1;
-
-          for (const item of order.orderItems) {
-            const rule = coupon.applicableProducts?.find(
-              r => r.product.toString() === item.product?.toString()
-            );
-            if (rule) {
-              if (!Array.isArray(rule.usedBy)) rule.usedBy = [];
-              if (!rule.usedBy.some(id => id.toString() === userId.toString())) {
-                rule.usedBy.push(userId);
-              }
-            }
-          }
-          await coupon.save();
-        }
-      }
-
-      /* 🛒 CLEAR CART IF CART ORDER */
-      if (order.orderType === "cart") {
-        const cart = await Cart.findOne({ user: order.user });
-        if (cart) {
-          cart.items = [];
-          cart.appliedCoupon = null;
-          await cart.save();
-        }
-      }
+      order.paymentStatus = "pending"; 
     }
 
     await order.save();
 
-    /* 📲 SEND WHATSAPP CONFIRMATION FOR COD ORDER */
-    if (String(paymentMethod).toUpperCase() === "COD") {
-      try {
-        const orderWithDetails = await Order.findById(order._id)
-          .populate("user", "name phone email")
-          .populate("orderItems.product", "name");
-
-        await sendOrderConfirmation(orderWithDetails);
-      } catch (waError) {
-        console.error("FUNCTION NAME: updatePaymentMethod -> sendOrderConfirmation error:", waError);
-      }
-    }
-
     res.json(order);
 
   } catch (error) {
-    console.error("Update Payment Method Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
