@@ -531,10 +531,10 @@ const BlogArticlePage = () => {
         <main className="content-wrapper">
           {/* Article Header */}
           <div className="article-header">
-            <button className="back-link" onClick={() => navigate("/blog")}>
+            {/* <button className="back-link" onClick={() => navigate("/blog")}>
               <ArrowLeft size={16} />
               Back to Blog
-            </button>
+            </button> */}
 
             <span className="category-label">{blog.category?.name || 'Uncategorized'}</span>
 

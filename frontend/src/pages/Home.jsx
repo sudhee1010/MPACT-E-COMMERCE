@@ -106,46 +106,49 @@ function SeeMoreDripButton({ onClick, isMobile }) {
     </div>
   );
 }
-/* ================= CAROUSEL HOOK ================= */
+/* ================= PRODUCT IMAGE HOVER ================= */
 function useProductCarousel(images = []) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const intervalRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
 
   const startCarousel = () => {
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(true);
 
+      // Change ONLY to the second image
       if (images.length > 1) {
         setActiveIndex(1);
-
-        intervalRef.current = setInterval(() => {
-          setActiveIndex((prev) => {
-            if (prev >= images.length - 1) {
-              clearInterval(intervalRef.current); // stop at last image
-              return prev;
-            }
-            return prev + 1;
-          });
-        }, 1000);
       }
-
     }, 50);
   };
+
   const stopCarousel = () => {
     setIsHovered(false);
-    clearInterval(intervalRef.current);
-    intervalRef.current = null;
-    // Reset to first image when hover ends
+
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+
+    // Reset to first image
     setActiveIndex(0);
   };
 
   useEffect(() => {
-    return () => clearInterval(intervalRef.current);
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
   }, []);
 
-  return { activeIndex, isHovered, startCarousel, stopCarousel };
+  return {
+    activeIndex,
+    isHovered,
+    startCarousel,
+    stopCarousel,
+  };
 }
 
 /* ================= HOME PRODUCT CARD ================= */
@@ -166,7 +169,7 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
         border: "2px solid rgba(133,77,14,0.5)",
         borderRadius: "0.75rem",
         overflow: "hidden",
-        transition: "all 0.4s ease",
+        transition: " 0.4s ease",
         transform: isHovered ? "translateY(-6px)" : "scale(1)",
         boxShadow: isHovered ? "0 4px 18px rgba(0, 0, 0, 0.25)" : "none",
         cursor: "pointer",
