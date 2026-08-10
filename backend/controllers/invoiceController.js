@@ -171,7 +171,7 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   infoLine(null, "GST : 32GRGPM6809G1ZO");
   infoLine(drawPinIcon, "Kerala, India");
   infoLine(drawMailIcon, "Email: support@mpact.in");
-  infoLine(drawPhoneIcon, "Phone: 8075711893");
+  infoLine(drawPhoneIcon, "Phone: 8891413187");
 
   const addr = order.shippingAddress || {};
   const customerName = addr.name || order.user?.name || "Customer";
