@@ -6,6 +6,10 @@ import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import { sendOrderConfirmation } from "../utils/sendWhatsappOTP.js";
 
+// Hard-coded shipping charge (₹40). Not stored on the order document and
+// not derived from the client - always computed here so it can't be
+// tampered with, and always added exactly once per Razorpay order created.
+const SHIPPING_CHARGE = 40;
 
 /* =========================================================
    CREATE RAZORPAY ORDER
@@ -50,8 +54,14 @@ export const createPaymentOrder = async (req, res) => {
       return res.status(400).json({ message: "Invalid order amount" });
     }
 
+    // order.totalAmount is the coupon/tax-adjusted order total and never
+    // includes shipping. Shipping is added here, once, on top of it -
+    // req.body.shippingCharge (if the client sends one) is ignored so a
+    // tampered request can't change what's actually charged.
+    const amount = Number(order.totalAmount) + SHIPPING_CHARGE;
+
     const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(order.totalAmount * 100), // paise
+      amount: Math.round(amount * 100), // paise, includes shipping
       currency: "INR",
       receipt: `order_${order._id}`
     });
