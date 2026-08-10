@@ -183,7 +183,7 @@
 //             Grievance Officer: <br />
 //             Name:  Ms pameela <br />
 //             Email:pameela.mpact@gmail.com<br />
-//             Phone: +91 8075711893 <br />
+//             Phone: +91 8891413187 <br />
 //             Working Hours: 10:00 AM – 6:00 PM IST (Monday to Saturday) <br />
 //           </p>
 //         </div>
@@ -385,7 +385,7 @@ export default function PrivacyPolicy() {
           <p>
             Name: Ms Pameela <br />
             Email: <a href="mailto:pameela.mpact@gmail.com">pameela.mpact@gmail.com</a><br />
-            Phone: +91 8075711893 <br />
+            Phone: +91 8891413187 <br />
             Working Hours: 10:00 AM – 6:00 PM IST (Monday to Saturday)
           </p>
         </div>

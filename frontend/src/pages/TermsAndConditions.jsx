@@ -414,7 +414,7 @@ export default function TermsAndConditions() {
           <h3>SECTION 20 - CONTACT INFORMATION</h3>
           <div className="contact-info">
             <p><strong>Trade Name:</strong> MPACT</p>
-            <p><strong>Phone Number:</strong> +91 8075711893</p>
+            <p><strong>Phone Number:</strong> +91 8891413187</p>
             <p><strong>Email:</strong> support@mpact.in</p>
             <p><strong>Business Address:</strong> Floor 1, Building No. TC9/3891/4, Kariyavattom–Chenkottukonam Road, Opposite Trivandrum Scottish School, Kariyavattom, Thiruvananthapuram – 695581, Kerala, India</p>
             <p><strong>Working Hours:</strong> 10:00 AM – 6:00 PM IST (Monday to Saturday)</p>

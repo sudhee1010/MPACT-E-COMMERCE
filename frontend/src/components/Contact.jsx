@@ -194,7 +194,7 @@ export default function Contact() {
             
             <div className="contact-info-item">
               <span className="contact-label">Phone:</span>
-              <span className="contact-value">+91 8075711893</span>
+              <span className="contact-value">+91 8891413187</span>
             </div>
             
             <div className="contact-info-item">
@@ -245,7 +245,7 @@ export default function Contact() {
             
             <div className="contact-info-item">
               <span className="contact-label">Phone:</span>
-              <span className="contact-value">+91 8075711893</span>
+              <span className="contact-value">+91 8891413187</span>
             </div>
             
             <div className="working-hours" style={{ marginTop: '20px' }}>
