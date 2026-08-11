@@ -54,11 +54,8 @@ export const createPaymentOrder = async (req, res) => {
       return res.status(400).json({ message: "Invalid order amount" });
     }
 
-    // order.totalAmount is the coupon/tax-adjusted order total and never
-    // includes shipping. Shipping is added here, once, on top of it -
-    // req.body.shippingCharge (if the client sends one) is ignored so a
-    // tampered request can't change what's actually charged.
-    const amount = Number(order.totalAmount) + SHIPPING_CHARGE;
+    // order.totalAmount is the final total including subtotal, coupon discount, tax, and shipping.
+    const amount = Number(order.totalAmount);
 
     const razorpayOrder = await razorpay.orders.create({
       amount: Math.round(amount * 100), // paise, includes shipping

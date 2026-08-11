@@ -459,18 +459,37 @@ export function Orders() {
                                   <span className="text-gray-400">×{selectedOrder.quantity}</span>
                                 </div> */}
                                 {selectedOrder.orderItems.map((item) => (
-                                  <div key={item._id} className="flex justify-between">
-                                    <span>{item.name}</span>
-                                    <span>×{item.quantity}</span>
+                                  <div key={item._id} className="flex justify-between py-1 text-sm border-b border-gray-800">
+                                    <span>{item.name} × {item.quantity}</span>
+                                    <span>{formatINR(item.price * item.quantity)}</span>
                                   </div>
                                 ))}
 
-
-                                <div className="flex justify-between font-semibold text-white">
-                                  <span>Total</span>
-                                  <span className="text-yellow-400">
-                                    {formatINR(selectedOrder.totalAmount)}
-                                  </span>
+                                <div className="space-y-1 mt-3 pt-2 text-sm text-gray-300">
+                                  <div className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>{formatINR(selectedOrder.subtotal || selectedOrder.orderItems.reduce((s, i) => s + i.price * i.quantity, 0))}</span>
+                                  </div>
+                                  {selectedOrder.discount > 0 && (
+                                    <div className="flex justify-between text-green-400">
+                                      <span>Discount {selectedOrder.appliedCoupon?.code ? `(${selectedOrder.appliedCoupon.code})` : ""}</span>
+                                      <span>-{formatINR(selectedOrder.discount)}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex justify-between">
+                                    <span>Tax</span>
+                                    <span>{formatINR(selectedOrder.taxAmount || 0)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Shipping Charge</span>
+                                    <span>{formatINR(selectedOrder.shippingCharge ?? 40)}</span>
+                                  </div>
+                                  <div className="flex justify-between font-semibold text-white pt-2 border-t border-gray-700 text-base">
+                                    <span>Total Amount</span>
+                                    <span className="text-yellow-400">
+                                      {formatINR(selectedOrder.totalAmount)}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>

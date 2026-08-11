@@ -330,11 +330,16 @@ export default function Cart() {
               <span>₹{taxAmount.toFixed(2)}</span>
             </div>
 
+            <div className="row">
+              <span>Shipping charge</span>
+              <span>{isCartEmpty ? "₹0" : "₹40"}</span>
+            </div>
+
             <hr />
 
             <div className="row green">
               <span>Total Amount</span>
-              <span>₹{(finalAmount || 0).toFixed(2)}</span>
+              <span>₹{(isCartEmpty ? 0 : (finalAmount || 0) + 40).toFixed(2)}</span>
             </div>
 
             <div className="save">

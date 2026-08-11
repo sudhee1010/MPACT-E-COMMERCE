@@ -3,6 +3,8 @@ import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import { calculateCouponDiscount } from "../utils/couponUtils.js";
 
+const SHIPPING_CHARGE = 40;
+
 /* =========================================================
    CREATE COUPON (ADMIN)
 ========================================================= */
@@ -228,7 +230,8 @@ export const applyCouponOnOrder = async (req, res) => {
     order.subtotal = subtotal;
     order.discount = totalDiscount;
     order.taxAmount = taxAmount;
-    order.totalAmount = totalAmount;
+    order.shippingCharge = order.shippingCharge || SHIPPING_CHARGE;
+    order.totalAmount = totalAmount + order.shippingCharge;
     order.couponApplied = true;
     order.appliedCoupon = {
       code: coupon.code,
@@ -243,7 +246,8 @@ export const applyCouponOnOrder = async (req, res) => {
       discount: totalDiscount,
       appliedProducts,
       taxAmount,
-      totalAmount
+      shippingCharge: order.shippingCharge,
+      totalAmount: order.totalAmount
     });
 
   } catch (error) {
@@ -451,7 +455,8 @@ export const validateCouponForCart = async (req, res) => {
     const TAX_RATE = 0.05;
     const taxableAmount = Math.max(subtotal - totalDiscount, 0);
     const taxAmount = Math.round(taxableAmount * TAX_RATE * 100) / 100;
-    const totalAmount = Math.round((taxableAmount + taxAmount) * 100) / 100;
+    const shippingCharge = SHIPPING_CHARGE;
+    const totalAmount = Math.round((taxableAmount + taxAmount + shippingCharge) * 100) / 100;
 
     /* ── Persist coupon on cart so placeOrder can re-use it ── */
     cart.appliedCoupon = {
@@ -467,6 +472,7 @@ export const validateCouponForCart = async (req, res) => {
       discount: totalDiscount,
       appliedProducts,
       taxAmount,
+      shippingCharge,
       totalAmount
     });
 

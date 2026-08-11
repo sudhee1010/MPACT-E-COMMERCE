@@ -304,6 +304,7 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   const hasDiscount = discount > 0;
   const cgst = (order.taxAmount || 0) / 2;
   const sgst = (order.taxAmount || 0) / 2;
+  const shippingCharge = order.shippingCharge ?? 40;
 
   const totalsBoxWidth = contentWidth * 0.56;
   const totalsBoxX = pageRight - totalsBoxWidth;
@@ -311,7 +312,7 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   const totalsValueWidth = totalsBoxWidth - 24;
   const totalsRowHeight = 22;
 
-  const plainRowsCount = hasDiscount ? 4 : 3;
+  const plainRowsCount = hasDiscount ? 5 : 4;
   const TOTALS_BLOCK_HEIGHT = totalsRowHeight * plainRowsCount + 26; // plain rows + 1 dark grand-total row
   const FOOTER_BLOCK_HEIGHT = 60;
   const GAP_BEFORE_TOTALS = 18;
@@ -349,6 +350,7 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   }
   totalsRow("CGST (2.5%)", money(cgst));
   totalsRow("SGST (2.5%)", money(sgst));
+  totalsRow("Shipping Charge", money(shippingCharge));
   totalsRow("GRAND TOTAL", money(order.totalAmount), { bold: true, dark: true });
 
   const totalsBoxBottom = totalsY;

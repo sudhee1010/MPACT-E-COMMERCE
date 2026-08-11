@@ -105,12 +105,8 @@ export const placeOrder = async (req, res) => {
     const taxableAmount = Math.max(subtotal - discount, 0);
     const TAX_RATE = 0.05;
     const taxAmount = taxableAmount * TAX_RATE;
-    // totalAmount intentionally stays shipping-free here (subtotal - discount
-    // + tax only). For Razorpay orders, SHIPPING_CHARGE gets added on top of
-    // this exactly once, later, when the Razorpay charge amount is built in
-    // paymentController.js -> createPaymentOrder. COD has no such later step,
-    // so its stored total needs shipping folded in below at creation time.
-    const totalAmount = taxableAmount + taxAmount;
+    const shippingCharge = SHIPPING_CHARGE;
+    const totalAmount = taxableAmount + taxAmount + shippingCharge;
 
     /* ================= PREVENT DUPLICATE SAME-CART PENDING ================= */
     if (orderType === "cart" && cart) {
@@ -129,13 +125,6 @@ export const placeOrder = async (req, res) => {
 
 
     /* ================= CREATE ORDER ================= */
-    const isCOD = (paymentMethod || "Razorpay").toLowerCase() === "cod";
-
-    // COD orders are never touched by createPaymentOrder (that endpoint is
-    // Razorpay-only), so shipping must be added exactly once, right here,
-    // for COD to be the final stored/charged amount.
-    const storedTotalAmount = isCOD ? totalAmount + SHIPPING_CHARGE : totalAmount;
-
     const order = await Order.create({
       user: req.user._id,
       orderItems,
@@ -144,7 +133,8 @@ export const placeOrder = async (req, res) => {
       subtotal,
       discount,
       taxAmount,
-      totalAmount: storedTotalAmount,
+      shippingCharge,
+      totalAmount,
       // orderStatus: "placed",
       orderStatus: "initiated",
       paymentStatus: "pending",

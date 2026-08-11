@@ -69,19 +69,21 @@ export const generateInvoice = (order) => {
   doc.text("₹" + order.price * order.qty, 170, 116);
 
   /* ===== TABLE ROW 2 ===== */
-  doc.text("Other Cost", 14, 126);
-  doc.text("₹340", 70, 126);
+  const shipping = order.shippingCharge ?? 40;
+  doc.text("Shipping Charge", 14, 126);
+  doc.text("₹" + shipping, 70, 126);
   doc.text("1", 95, 126);
-  doc.text("18%", 115, 126);
+  doc.text("-", 115, 126);
   doc.text("-₹0.00", 140, 126);
-  doc.text("₹340", 170, 126);
+  doc.text("₹" + shipping, 170, 126);
 
   doc.line(14, 132, 196, 132);
 
   /* ===== TOTAL ===== */
+  const grandTotal = order.totalAmount || (order.price * order.qty + shipping);
   doc.setFontSize(14);
   doc.text("Total", 14, 142);
-  doc.text("₹1000", 170, 142);
+  doc.text("₹" + grandTotal, 170, 142);
 
   doc.line(14, 148, 196, 148);
 

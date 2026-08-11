@@ -82,6 +82,7 @@ export const invoiceTemplate = (order) => `
   <p class="total">Subtotal: ₹ ${(order.subtotal || (order.orderItems || []).reduce((s, i) => s + i.price * i.quantity, 0)).toFixed(2)}</p>
   ${order.discount > 0 ? `<p class="total">Discount ${order.appliedCoupon?.code ? `(${order.appliedCoupon.code})` : ""}: -₹ ${order.discount.toFixed(2)}</p>` : ""}
   <p class="total">Tax: ₹ ${order.taxAmount.toFixed(2)}</p>
+  <p class="total">Shipping Charge: ₹ ${(order.shippingCharge ?? 40).toFixed(2)}</p>
   <p class="total">Total: ₹ ${order.totalAmount.toFixed(2)}</p>
 
   <p style="text-align:center;margin-top:40px">
