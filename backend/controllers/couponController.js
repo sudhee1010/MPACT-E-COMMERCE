@@ -1,5 +1,7 @@
 import Coupon from "../models/Coupon.js";
 import Order from "../models/Order.js";
+import Cart from "../models/Cart.js";
+import { calculateCouponDiscount } from "../utils/couponUtils.js";
 
 /* =========================================================
    CREATE COUPON (ADMIN)
@@ -167,130 +169,87 @@ export const createCoupon = async (req, res) => {
 
 
 export const applyCouponOnOrder = async (req, res) => {
-try {
+  try {
+    const { orderId, code } = req.body;
 
-const { orderId, code } = req.body;
+    /* ── Fetch order ── */
+    const order = await Order.findById(orderId);
+    if (!order)
+      return res.status(404).json({ message: "Order not found" });
 
-const order = await Order.findById(orderId);
+    /* ── Fetch & validate coupon ── */
+    const coupon = await Coupon.findOne({
+      code: code.toUpperCase(),
+      isActive: true,
+      expiryDate: { $gte: new Date() }
+    });
 
-if (!order)
-  return res.status(404).json({ message: "Order not found" });
+    if (!coupon)
+      return res.status(400).json({ message: "Invalid or expired coupon" });
 
-const coupon = await Coupon.findOne({
-  code: code.toUpperCase(),
-  isActive: true,
-  expiryDate: { $gte: new Date() }
-});
+    if (order.couponApplied && order.appliedCoupon?.code === coupon.code)
+      return res.status(400).json({ message: "Coupon already applied" });
 
-if (!coupon)
-  return res.status(400).json({ message: "Invalid coupon" });
+    /* ── User already used this coupon ── */
+    if (coupon.usersUsed.some((id) => id.toString() === req.user._id.toString()))
+      return res.status(400).json({ message: "You already used this coupon" });
 
-if (order.couponApplied && order.appliedCoupon?.code === coupon.code) {
-  return res.status(400).json({ message: "Coupon already applied" });
-}
+    /* ── Global usage limit ── */
+    if (coupon.maxRedemptions > 0 && coupon.usedCount >= coupon.maxRedemptions)
+      return res.status(400).json({ message: "Coupon usage limit reached" });
 
-if (!coupon)
-return res.status(400).json({ message: "Invalid coupon" });
+    /* ── Calculate subtotal ── */
+    const subtotal = order.orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
 
-/* USER ALREADY USED CHECK */
+    /* ── Calculate discount across ALL eligible items ──
+       FIX: iterate every item, use price × quantity (not single unit),
+       accumulate discount for each eligible product separately.
+    ── */
+    const { totalDiscount, appliedProducts, anyEligible } =
+      await calculateCouponDiscount(
+        coupon,
+        order.orderItems,
+        req.user._id.toString()
+      );
 
-if (
-coupon.usersUsed.some(
-(id) => id.toString() === req.user._id.toString()
-)
-) {
-return res.status(400).json({
-message: "You already used this coupon"
-});
-}
+    if (!anyEligible)
+      return res.status(400).json({ message: "Coupon not applicable to any item in this order" });
 
-/* GLOBAL LIMIT CHECK */
+    /* ── Final amounts ── */
+    const TAX_RATE = 0.05;
+    const taxableAmount = Math.max(subtotal - totalDiscount, 0);
+    const taxAmount = Math.round(taxableAmount * TAX_RATE * 100) / 100;
+    const totalAmount = Math.round((taxableAmount + taxAmount) * 100) / 100;
 
-if (
-coupon.maxRedemptions > 0 &&
-coupon.usedCount >= coupon.maxRedemptions
-) {
-return res.status(400).json({
-message: "Coupon usage limit reached"
-});
-}
+    /* ── Persist on order ── */
+    order.subtotal = subtotal;
+    order.discount = totalDiscount;
+    order.taxAmount = taxAmount;
+    order.totalAmount = totalAmount;
+    order.couponApplied = true;
+    order.appliedCoupon = {
+      code: coupon.code,
+      discount: totalDiscount
+    };
 
-/* CALCULATE DISCOUNT */
+    await order.save();
 
-let subtotal = 0;
-let discount = 0;
-let applied = false;
+    res.json({
+      message: "Coupon applied successfully",
+      subtotal,
+      discount: totalDiscount,
+      appliedProducts,
+      taxAmount,
+      totalAmount
+    });
 
-for (const item of order.orderItems) {
-
-subtotal += item.price * item.quantity;
-
-if (applied) continue;
-
-if (coupon.applicableProducts.length > 0) {
-
-const allowed = coupon.applicableProducts.some(
-(p) => p.product.toString() === item.product.toString()
-);
-
-if (!allowed) continue;
-}
-
-const oneUnitPrice = item.price;
-
-discount =
-coupon.discountType === "percentage"
-? (oneUnitPrice * coupon.discountValue) / 100
-: Math.min(coupon.discountValue, oneUnitPrice);
-
-applied = true;
-
-}
-
-if (!applied)
-return res.status(400).json({
-message: "Coupon not applicable"
-});
-
-const TAX_RATE = 0.05;
-
-const taxable = subtotal - discount;
-
-const taxAmount = taxable * TAX_RATE;
-
-const totalAmount = taxable + taxAmount;
-
-/* SAVE ORDER */
-
-order.subtotal = subtotal;
-order.discount = discount;
-order.taxAmount = taxAmount;
-order.totalAmount = totalAmount;
-
-order.couponApplied = true;
-
-order.appliedCoupon = {
-code: coupon.code,
-discount
-};
-
-await order.save();
-
-res.json({
-message: "Coupon applied",
-subtotal,
-discount,
-taxAmount,
-totalAmount
-});
-
-} catch (error) {
-
-console.error(error);
-
-res.status(500).json({ message: "Coupon apply failed" });
-
-}
+  } catch (error) {
+    console.error("Apply Coupon Error:", error);
+    res.status(500).json({ message: "Coupon apply failed" });
+  }
 };
 
 /* =========================================================
@@ -422,6 +381,97 @@ export const validateCouponForFuel = async (req, res) => {
 
     res.json(coupon);
   } catch (error) {
+    res.status(500).json({ message: "Failed to validate coupon" });
+  }
+};
+
+/* =========================================================
+   VALIDATE COUPON AGAINST CART  (saves to cart.appliedCoupon)
+   POST /api/coupons/validate-cart
+   Body: { code: string }
+
+   Returns the same shape as applyCouponOnOrder so the Pay page
+   can display the discount before an Order document is created.
+========================================================= */
+export const validateCouponForCart = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    /* ── Fetch cart ── */
+    const cart = await Cart.findOne({ user: req.user._id }).populate(
+      "items.product",
+      "name price _id"
+    );
+
+    if (!cart || cart.items.length === 0)
+      return res.status(400).json({ message: "Cart is empty" });
+
+    /* ── Fetch & validate coupon ── */
+    const coupon = await Coupon.findOne({
+      code: code.toUpperCase(),
+      isActive: true,
+      expiryDate: { $gte: new Date() }
+    });
+
+    if (!coupon)
+      return res.status(400).json({ message: "Invalid or expired coupon" });
+
+    /* ── User already used ── */
+    if (coupon.usersUsed.some((id) => id.toString() === req.user._id.toString()))
+      return res.status(400).json({ message: "You already used this coupon" });
+
+    /* ── Global usage limit ── */
+    if (coupon.maxRedemptions > 0 && coupon.usedCount >= coupon.maxRedemptions)
+      return res.status(400).json({ message: "Coupon usage limit reached" });
+
+    /* ── Build item list compatible with calculateCouponDiscount ── */
+    const cartItemsForCalc = cart.items.map((item) => ({
+      product: item.product._id || item.product,
+      price: item.price || item.product?.price || 0,
+      quantity: item.quantity || 1
+    }));
+
+    const subtotal = cartItemsForCalc.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    /* ── Calculate discount across ALL eligible cart items ── */
+    const { totalDiscount, appliedProducts, anyEligible } =
+      await calculateCouponDiscount(
+        coupon,
+        cartItemsForCalc,
+        req.user._id.toString()
+      );
+
+    if (!anyEligible)
+      return res.status(400).json({ message: "Coupon not applicable to any item in your cart" });
+
+    /* ── Final amounts ── */
+    const TAX_RATE = 0.05;
+    const taxableAmount = Math.max(subtotal - totalDiscount, 0);
+    const taxAmount = Math.round(taxableAmount * TAX_RATE * 100) / 100;
+    const totalAmount = Math.round((taxableAmount + taxAmount) * 100) / 100;
+
+    /* ── Persist coupon on cart so placeOrder can re-use it ── */
+    cart.appliedCoupon = {
+      code: coupon.code,
+      discount: totalDiscount,
+      products: appliedProducts
+    };
+    await cart.save();
+
+    res.json({
+      message: "Coupon applied to cart",
+      subtotal,
+      discount: totalDiscount,
+      appliedProducts,
+      taxAmount,
+      totalAmount
+    });
+
+  } catch (error) {
+    console.error("Validate Cart Coupon Error:", error);
     res.status(500).json({ message: "Failed to validate coupon" });
   }
 };

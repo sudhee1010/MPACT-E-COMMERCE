@@ -4,6 +4,7 @@ import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import Product from "../models/Product.js";
 import { sendOrderConfirmation } from "../utils/sendWhatsappOTP.js";
+import { calculateCouponDiscount } from "../utils/couponUtils.js";
 
 // Hard-coded shipping charge (₹40), added once when the order's totalAmount
 // is computed at creation time - not a separate DB field, not editable.
@@ -74,32 +75,28 @@ export const placeOrder = async (req, res) => {
         0
       );
 
-      /* 🎟 COUPON DISCOUNT */
-      if (cart.appliedCoupon) {
-        discount = cart.appliedCoupon.discount || 0;
-
+      /* 🎟 COUPON DISCOUNT — server-side re-validation */
+      if (cart.appliedCoupon?.code) {
         const coupon = await Coupon.findOne({
-          code: cart.appliedCoupon.code
+          code: cart.appliedCoupon.code,
+          isActive: true,
+          expiryDate: { $gte: new Date() }
         });
 
-        // 🔐 Product-level usage tracking
-        if (coupon && cart.appliedCoupon.products?.length) {
-          for (const applied of cart.appliedCoupon.products) {
-            const rule = coupon.applicableProducts.find(
-              (r) => r.product.toString() === applied.product.toString()
+        if (coupon) {
+          // Re-calculate using the actual order items and the live coupon rules.
+          // This prevents a user from manipulating cart.appliedCoupon.discount
+          // on the frontend and having the inflated value reach the order.
+          const { totalDiscount, anyEligible } =
+            await calculateCouponDiscount(
+              coupon,
+              orderItems,
+              req.user._id.toString()
             );
 
-            if (rule) {
-              if (!Array.isArray(rule.usedBy)) {
-                rule.usedBy = [];
-              }
-
-              if (!rule.usedBy.some(id => id.toString() === req.user._id.toString())) {
-                rule.usedBy.push(req.user._id);
-              }
-            }
+          if (anyEligible) {
+            discount = totalDiscount;
           }
-          await coupon.save();
         }
       }
     }
@@ -174,41 +171,49 @@ export const placeOrder = async (req, res) => {
       console.log("COD condition matched");
       console.log("====================================");
 
-      try {
-        console.log("====================================");
-        console.log("Before populate()");
-        console.log("====================================");
+      order.orderStatus = "placed";
+      await order.save();
 
+      /* ================= COD COUPON REDEEM ================= */
+      if (cart?.appliedCoupon?.code) {
+        const coupon = await Coupon.findOne({ code: cart.appliedCoupon.code });
+        if (coupon) {
+          if (!coupon.usersUsed.some((id) => id.toString() === req.user._id.toString())) {
+            coupon.usersUsed.push(req.user._id);
+          }
+          coupon.usedCount = (coupon.usedCount || 0) + 1;
+          for (const item of cart.items) {
+            const rule = coupon.applicableProducts.find(
+              (r) => r.product.toString() === item.product._id.toString()
+            );
+            if (rule) {
+              if (!Array.isArray(rule.usedBy)) rule.usedBy = [];
+              if (!rule.usedBy.some((id) => id.toString() === req.user._id.toString())) {
+                rule.usedBy.push(req.user._id);
+              }
+            }
+          }
+          await coupon.save();
+        }
+      }
+
+      /* ================= COD CLEAR CART ================= */
+      if (cart) {
+        cart.items = [];
+        cart.totalPrice = 0;
+        cart.appliedCoupon = null;
+        await cart.save();
+      }
+
+      try {
         const orderWithDetails = await Order.findById(order._id)
           .populate("user", "name phone email")
           .populate("orderItems.product", "name")
           .populate("shippingAddress");
 
-        console.log("====================================");
-        console.log("After populate()");
-        console.log("Populated order object:", JSON.stringify(orderWithDetails, null, 2));
-        console.log("====================================");
-
-        console.log("====================================");
-        console.log("Before calling sendOrderConfirmation()");
-        console.log("====================================");
-
         await sendOrderConfirmation(orderWithDetails);
-
-        console.log("====================================");
-        console.log("After sendOrderConfirmation()");
-        console.log("WhatsApp order confirmation completed.");
-        console.log("====================================");
       } catch (error) {
-        console.error("====================================");
-        console.error("FUNCTION NAME: placeOrder -> COD sendOrderConfirmation");
-        console.error(error);
-        console.error(error.stack);
-        if (error.response) {
-          console.error("STATUS:", error.response.status);
-          console.error("DATA:", JSON.stringify(error.response.data, null, 2));
-        }
-        console.error("====================================");
+        console.error("COD sendOrderConfirmation error:", error);
       }
     } else {
       console.log("====================================");

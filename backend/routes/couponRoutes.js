@@ -7,7 +7,8 @@ import {
   deleteCoupon,
   applyCouponOnOrder,
   getCouponAnalytics,
-  validateCouponForFuel
+  validateCouponForFuel,
+  validateCouponForCart
 } from "../controllers/couponController.js";
 
 import { protect } from "../middlewares/authMiddleware.js";
@@ -17,6 +18,7 @@ const router = express.Router();
 
 /* ================= USER ================= */
 router.post("/apply-on-order", protect, applyCouponOnOrder);
+router.post("/validate-cart", protect, validateCouponForCart);
 
 /* ================= ADMIN ================= */
 router.post("/", protect, isAdmin, createCoupon);
@@ -28,3 +30,4 @@ router.delete("/:id", protect, isAdmin, deleteCoupon);
 router.post("/validate-fuel", protect, validateCouponForFuel);
 
 export default router;
+
