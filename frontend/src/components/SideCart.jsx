@@ -934,9 +934,14 @@ export default function SideCart() {
                 <span>₹{taxAmount.toFixed(2)}</span>
               </div>
 
+              <div className="sc-row">
+                <span>Shipping charge</span>
+                <span>₹40</span>
+              </div>
+
               <div className="sc-row sc-green">
                 <span>Total</span>
-                <span>₹{totalWithTax.toFixed(2)}</span>
+                <span>₹{(totalWithTax + 40).toFixed(2)}</span>
               </div>
             </div>
 

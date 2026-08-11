@@ -14,6 +14,9 @@ export default function OrderDetails() {
     const [cancelling, setCancelling] = useState(false);
     const [returning, setReturning] = useState(false);
 
+    // Hard-coded shipping charge shown by the UI; backend enforces the same value.
+    const SHIPPING_CHARGE = 40;
+
     useEffect(() => {
         const fetchOrder = async () => {
             try {
@@ -42,7 +45,8 @@ export default function OrderDetails() {
 
         try {
             const { data } = await api.post("/api/payment/create-order", {
-                orderId: order._id
+                orderId: order._id,
+                shippingCharge: SHIPPING_CHARGE
             });
 
             if (!data.razorpayOrderId) {
@@ -841,25 +845,48 @@ export default function OrderDetails() {
                 {/* Price Summary */}
                 <div className="section">
                     <h2 className="section-title">Price Summary</h2>
+
                     <div className="price-summary">
+                        {/* Subtotal */}
                         <div className="summary-row">
                             <span>Subtotal</span>
-                            <span>₹{(order.totalAmount - order.taxAmount).toFixed(2)}</span>
+                            <span>
+                                ₹{(order.subtotal || (order.orderItems || []).reduce((s, i) => s + i.price * i.quantity, 0)).toFixed(2)}
+                            </span>
                         </div>
-                        <div className="summary-row">
-                            <span>Tax</span>
-                            <span>₹{order.taxAmount.toFixed(2)}</span>
-                        </div>
-                        {order.shippingPrice > 0 && (
-                            <div className="summary-row">
-                                <span>Shipping</span>
-                                <span>₹{order.shippingPrice.toFixed(2)}</span>
+
+                        {/* Discount */}
+                        {order.discount > 0 && (
+                            <div className="summary-row" style={{ color: "#4ade80" }}>
+                                <span>Discount {order.appliedCoupon?.code ? `(${order.appliedCoupon.code})` : ""}</span>
+                                <span>-₹{order.discount.toFixed(2)}</span>
                             </div>
                         )}
+
+                        {/* Tax */}
+                        <div className="summary-row">
+                            <span>Tax</span>
+                            <span>
+                                ₹{(order.taxAmount || 0).toFixed(2)}
+                            </span>
+                        </div>
+
+                        {/* Shipping */}
+                        <div className="summary-row">
+                            <span>Shipping charge</span>
+                            <span>
+                                ₹{(order.shippingCharge ?? SHIPPING_CHARGE).toFixed(2)}
+                            </span>
+                        </div>
+
+                        {/* Total */}
                         <div className="summary-row total-row">
                             <span>Total Amount</span>
-                            <span>₹{order.totalAmount.toFixed(2)}</span>
+                            <span>
+                                ₹{order.totalAmount.toFixed(2)}
+                            </span>
                         </div>
+
                     </div>
                 </div>
 

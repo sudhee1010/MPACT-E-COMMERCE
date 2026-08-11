@@ -485,7 +485,7 @@
 
 // export default Pay;
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import api from "../api/axios";
 import { getOrderByIdApi } from "../api/ordersApi";
@@ -518,6 +518,10 @@ const Pay = () => {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const currentIsDirectBuy = directBuy || order?.orderType === "direct";
+
+  // Hard-coded shipping charge (₹40). UI-only constant; backend also
+  // enforces the same constant when creating the Razorpay order.
+  const SHIPPING_CHARGE = 40;
 
   /* ================= FETCH ORDER SUMMARY ================= */
   useEffect(() => {
@@ -553,13 +557,13 @@ const Pay = () => {
           setDiscount(0);
           setCouponApplied(false);
           setTaxAmount(draftTaxAmount);
-          setFinalAmount(currentSubtotal + draftTaxAmount);
+          setFinalAmount(currentSubtotal + draftTaxAmount + SHIPPING_CHARGE);
         } else if (directBuy && directProduct) {
           const directSubtotal = Number(directProduct.price || 0) * Number(directProduct.qty || 1);
           setDiscount(0);
           setCouponApplied(false);
           setTaxAmount(0);
-          setFinalAmount(directSubtotal);
+          setFinalAmount(directSubtotal + SHIPPING_CHARGE);
         }
       } catch (err) {
         console.error("Failed to fetch order summary:", err);
@@ -638,8 +642,10 @@ const Pay = () => {
 
       const updatedOrder = {
         ...(currentOrder || {}),
+        subtotal: data.subtotal,
         discount: data.discount,
         taxAmount: data.taxAmount,
+        shippingCharge: data.shippingCharge || SHIPPING_CHARGE,
         totalAmount: data.totalAmount,
         appliedCoupon: { code: couponCode.trim(), discount: data.discount },
       };
@@ -652,9 +658,9 @@ const Pay = () => {
     } catch (err) {
       setCouponError(err.response?.data?.message || err.message || "Failed to apply coupon");
       setCouponApplied(false);
-      setDiscount(order?.discount || 0);
-      setTaxAmount(order?.taxAmount || 0);
-      setFinalAmount(order?.totalAmount || 0);
+      setDiscount(currentOrder?.discount || 0);
+      setTaxAmount(currentOrder?.taxAmount || 0);
+      setFinalAmount(currentOrder?.totalAmount || finalAmount);
     } finally {
       setCouponLoading(false);
     }
@@ -701,9 +707,11 @@ const Pay = () => {
       }
 
       console.log("Selected Payment Method:", "Razorpay");
-      console.log("Request Payload:", { orderId: createdOrderId });
+      console.log("Request Payload:", { orderId: createdOrderId, shippingCharge: SHIPPING_CHARGE });
 
-      const { data } = await api.post("/api/payment/create-order", { orderId: createdOrderId });
+      // Send the shipping charge for transparency; the backend ignores any
+      // tampered value and always adds the server-side SHIPPING_CHARGE.
+      const { data } = await api.post("/api/payment/create-order", { orderId: createdOrderId, shippingCharge: SHIPPING_CHARGE });
 
       const options = {
         key: data.key,
@@ -801,6 +809,9 @@ const Pay = () => {
   };
 
   if (loading) return <p style={{ color: "white", textAlign: "center", paddingTop: "40px" }}>Loading...</p>;
+
+  // totalWithShipping: finalAmount state now consistently includes the shipping charge in all states.
+  const totalWithShipping = Number(finalAmount || 0);
 
   const subtotal =
     order?.subtotal ??
@@ -1097,11 +1108,17 @@ const Pay = () => {
             <span>₹{taxAmount.toFixed(2)}</span>
           </div>
 
+          {/* Shipping charge */}
+          <div className="pay-row">
+            <span>Shipping charge</span>
+            <span>₹{SHIPPING_CHARGE}</span>
+          </div>
+
           <hr className="pay-divider" />
 
           <div className="pay-total">
             <span>Total</span>
-            <span>₹{finalAmount.toFixed(2)}</span>
+            <span>₹{totalWithShipping.toFixed(2)}</span>
           </div>
 
           <button className="pay-btn" onClick={handlePay} disabled={isPayDisabled}>
