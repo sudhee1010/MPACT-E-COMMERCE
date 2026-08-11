@@ -90,7 +90,7 @@
 
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { getCartApi, addToCartApi } from "../api/cartApi";
+import { getCartApi, addToCartApi, clearCartCouponApi } from "../api/cartApi";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
@@ -106,8 +106,23 @@ export const CartProvider = ({ children }) => {
   const [cartMeta, setCartMeta] = useState({
     totalPrice: 0,
     taxAmount: 0,
-    totalWithTax: 0
+    totalWithTax: 0,
+    appliedCoupon: null
   });
+
+  const clearCouponInCart = async () => {
+    try {
+      await clearCartCouponApi();
+    } catch (error) {
+      console.log("Clear coupon error", error);
+    } finally {
+      setCartMeta((prev) => ({
+        ...prev,
+        appliedCoupon: null
+      }));
+    }
+  };
+
 
   /* =====================================================
      LOAD CART (GUEST OR LOGGED USER)
@@ -174,7 +189,8 @@ export const CartProvider = ({ children }) => {
       setCartMeta({
         totalPrice: res.data.totalPrice || 0,
         taxAmount: res.data.taxAmount || 0,
-        totalWithTax: res.data.totalWithTax || 0
+        totalWithTax: res.data.totalWithTax || 0,
+        appliedCoupon: res.data.appliedCoupon || null
       });
 
     } catch (err) {
@@ -270,7 +286,9 @@ export const CartProvider = ({ children }) => {
         refreshCart,
         openSideCart,
         setOpenSideCart,
-        cartMeta
+        cartMeta,
+        setCartMeta,
+        clearCouponInCart
       }}
     >
 

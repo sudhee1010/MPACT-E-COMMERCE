@@ -34,3 +34,6 @@ export const updateCartItemApi = (productId, quantity) =>
 
 export const removeCartItemApi = (productId) =>
   api.delete(`/api/cart/remove/${productId}`);
+
+export const clearCartCouponApi = () =>
+  api.post("/api/coupons/clear-cart");

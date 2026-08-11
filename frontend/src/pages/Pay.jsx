@@ -485,10 +485,11 @@
 
 // export default Pay;
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import api from "../api/axios";
 import { getOrderByIdApi } from "../api/ordersApi";
+import { clearCartCouponApi } from "../api/cartApi";
 import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
 
@@ -502,7 +503,7 @@ const Pay = () => {
   const directBuy = location.state?.directBuy;
   const directProduct = location.state?.product;
 
-  const { cartItems, cartMeta, refreshCart } = useCart();
+  const { cartItems, cartMeta, refreshCart, clearCouponInCart } = useCart();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -522,6 +523,53 @@ const Pay = () => {
   // Hard-coded shipping charge (₹40). UI-only constant; backend also
   // enforces the same constant when creating the Razorpay order.
   const SHIPPING_CHARGE = 40;
+
+  const isCompletingOrderRef = useRef(false);
+  const couponStateRef = useRef({ couponCode, couponApplied, discount });
+
+  useEffect(() => {
+    couponStateRef.current = { couponCode, couponApplied, discount };
+  }, [couponCode, couponApplied, discount]);
+
+  /* ================= CHECKOUT MOUNT / UNMOUNT LIFECYCLE ================= */
+  useEffect(() => {
+    console.log("CHECKOUT MOUNTED");
+
+    return () => {
+      if (!isCompletingOrderRef.current) {
+        const activeCode = couponStateRef.current.couponCode;
+        const activeDiscount = couponStateRef.current.discount;
+        const isApplied = couponStateRef.current.couponApplied;
+
+        console.log("CHECKOUT EXITING - CLEARING COUPON");
+        console.log("CLEARING COUPON:", {
+          couponCode: activeCode,
+          appliedCoupon: isApplied ? activeCode : null,
+          couponDiscount: activeDiscount,
+        });
+
+        // Clear any stored coupon keys
+        localStorage.removeItem("appliedCoupon");
+        localStorage.removeItem("couponCode");
+        localStorage.removeItem("couponDiscount");
+        localStorage.removeItem("couponApplied");
+        sessionStorage.removeItem("appliedCoupon");
+        sessionStorage.removeItem("couponCode");
+        sessionStorage.removeItem("couponDiscount");
+        sessionStorage.removeItem("couponApplied");
+
+        // Clear backend cart coupon and CartContext meta
+        clearCouponInCart()
+          .then(() => {
+            console.log("COUPON CLEARED");
+          })
+          .catch((err) => {
+            console.error("Failed to clear cart coupon on unmount:", err);
+          });
+      }
+    };
+  }, []);
+
 
   /* ================= FETCH ORDER SUMMARY ================= */
   useEffect(() => {
@@ -548,22 +596,17 @@ const Pay = () => {
           );
 
           const taxRate = 0.05;
-
-          if (cartMeta.appliedCoupon && cartMeta.appliedCoupon.discount) {
-            const currentDiscount = cartMeta.appliedCoupon.discount;
-            const taxable = Math.max(currentSubtotal - currentDiscount, 0);
-            const currentTax = taxable * taxRate;
-            setCouponCode(cartMeta.appliedCoupon.code || "");
-            setDiscount(currentDiscount);
-            setCouponApplied(true);
+          if (couponApplied && discount > 0) {
+            const taxable = Math.max(currentSubtotal - discount, 0);
+            const currentTax = Math.round(taxable * taxRate * 100) / 100;
             setTaxAmount(currentTax);
-            setFinalAmount(taxable + currentTax + SHIPPING_CHARGE);
+            setFinalAmount(Math.round((taxable + currentTax + SHIPPING_CHARGE) * 100) / 100);
           } else {
-            const draftTaxAmount = currentSubtotal * taxRate;
+            const draftTaxAmount = Math.round(currentSubtotal * taxRate * 100) / 100;
             setDiscount(0);
             setCouponApplied(false);
             setTaxAmount(draftTaxAmount);
-            setFinalAmount(currentSubtotal + draftTaxAmount + SHIPPING_CHARGE);
+            setFinalAmount(Math.round((currentSubtotal + draftTaxAmount + SHIPPING_CHARGE) * 100) / 100);
           }
         } else if (directBuy && directProduct) {
           const directSubtotal = Number(directProduct.price || 0) * Number(directProduct.qty || 1);
@@ -621,6 +664,7 @@ const Pay = () => {
       setFinalAmount(data.totalAmount);
       setCouponApplied(true);
       await refreshCart();
+      console.log("COUPON APPLIED:", { code: couponCode.trim(), discount: data.discount });
     } catch (err) {
       setCouponError(err.response?.data?.message || err.message || "Failed to apply coupon");
       setCouponApplied(false);
@@ -688,6 +732,7 @@ const Pay = () => {
         order_id: data.razorpayOrderId,
 
         handler: async function (response) {
+          isCompletingOrderRef.current = true;
           navigate("/order-success", { state: { orderId: createdOrderId } });
 
           try {
@@ -765,6 +810,7 @@ const Pay = () => {
         createdOrderId = data._id;
       }
 
+      isCompletingOrderRef.current = true;
       toast.success("Order placed successfully (Cash on Delivery)");
       navigate("/order-success", { state: { orderId: createdOrderId } });
     } catch (err) {

@@ -481,3 +481,21 @@ export const validateCouponForCart = async (req, res) => {
     res.status(500).json({ message: "Failed to validate coupon" });
   }
 };
+
+/* =========================================================
+   CLEAR COUPON FROM CART
+   POST /api/coupons/clear-cart
+========================================================= */
+export const clearCartCoupon = async (req, res) => {
+  try {
+    const cart = await Cart.findOne({ user: req.user._id });
+    if (cart) {
+      cart.appliedCoupon = null;
+      await cart.save();
+    }
+    res.json({ message: "Coupon cleared from cart successfully" });
+  } catch (error) {
+    console.error("Clear Cart Coupon Error:", error);
+    res.status(500).json({ message: "Failed to clear cart coupon" });
+  }
+};

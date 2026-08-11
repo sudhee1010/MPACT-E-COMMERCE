@@ -8,7 +8,8 @@ import {
   applyCouponOnOrder,
   getCouponAnalytics,
   validateCouponForFuel,
-  validateCouponForCart
+  validateCouponForCart,
+  clearCartCoupon
 } from "../controllers/couponController.js";
 
 import { protect } from "../middlewares/authMiddleware.js";
@@ -19,6 +20,8 @@ const router = express.Router();
 /* ================= USER ================= */
 router.post("/apply-on-order", protect, applyCouponOnOrder);
 router.post("/validate-cart", protect, validateCouponForCart);
+router.post("/clear-cart", protect, clearCartCoupon);
+
 
 /* ================= ADMIN ================= */
 router.post("/", protect, isAdmin, createCoupon);
