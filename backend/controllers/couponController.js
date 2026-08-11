@@ -258,13 +258,16 @@ const taxable = subtotal - discount;
 
 const taxAmount = taxable * TAX_RATE;
 
-const totalAmount = taxable + taxAmount;
+const shippingCharge = order.shippingCharge || 40;
+
+const totalAmount = taxable + taxAmount + shippingCharge;
 
 /* SAVE ORDER */
 
 order.subtotal = subtotal;
 order.discount = discount;
 order.taxAmount = taxAmount;
+order.shippingCharge = shippingCharge;
 order.totalAmount = totalAmount;
 
 order.couponApplied = true;
@@ -281,6 +284,7 @@ message: "Coupon applied",
 subtotal,
 discount,
 taxAmount,
+shippingCharge,
 totalAmount
 });
 
