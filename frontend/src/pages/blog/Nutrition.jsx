@@ -543,7 +543,7 @@ const BlogArticlePage = () => {
             <div className="article-metadata">
               <span className="meta-info">
                 <UserCircle size={16} />
-                Admin
+                {blog.author || "Admin"}
               </span>
               <span className="meta-info">
                 <Calendar size={16} />
@@ -564,12 +564,12 @@ const BlogArticlePage = () => {
                 className={`action-button ${liked ? 'active' : ''}`}
                 onClick={() => setLiked(!liked)}
               >
-                <Heart size={16} fill={liked ? '#000' : 'none'} />
-                Like
+                <Heart size={18} fill={liked ? '#ef4444' : 'none'} color={liked ? '#ef4444' : '#fff'} />
+                <span>{liked ? 'Liked' : 'Like'}</span>
               </button>
               <button className="action-button" onClick={handleShare}>
-                <Share2 size={16} />
-                Share
+                <Share2 size={18} />
+                <span>Share</span>
               </button>
             </div>
           </div>
@@ -610,7 +610,7 @@ const BlogArticlePage = () => {
               <UserCircle size={34} color="#000" />
             </div>
             <div className="author-details">
-              <h3>Admin</h3>
+              <h3>{blog.author || "Admin"}</h3>
               <p>Health & Nutrition Expert</p>
             </div>
           </div>

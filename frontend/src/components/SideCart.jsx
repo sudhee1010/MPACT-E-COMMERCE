@@ -138,17 +138,20 @@ export default function SideCart() {
 
     setStockErrors((prev) => ({ ...prev, [productId]: null }));
 
-    try {
-      setCartItems((prev) =>
-        prev.map((item) =>
-          item.product._id === productId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
+    // Optimistically update UI immediately (0ms lag)
+    setCartItems((prev) =>
+      prev.map((item) =>
+        (item.product?._id || item.product) === productId
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    );
 
-      await updateCartItemApi(productId, currentQty + 1);
-      refreshCart();
+    try {
+      const res = await updateCartItemApi(productId, currentQty + 1);
+      if (res.data?.items) {
+        setCartItems(res.data.items.filter((i) => i && i.product));
+      }
     } catch (err) {
       console.log("Increase qty error:", err);
 
@@ -179,31 +182,39 @@ export default function SideCart() {
   };
 
   const decreaseQty = async (productId, currentQty) => {
-    try {
-      if (currentQty <= 1) {
-        const res = await removeCartItemApi(productId);
-        setCartItems(res.data.items);
-        setStockErrors((prev) => {
-          const updated = { ...prev };
-          delete updated[productId];
-          return updated;
-        });
-        refreshCart();
-        return;
-      }
+    setStockErrors((prev) => ({ ...prev, [productId]: null }));
 
+    if (currentQty <= 1) {
+      // Optimistically remove item from UI immediately
       setCartItems((prev) =>
-        prev.map((item) =>
-          item.product._id === productId
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        )
+        prev.filter((item) => (item.product?._id || item.product) !== productId)
       );
+      try {
+        const res = await removeCartItemApi(productId);
+        if (res.data?.items) {
+          setCartItems(res.data.items.filter((i) => i && i.product));
+        }
+      } catch (err) {
+        console.error("Remove item error:", err.message);
+        refreshCart();
+      }
+      return;
+    }
 
-      setStockErrors((prev) => ({ ...prev, [productId]: null }));
+    // Optimistically decrease quantity in UI immediately
+    setCartItems((prev) =>
+      prev.map((item) =>
+        (item.product?._id || item.product) === productId
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+    );
 
-      await updateCartItemApi(productId, currentQty - 1);
-      refreshCart();
+    try {
+      const res = await updateCartItemApi(productId, currentQty - 1);
+      if (res.data?.items) {
+        setCartItems(res.data.items.filter((i) => i && i.product));
+      }
     } catch (err) {
       console.error("Decrease qty error:", err.message);
       refreshCart();
@@ -211,19 +222,26 @@ export default function SideCart() {
   };
 
   const removeItem = async (productId) => {
+    // 1. Optimistically remove item from UI state immediately (0ms lag!)
+    setCartItems((prev) =>
+      prev.filter((item) => (item.product?._id || item.product) !== productId)
+    );
+
+    setStockErrors((prev) => {
+      const updated = { ...prev };
+      delete updated[productId];
+      return updated;
+    });
+
+    // 2. Perform API call in background
     try {
       const res = await removeCartItemApi(productId);
-      setCartItems(res.data.items);
-
-      setStockErrors((prev) => {
-        const updated = { ...prev };
-        delete updated[productId];
-        return updated;
-      });
-
-      refreshCart();
+      if (res.data?.items) {
+        setCartItems(res.data.items.filter((i) => i && i.product));
+      }
     } catch (err) {
       console.error("Remove item error:", err.message);
+      refreshCart();
     }
   };
 

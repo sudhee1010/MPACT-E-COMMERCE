@@ -30,7 +30,7 @@ export default function ProductPage() {
   const [searchParams] = useSearchParams();
   const categoryName = decodeURIComponent(searchParams.get("category"));
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const { refreshCart, setOpenSideCart } = useCart();
+  const { refreshCart, setOpenSideCart, addToCart } = useCart();
   const requireLogin = () => {
     setShowLoginModal(true);
   };
@@ -146,16 +146,24 @@ export default function ProductPage() {
   }, []);
 
   const toggleWishlist = async (productId) => {
+    // Optimistically update wishlist state immediately (0ms lag)
+    const isFav = wishlistIds.has(productId);
+    setWishlistIds((prev) => {
+      const updated = new Set(prev);
+      isFav ? updated.delete(productId) : updated.add(productId);
+      return updated;
+    });
+
     try {
       await api.post("/api/wishlist/toggle", { productId });
+    } catch (err) {
+      // Revert state if error occurs
       setWishlistIds((prev) => {
         const updated = new Set(prev);
-        updated.has(productId)
-          ? updated.delete(productId)
-          : updated.add(productId);
+        isFav ? updated.add(productId) : updated.delete(productId);
         return updated;
       });
-    } catch (err) {
+
       if (err.response?.status === 401) {
         requireLogin();
       } else {
@@ -1673,59 +1681,9 @@ const ProductCard = ({
   };
   // ───────────────────────────────────────────────────────────────────────── //
 
-  const handleAddToCart = async (product) => {
-    try {
-
-      // GUEST USER
-      if (!user) {
-        const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
-        const existing = guestCart.find(
-          (item) => item.productId === product._id
-        );
-
-        let updatedCart;
-
-        if (existing) {
-          updatedCart = guestCart.map((item) =>
-            item.productId === product._id
-              ? { ...item, quantity: item.quantity + qty }
-              : item
-          );
-        } else {
-          updatedCart = [
-            ...guestCart,
-            {
-              productId: product._id,
-              product: product,   // store full product
-              price: product.price,
-              originalPrice: product.originalPrice,
-              quantity: qty
-            }
-          ];
-        }
-
-        localStorage.setItem("guestCart", JSON.stringify(updatedCart));
-
-        toast.success("Added to cart");
-
-        setOpenSideCart(true);
-
-        return;
-      }
-
-      // LOGGED IN USER
-      await addToCartApi(product._id, qty);
-
-      toast.success("Product added to cart");
-
-      await refreshCart();
-
-      setOpenSideCart(true);
-
-    } catch (error) {
-      toast.error("Something went wrong");
-    }
+  const handleAddToCart = (product) => {
+    toast.success("Added to cart");
+    addToCart(product, qty || 1);
   };
 
   const isMaxStock = (currentQty) => {

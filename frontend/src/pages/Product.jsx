@@ -159,7 +159,7 @@ export default function Products() {
   const [error, setError] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
-  const { refreshCart, setOpenSideCart } = useCart();
+  const { refreshCart, setOpenSideCart, addToCart } = useCart();
   const { user } = useAuth();
 
   /* ================= FETCH CATEGORIES ================= */
@@ -220,82 +220,33 @@ export default function Products() {
 
   /* ================= ❤️ TOGGLE WISHLIST ================= */
   const toggleWishlist = async (productId) => {
-    try {
-      const res = await api.post("/api/wishlist/toggle", { productId });
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
 
-      if (res.data.action === "added") {
-        setWishlist((prev) => [...prev, productId]);
-      } else {
-        setWishlist((prev) => prev.filter((id) => id !== productId));
-      }
+    const isFav = wishlist.includes(productId);
+
+    // Optimistically update UI state immediately (0ms lag)
+    setWishlist((prev) =>
+      isFav ? prev.filter((id) => id !== productId) : [...prev, productId]
+    );
+
+    try {
+      await api.post("/api/wishlist/toggle", { productId });
     } catch (err) {
+      // Revert if request fails
+      setWishlist((prev) =>
+        isFav ? [...prev, productId] : prev.filter((id) => id !== productId)
+      );
       if (err.response?.status === 401) {
         setShowLoginModal(true);
       }
     }
   };
 
-  const handleAddToCart = async (product) => {
-
-    try {
-
-      /* -------------------------
-         GUEST USER CART
-      -------------------------- */
-
-      if (!user) {
-
-        const guestCart =
-          JSON.parse(localStorage.getItem("guestCart")) || [];
-
-        const existingItem = guestCart.find(
-          (item) => item.productId === product._id
-        );
-
-
-        if (existingItem) {
-          existingItem.quantity += 1;
-          if (!existingItem.product) existingItem.product = product; // ← backfill if missing
-        } else {
-          guestCart.push({
-            productId: product._id,
-            product: product,        // ← full product object
-            price: product.price,
-            originalPrice: product.originalPrice || product.price,
-            quantity: 1
-          });
-        }
-
-        localStorage.setItem("guestCart", JSON.stringify(guestCart));
-
-
-        setOpenSideCart(true);
-
-        toast.success("Product added to cart");
-
-        return;
-      }
-
-      /* -------------------------
-         LOGGED USER CART
-      -------------------------- */
-
-      // await addToCartApi(productId, 1);
-      await addToCartApi(product._id, 1);
-      await refreshCart();
-
-      setOpenSideCart(true);
-
-      toast.success("Product added to cart");
-
-    } catch (error) {
-
-      const message = error.response?.data?.message;
-
-      toast.error(message || "Something went wrong");
-
-    }
-
+  const handleAddToCart = (product) => {
+    addToCart(product, 1);
   };
 
   if (loading) {

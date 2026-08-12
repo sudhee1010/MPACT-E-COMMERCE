@@ -1012,9 +1012,9 @@ export default function Navbar() {
           <div
             className="nav-icon-btn"
        
-            onClick={async () => {
-              await refreshCart();
-              setOpenSideCart(true);  // always open, no cartCount check
+            onClick={() => {
+              setOpenSideCart(true);  // open instantly with 0ms lag
+              refreshCart();          // sync in background
             }}
             role="button" tabIndex={0}
           >

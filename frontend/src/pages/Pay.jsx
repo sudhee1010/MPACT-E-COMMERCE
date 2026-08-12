@@ -612,8 +612,10 @@ const Pay = () => {
           const directSubtotal = Number(directProduct.price || 0) * Number(directProduct.qty || 1);
           setDiscount(0);
           setCouponApplied(false);
-          setTaxAmount(0);
-          setFinalAmount(directSubtotal + SHIPPING_CHARGE);
+          const taxRate = 0.05;
+          const draftTaxAmount = Math.round(directSubtotal * taxRate * 100) / 100;
+          setTaxAmount(draftTaxAmount);
+          setFinalAmount(Math.round((directSubtotal + draftTaxAmount + SHIPPING_CHARGE) * 100) / 100);
         }
       } catch (err) {
         console.error("Failed to fetch order summary:", err);
@@ -644,9 +646,31 @@ const Pay = () => {
     setCouponError("");
 
     try {
-      const { data } = await api.post("/api/coupons/validate-cart", {
-        code: couponCode.trim(),
-      });
+      let data;
+      const createdOrderId = orderId || order?._id;
+
+      if (createdOrderId) {
+        // If order document already exists in DB, apply directly on order
+        const res = await api.post("/api/coupons/apply-on-order", {
+          orderId: createdOrderId,
+          code: couponCode.trim(),
+        });
+        data = res.data;
+      } else {
+        // Draft order (before order creation in DB)
+        const payload = { code: couponCode.trim() };
+        if (directBuy && directProduct) {
+          payload.items = [
+            {
+              product: directProduct._id,
+              price: directProduct.price,
+              quantity: directProduct.qty || 1,
+            },
+          ];
+        }
+        const res = await api.post("/api/coupons/validate-cart", payload);
+        data = res.data;
+      }
 
       const updatedOrder = {
         ...(order || {}),
@@ -663,7 +687,9 @@ const Pay = () => {
       setTaxAmount(data.taxAmount);
       setFinalAmount(data.totalAmount);
       setCouponApplied(true);
-      await refreshCart();
+      if (!directBuy) {
+        await refreshCart();
+      }
       console.log("COUPON APPLIED:", { code: couponCode.trim(), discount: data.discount });
     } catch (err) {
       setCouponError(err.response?.data?.message || err.message || "Failed to apply coupon");
@@ -701,6 +727,10 @@ const Pay = () => {
               image: directProduct.image,
             },
           ];
+        }
+
+        if (couponApplied && couponCode) {
+          orderPayload.couponCode = couponCode.trim();
         }
 
         console.log("Selected Payment Method:", "Razorpay");
@@ -800,6 +830,10 @@ const Pay = () => {
               image: directProduct.image,
             },
           ];
+        }
+
+        if (couponApplied && couponCode) {
+          orderPayload.couponCode = couponCode.trim();
         }
 
         console.log("Selected Payment Method:", "COD");

@@ -897,7 +897,7 @@ import Loader from "../components/Loader";
 
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState([]);
-  const { refreshCart, setOpenSideCart } = useCart();
+  const { refreshCart, setOpenSideCart, addToCart } = useCart();
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -921,26 +921,22 @@ export default function WishlistPage() {
 
 
   const handleAddToCart = async (productId) => {
+    const targetProduct = wishlist.find((item) => item._id === productId);
+    setWishlist((prev) => prev.filter((item) => item._id !== productId));
+    toast.success("Product moved to cart 🛒");
+    addToCart(targetProduct || productId, 1);
     try {
-      await addToCartApi(productId, 1);
       await api.post("/api/wishlist/toggle", { productId });
-      setWishlist((prev) => prev.filter((item) => item._id !== productId));
-      await refreshCart();
-      setOpenSideCart(true);
-      toast.success("Product moved to cart 🛒");
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Please login to add to cart"
-      );
-    }
+    } catch (error) {}
   };
 
 
   /* ================= REMOVE FROM WISHLIST ================= */
   const removeFromWishlist = async (productId) => {
+    // Optimistically remove from UI state immediately
+    setWishlist((prev) => prev.filter((item) => item._id !== productId));
     try {
       await api.post("/api/wishlist/toggle", { productId });
-      setWishlist((prev) => prev.filter((item) => item._id !== productId));
     } catch (err) { }
   };
 

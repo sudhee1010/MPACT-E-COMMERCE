@@ -29,7 +29,7 @@ const ProductPage = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [showTopRated, setShowTopRated] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const { refreshCart, setOpenSideCart } = useCart();
+  const { refreshCart, setOpenSideCart, addToCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -108,53 +108,9 @@ const ProductPage = () => {
     setShowCustomModal(true);
   };
 
-  const handleAddToCart = async (productId) => {
-    try {
-
-      // ✅ IF USER LOGGED IN → SERVER CART
-      if (user && user._id) {
-        await addToCartApi(productId, qty);
-        await refreshCart();
-        setOpenSideCart(true);
-
-        showNotification("success", "Success!", "Product added to cart");
-        return;
-      }
-
-      // ✅ GUEST CART → LOCAL STORAGE
-      const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
-      const existing = guestCart.find((item) => item.productId === productId);
-
-      if (existing) {
-        existing.quantity += qty;
-        if (!existing.product) existing.product = product; // ← backfill if missing
-      } else {
-        guestCart.push({
-          productId,
-          product: product,        // ← full product object
-          price: product.price,
-          originalPrice: product.originalPrice,
-          quantity: qty
-        });
-      }
-      localStorage.setItem("guestCart", JSON.stringify(guestCart));
-
-      setOpenSideCart(true);
-
-      showNotification(
-        "success",
-        "Added to Cart",
-        "Product added to cart"
-      );
-
-   } catch (error) {
-  if (product?.countInStock === 0) {
-    showNotification("error", "Out of Stock", "This product is currently out of stock");
-  } else {
-    showNotification("error", "Error", "Something went wrong");
-  }
-}
+  const handleAddToCart = (productId) => {
+    showNotification("success", "Success!", "Product added to cart");
+    addToCart(product || productId, qty || 1);
   };
 
 
