@@ -414,7 +414,54 @@ export const updatePaymentMethod = async (req, res) => {
 
     if (paymentMethod === "COD") {
       order.orderStatus = "placed";
-      order.paymentStatus = "pending"; 
+      order.paymentStatus = "pending";
+
+      /* 🎟 COD COUPON REDEEM */
+      const couponCodeToRedeem = order.appliedCoupon?.code;
+      if (couponCodeToRedeem) {
+        const coupon = await Coupon.findOne({ code: couponCodeToRedeem.toUpperCase() });
+        if (coupon) {
+          if (!coupon.usersUsed.some((id) => id.toString() === req.user._id.toString())) {
+            coupon.usersUsed.push(req.user._id);
+          }
+          coupon.usedCount = (coupon.usedCount || 0) + 1;
+          for (const item of order.orderItems) {
+            const rule = coupon.applicableProducts?.find(
+              (r) => r.product.toString() === item.product.toString()
+            );
+            if (rule) {
+              if (!Array.isArray(rule.usedBy)) rule.usedBy = [];
+              if (!rule.usedBy.some((id) => id.toString() === req.user._id.toString())) {
+                rule.usedBy.push(req.user._id);
+              }
+            }
+          }
+          await coupon.save();
+        }
+      }
+
+      /* 🛒 CLEAR CART IF CART CHECKOUT */
+      if (order.orderType !== "direct") {
+        const cart = await Cart.findOne({ user: req.user._id });
+        if (cart) {
+          cart.items = [];
+          cart.totalPrice = 0;
+          cart.appliedCoupon = null;
+          await cart.save();
+        }
+      }
+
+      /* 📱 SEND ORDER CONFIRMATION */
+      try {
+        const orderWithDetails = await Order.findById(order._id)
+          .populate("user", "name phone email")
+          .populate("orderItems.product", "name")
+          .populate("shippingAddress");
+
+        await sendOrderConfirmation(orderWithDetails);
+      } catch (error) {
+        console.error("Order confirmation send error:", error);
+      }
     }
 
     await order.save();
