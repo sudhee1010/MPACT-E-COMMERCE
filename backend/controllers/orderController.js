@@ -22,7 +22,7 @@ const SHIPPING_CHARGE = 40;
 ========================================================= */
 export const placeOrder = async (req, res) => {
   try {
-    const { shippingAddress, paymentMethod, orderItems: directOrderItems } = req.body;
+    const { shippingAddress, paymentMethod, orderItems: directOrderItems, couponCode } = req.body;
 
     console.log("====================================");
     console.log("PLACE ORDER START");
@@ -35,6 +35,7 @@ export const placeOrder = async (req, res) => {
     let orderItems = [];
     let subtotal = 0;
     let discount = 0;
+    let appliedCouponObj = null;
     let cart = null;
     const orderType = directOrderItems?.length ? "direct" : "cart";
 
@@ -43,7 +44,7 @@ export const placeOrder = async (req, res) => {
       orderItems = directOrderItems.map(item => ({
         product: item.product,
         name: item.name,
-        quantity: item.qty,
+        quantity: item.qty || item.quantity || 1,
         price: item.price,
         image: item.image || ""
       }));
@@ -52,6 +53,37 @@ export const placeOrder = async (req, res) => {
         (sum, item) => sum + item.price * item.quantity,
         0
       );
+
+      /* 🎟 COUPON DISCOUNT FOR DIRECT BUY */
+      const codeToValidate = couponCode?.trim();
+      if (codeToValidate) {
+        const coupon = await Coupon.findOne({
+          code: codeToValidate.toUpperCase(),
+          isActive: true,
+          expiryDate: { $gte: new Date() }
+        });
+
+        if (coupon) {
+          const isUsed = coupon.usersUsed.some(id => id.toString() === req.user._id.toString());
+          const limitReached = coupon.maxRedemptions > 0 && coupon.usedCount >= coupon.maxRedemptions;
+
+          if (!isUsed && !limitReached) {
+            const { totalDiscount, anyEligible } = await calculateCouponDiscount(
+              coupon,
+              orderItems,
+              req.user._id.toString()
+            );
+
+            if (anyEligible) {
+              discount = totalDiscount;
+              appliedCouponObj = {
+                code: coupon.code,
+                discount: totalDiscount
+              };
+            }
+          }
+        }
+      }
     }
 
     /* ================= CART CHECKOUT FLOW ================= */
@@ -75,27 +107,28 @@ export const placeOrder = async (req, res) => {
         0
       );
 
-      /* 🎟 COUPON DISCOUNT — server-side re-validation */
-      if (cart.appliedCoupon?.code) {
+      /* 🎟 COUPON DISCOUNT FOR CART CHECKOUT */
+      const codeToValidate = couponCode?.trim() || cart.appliedCoupon?.code;
+      if (codeToValidate) {
         const coupon = await Coupon.findOne({
-          code: cart.appliedCoupon.code,
+          code: codeToValidate.toUpperCase(),
           isActive: true,
           expiryDate: { $gte: new Date() }
         });
 
         if (coupon) {
-          // Re-calculate using the actual order items and the live coupon rules.
-          // This prevents a user from manipulating cart.appliedCoupon.discount
-          // on the frontend and having the inflated value reach the order.
-          const { totalDiscount, anyEligible } =
-            await calculateCouponDiscount(
-              coupon,
-              orderItems,
-              req.user._id.toString()
-            );
+          const { totalDiscount, anyEligible } = await calculateCouponDiscount(
+            coupon,
+            orderItems,
+            req.user._id.toString()
+          );
 
           if (anyEligible) {
             discount = totalDiscount;
+            appliedCouponObj = {
+              code: coupon.code,
+              discount: totalDiscount
+            };
           }
         }
       }
@@ -104,9 +137,9 @@ export const placeOrder = async (req, res) => {
     /* ================= PRICE CALCULATION ================= */
     const taxableAmount = Math.max(subtotal - discount, 0);
     const TAX_RATE = 0.05;
-    const taxAmount = taxableAmount * TAX_RATE;
+    const taxAmount = Math.round(taxableAmount * TAX_RATE * 100) / 100;
     const shippingCharge = SHIPPING_CHARGE;
-    const totalAmount = taxableAmount + taxAmount + shippingCharge;
+    const totalAmount = Math.round((taxableAmount + taxAmount + shippingCharge) * 100) / 100;
 
     /* ================= PREVENT DUPLICATE SAME-CART PENDING ================= */
     if (orderType === "cart" && cart) {
@@ -135,7 +168,8 @@ export const placeOrder = async (req, res) => {
       taxAmount,
       shippingCharge,
       totalAmount,
-      // orderStatus: "placed",
+      couponApplied: discount > 0,
+      appliedCoupon: appliedCouponObj,
       orderStatus: "initiated",
       paymentStatus: "pending",
       orderType
@@ -165,16 +199,17 @@ export const placeOrder = async (req, res) => {
       await order.save();
 
       /* ================= COD COUPON REDEEM ================= */
-      if (cart?.appliedCoupon?.code) {
-        const coupon = await Coupon.findOne({ code: cart.appliedCoupon.code });
+      const couponCodeToRedeem = order.appliedCoupon?.code || cart?.appliedCoupon?.code;
+      if (couponCodeToRedeem) {
+        const coupon = await Coupon.findOne({ code: couponCodeToRedeem.toUpperCase() });
         if (coupon) {
           if (!coupon.usersUsed.some((id) => id.toString() === req.user._id.toString())) {
             coupon.usersUsed.push(req.user._id);
           }
           coupon.usedCount = (coupon.usedCount || 0) + 1;
-          for (const item of cart.items) {
+          for (const item of order.orderItems) {
             const rule = coupon.applicableProducts.find(
-              (r) => r.product.toString() === item.product._id.toString()
+              (r) => r.product.toString() === item.product.toString()
             );
             if (rule) {
               if (!Array.isArray(rule.usedBy)) rule.usedBy = [];

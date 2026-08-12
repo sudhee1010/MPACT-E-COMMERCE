@@ -399,20 +399,42 @@ export const validateCouponForFuel = async (req, res) => {
 ========================================================= */
 export const validateCouponForCart = async (req, res) => {
   try {
-    const { code } = req.body;
+    const { code, items } = req.body;
 
-    /* ── Fetch cart ── */
-    const cart = await Cart.findOne({ user: req.user._id }).populate(
-      "items.product",
-      "name price _id"
-    );
+    if (!code || !code.trim()) {
+      return res.status(400).json({ message: "Coupon code is required" });
+    }
 
-    if (!cart || cart.items.length === 0)
-      return res.status(400).json({ message: "Cart is empty" });
+    let cartItemsForCalc = [];
+    let cart = null;
+
+    /* ── If explicit items passed (e.g. Direct Buy), use them ── */
+    if (Array.isArray(items) && items.length > 0) {
+      cartItemsForCalc = items.map((item) => ({
+        product: item.product?._id || item.product,
+        price: Number(item.price || 0),
+        quantity: Number(item.quantity || item.qty || 1)
+      }));
+    } else {
+      /* ── Fetch cart ── */
+      cart = await Cart.findOne({ user: req.user._id }).populate(
+        "items.product",
+        "name price _id"
+      );
+
+      if (!cart || cart.items.length === 0)
+        return res.status(400).json({ message: "Cart is empty" });
+
+      cartItemsForCalc = cart.items.map((item) => ({
+        product: item.product?._id || item.product,
+        price: item.price || item.product?.price || 0,
+        quantity: item.quantity || 1
+      }));
+    }
 
     /* ── Fetch & validate coupon ── */
     const coupon = await Coupon.findOne({
-      code: code.toUpperCase(),
+      code: code.trim().toUpperCase(),
       isActive: true,
       expiryDate: { $gte: new Date() }
     });
@@ -428,13 +450,6 @@ export const validateCouponForCart = async (req, res) => {
     if (coupon.maxRedemptions > 0 && coupon.usedCount >= coupon.maxRedemptions)
       return res.status(400).json({ message: "Coupon usage limit reached" });
 
-    /* ── Build item list compatible with calculateCouponDiscount ── */
-    const cartItemsForCalc = cart.items.map((item) => ({
-      product: item.product._id || item.product,
-      price: item.price || item.product?.price || 0,
-      quantity: item.quantity || 1
-    }));
-
     const subtotal = cartItemsForCalc.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -449,7 +464,7 @@ export const validateCouponForCart = async (req, res) => {
       );
 
     if (!anyEligible)
-      return res.status(400).json({ message: "Coupon not applicable to any item in your cart" });
+      return res.status(400).json({ message: "Coupon not applicable to your order" });
 
     /* ── Final amounts ── */
     const TAX_RATE = 0.05;
@@ -458,16 +473,18 @@ export const validateCouponForCart = async (req, res) => {
     const shippingCharge = SHIPPING_CHARGE;
     const totalAmount = Math.round((taxableAmount + taxAmount + shippingCharge) * 100) / 100;
 
-    /* ── Persist coupon on cart so placeOrder can re-use it ── */
-    cart.appliedCoupon = {
-      code: coupon.code,
-      discount: totalDiscount,
-      products: appliedProducts
-    };
-    await cart.save();
+    /* ── Persist coupon on cart if cart checkout ── */
+    if (cart) {
+      cart.appliedCoupon = {
+        code: coupon.code,
+        discount: totalDiscount,
+        products: appliedProducts
+      };
+      await cart.save();
+    }
 
     res.json({
-      message: "Coupon applied to cart",
+      message: "Coupon applied successfully",
       subtotal,
       discount: totalDiscount,
       appliedProducts,
