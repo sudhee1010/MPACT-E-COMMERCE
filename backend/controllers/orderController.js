@@ -158,6 +158,8 @@ export const placeOrder = async (req, res) => {
 
 
     /* ================= CREATE ORDER ================= */
+    const isCod = (paymentMethod || "Razorpay").toLowerCase() === "cod";
+
     const order = await Order.create({
       user: req.user._id,
       orderItems,
@@ -170,7 +172,7 @@ export const placeOrder = async (req, res) => {
       totalAmount,
       couponApplied: discount > 0,
       appliedCoupon: appliedCouponObj,
-      orderStatus: "initiated",
+      orderStatus: isCod ? "placed" : "initiated",
       paymentStatus: "pending",
       orderType
     });
