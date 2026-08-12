@@ -708,50 +708,31 @@ const Pay = () => {
 
     try {
       setIsPayDisabled(true);
-      let currentOrder = order;
       let createdOrderId = orderId || order?._id;
 
-      if (!createdOrderId) {
-        const orderPayload = {
-          shippingAddress,
-          paymentMethod: "Razorpay",
-        };
+      const orderPayload = {
+        orderId: createdOrderId,
+        shippingAddress,
+        couponCode: couponApplied && couponCode ? couponCode.trim() : undefined,
+        shippingCharge: SHIPPING_CHARGE,
+      };
 
-        if (directBuy && directProduct) {
-          orderPayload.orderItems = [
-            {
-              product: directProduct._id,
-              name: directProduct.name,
-              qty: directProduct.qty,
-              price: directProduct.price,
-              image: directProduct.image,
-            },
-          ];
-        }
-
-        if (couponApplied && couponCode) {
-          orderPayload.couponCode = couponCode.trim();
-        }
-
-        console.log("Selected Payment Method:", "Razorpay");
-        console.log("Request Payload:", orderPayload);
-
-        const { data: orderData } = await api.post("/api/orders", orderPayload);
-        currentOrder = orderData;
-        createdOrderId = orderData._id;
-
-        setOrder(orderData);
-        setDiscount(orderData.discount || 0);
-        setTaxAmount(orderData.taxAmount || 0);
-        setFinalAmount(orderData.totalAmount || 0);
+      if (directBuy && directProduct) {
+        orderPayload.orderItems = [
+          {
+            product: directProduct._id,
+            name: directProduct.name,
+            qty: directProduct.qty,
+            price: directProduct.price,
+            image: directProduct.image,
+          },
+        ];
       }
 
-      console.log("Selected Payment Method:", "Razorpay");
-      console.log("Request Payload:", { orderId: createdOrderId, shippingCharge: SHIPPING_CHARGE });
+      console.log("Selected Payment Method: Razorpay");
+      console.log("Creating Razorpay Instance with payload:", orderPayload);
 
-      // Send the shipping charge for transparency; the backend ignores any
-      // tampered value and always adds the server-side SHIPPING_CHARGE.
-      const { data } = await api.post("/api/payment/create-order", { orderId: createdOrderId, shippingCharge: SHIPPING_CHARGE });
+      const { data } = await api.post("/api/payment/create-order", orderPayload);
 
       const options = {
         key: data.key,
@@ -763,25 +744,40 @@ const Pay = () => {
 
         handler: async function (response) {
           isCompletingOrderRef.current = true;
-          navigate("/order-success", { state: { orderId: createdOrderId } });
 
           try {
-            console.log("Selected Payment Method:", "Razorpay");
-            console.log("Request Payload:", {
+            const verifyPayload = {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               orderId: createdOrderId,
-            });
+              shippingAddress,
+              couponCode: couponApplied && couponCode ? couponCode.trim() : undefined,
+            };
 
-            await api.post("/api/payment/verify", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              orderId: createdOrderId,
-            });
+            if (directBuy && directProduct) {
+              verifyPayload.orderItems = [
+                {
+                  product: directProduct._id,
+                  name: directProduct.name,
+                  qty: directProduct.qty,
+                  price: directProduct.price,
+                  image: directProduct.image,
+                },
+              ];
+            }
+
+            const { data: verifyData } = await api.post("/api/payment/verify", verifyPayload);
+            const finalOrderId = verifyData.order?._id || createdOrderId;
+
+            if (!directBuy) {
+              await refreshCart();
+            }
+            navigate("/order-success", { state: { orderId: finalOrderId } });
           } catch (err) {
             console.error("Verification failed:", err);
+            toast.error("Payment verification failed");
+            setIsPayDisabled(false);
           }
         },
 
@@ -801,7 +797,7 @@ const Pay = () => {
     } catch (err) {
       console.error(err);
       setIsPayDisabled(false);
-      toast.error("Payment failed");
+      toast.error(err.response?.data?.message || "Payment failed");
     }
   };
 
@@ -812,9 +808,15 @@ const Pay = () => {
     try {
       setIsCodDisabled(true);
       let createdOrderId = orderId || order?._id;
-      let createdOrder = order;
+      let createdOrder;
 
-      if (!createdOrderId) {
+      if (createdOrderId) {
+        const { data } = await api.put("/api/orders/update-payment-method", {
+          orderId: createdOrderId,
+          paymentMethod: "COD",
+        });
+        createdOrder = data;
+      } else {
         const orderPayload = {
           shippingAddress,
           paymentMethod: "COD",
@@ -836,7 +838,7 @@ const Pay = () => {
           orderPayload.couponCode = couponCode.trim();
         }
 
-        console.log("Selected Payment Method:", "COD");
+        console.log("Selected Payment Method: COD");
         console.log("Request Payload:", orderPayload);
 
         const { data } = await api.post("/api/orders", orderPayload);
@@ -845,12 +847,15 @@ const Pay = () => {
       }
 
       isCompletingOrderRef.current = true;
+      if (!directBuy) {
+        await refreshCart();
+      }
       toast.success("Order placed successfully (Cash on Delivery)");
       navigate("/order-success", { state: { orderId: createdOrderId } });
     } catch (err) {
       console.error(err);
       setIsCodDisabled(false);
-      toast.error("Failed to place order");
+      toast.error(err.response?.data?.message || "Failed to place order");
     }
   };
 
