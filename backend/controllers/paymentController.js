@@ -5,6 +5,7 @@ import Cart from "../models/Cart.js";
 import Coupon from "../models/Coupon.js";
 import sendEmail from "../utils/sendEmail.js";
 import { sendOrderConfirmation } from "../utils/sendWhatsappOTP.js";
+import { calculateCouponDiscount } from "../utils/couponUtils.js";
 
 const SHIPPING_CHARGE = 40;
 
