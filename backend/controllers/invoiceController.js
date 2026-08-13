@@ -1,12 +1,7 @@
 import PDFDocument from "pdfkit";
-import SVGtoPDF from "svg-to-pdfkit";
 import Order from "../models/Order.js";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /* =========================================================
    Shared styling helpers
@@ -18,7 +13,6 @@ const COLORS = {
   gray: "#555555",
   line: "#111111",
   lightLine: "#d9d9d9",
-  yellow: "#FFD400",
 };
 
 const FONT = { regular: "Helvetica", bold: "Helvetica-Bold" };
@@ -41,82 +35,6 @@ const printLine = (doc, { x, y, width, text, font = FONT.regular, size = 8.5, co
   const height = doc.heightOfString(text, { width });
   doc.text(text, x, y, { width });
   return y + height + gap;
-};
-
-/* ---------------- page border frame (matches provided UI) ---------------- */
-
-const BORDER_INSET = 10;
-const BORDER_WIDTH = 3;
-
-const drawPageBorder = (doc) => {
-  doc.save();
-  doc
-    .rect(
-      BORDER_INSET,
-      BORDER_INSET,
-      doc.page.width - BORDER_INSET * 2,
-      doc.page.height - BORDER_INSET * 2
-    )
-    .lineWidth(BORDER_WIDTH)
-    .strokeColor(COLORS.black)
-    .stroke();
-  doc.restore();
-};
-
-/* ---------------- MPACT logo (SVG, pulled 1:1 from the supplied artwork) ---------------- */
-// public/mpact-logo.svg is the actual logo pixels from the reference image,
-// wrapped in an <svg><image .../></svg> so it can be dropped straight into
-// the PDF via svg-to-pdfkit — this is what gives the true 1:1 match.
-// The viewBox is 0 0 516 167, so height is derived from width to keep the
-// exact aspect ratio of the source artwork.
-
-const LOGO_SOURCE_WIDTH = 516;
-const LOGO_SOURCE_HEIGHT = 167;
-const LOGO_DISPLAY_WIDTH = 120;
-const LOGO_DISPLAY_HEIGHT = LOGO_DISPLAY_WIDTH * (LOGO_SOURCE_HEIGHT / LOGO_SOURCE_WIDTH);
-
-const drawSvgLogo = (doc, svgMarkup, x, y) => {
-  // Passing an explicit height (not just width) matters here: svg-to-pdfkit
-  // otherwise defaults the viewport height to the full page height and
-  // vertically centers the artwork inside it, which pushes the logo way
-  // down the page instead of anchoring it at (x, y).
-  SVGtoPDF(doc, svgMarkup, x, y, {
-    width: LOGO_DISPLAY_WIDTH,
-    height: LOGO_DISPLAY_HEIGHT,
-  });
-  return y + LOGO_DISPLAY_HEIGHT;
-};
-
-/* ---------------- MPACT wordmark (last-resort vector fallback) ---------------- */
-// Only used if neither public/logo.png nor public/mpact-logo.svg exist, so
-// invoice generation never breaks even if the logo asset goes missing.
-
-const drawWordmarkLogo = (doc, x, y) => {
-  doc.save();
-  doc
-    .font(FONT.bold)
-    .fontSize(34)
-    .fillColor(COLORS.yellow)
-    .strokeColor(COLORS.black)
-    .lineWidth(2.4)
-    .lineJoin("round")
-    .text("MPACT", x, y, { characterSpacing: 1, fill: true, stroke: true });
-
-  const wordWidth = doc.widthOfString("MPACT", { characterSpacing: 1 });
-
-  doc
-    .font(FONT.bold)
-    .fontSize(9)
-    .fillColor(COLORS.yellow)
-    .strokeColor(COLORS.black)
-    .lineWidth(0.8)
-    .text("TM", x + wordWidth + 2, y - 2, { fill: true, stroke: true });
-
-  doc.restore();
-
-  // Returns the bottom-most y-coordinate the logo occupies, so the caller
-  // can lay out whatever comes next without hard-coding offsets.
-  return y + doc.heightOfString("MPACT", { width: 300 });
 };
 
 /* ---------------- tiny vector icons (no external font/image needed) ---------------- */
@@ -197,18 +115,15 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
 
   /* ---------------- HEADER ---------------- */
 
-  const logoPngPath = path.join(process.cwd(), "../public/logo.png");
-  // const logoSvgPath = path.join(process.cwd(), "../public/mpact-logo.svg");
-  const hasLogoPng = fs.existsSync(logoPngPath);
-  const hasLogoSvg = fs.existsSync(logoSvgPath);
+  const logoPath = path.join(process.cwd(), "public/logo.png");
+  const hasLogo = fs.existsSync(logoPath);
 
-  if (hasLogoPng) {
-    doc.image(logoPngPath, pageLeft, 22, { width: LOGO_DISPLAY_WIDTH });
-  } else if (hasLogoSvg) {
-    const svgMarkup = fs.readFileSync(logoSvgPath, "utf8");
-    drawSvgLogo(doc, svgMarkup, pageLeft, 22);
+  if (hasLogo) {
+    doc.image(logoPath, pageLeft, 26, { width: 110 });
   } else {
-    drawWordmarkLogo(doc, pageLeft, 26);
+    doc.font(FONT.bold).fontSize(22).fillColor(COLORS.black).text("MPACT", pageLeft, 28);
+    doc.font(FONT.bold).fontSize(7).text("TM", pageLeft + 84, 26);
+    doc.font(FONT.bold).fontSize(10).text("Pvt Ltd", pageLeft, 52);
   }
 
   doc
@@ -494,11 +409,6 @@ export const downloadInvoice = async (req, res) => {
       margin: 28,
     });
 
-    // Draws the black frame on this page and on every subsequent page the
-    // pagination logic adds (long item lists / long totals blocks).
-    doc.on("pageAdded", () => drawPageBorder(doc));
-    drawPageBorder(doc);
-
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -534,9 +444,6 @@ export const adminDownloadInvoice = async (req, res) => {
       size: "A5",
       margin: 28,
     });
-
-    doc.on("pageAdded", () => drawPageBorder(doc));
-    drawPageBorder(doc);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
