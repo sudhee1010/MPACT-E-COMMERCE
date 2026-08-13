@@ -198,7 +198,7 @@ const renderInvoice = (doc, { order, invoiceNumber, extraMeta }) => {
   /* ---------------- HEADER ---------------- */
 
   const logoPngPath = path.join(process.cwd(), "../public/logo.png");
-  const logoSvgPath = path.join(process.cwd(), "../public/mpact-logo.svg");
+  // const logoSvgPath = path.join(process.cwd(), "../public/mpact-logo.svg");
   const hasLogoPng = fs.existsSync(logoPngPath);
   const hasLogoSvg = fs.existsSync(logoSvgPath);
 
