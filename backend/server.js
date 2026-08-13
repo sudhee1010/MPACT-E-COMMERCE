@@ -46,10 +46,26 @@ connectDB();
 // Middlewares
 // app.use(cors());
 app.set("trust proxy", 1);
+const allowedOrigins = [
+  "https://www.mpact.fit",
+  "https://mpact.fit",
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:5000",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5173",
+];
+
 app.use(
   cors({
-    origin: ["https://www.mpact.fit", "https://mpact.fit"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
     exposedHeaders: ["set-cookie"],

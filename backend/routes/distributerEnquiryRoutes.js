@@ -29,6 +29,13 @@ router.patch(
   updateDistributorStatus
 );
 
+router.put(
+  "/distributor-enquiry/:id",
+  protect,
+  isAdmin,
+  updateDistributorStatus
+);
+
 router.delete(
   "/distributor-enquiry/:id",
   protect,

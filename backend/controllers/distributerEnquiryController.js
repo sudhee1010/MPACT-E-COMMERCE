@@ -35,13 +35,26 @@ export const getDistributorEnquiries = async (req, res) => {
    ADMIN: UPDATE STATUS
 ========================= */
 export const updateDistributorStatus = async (req, res) => {
-  const enquiry = await DistributorEnquiry.findByIdAndUpdate(
-    req.params.id,
-    { status: req.body.status },
-    { new: true }
-  );
+  try {
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ success: false, message: "Status is required" });
+    }
 
-  res.json(enquiry);
+    const enquiry = await DistributorEnquiry.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!enquiry) {
+      return res.status(404).json({ success: false, message: "Enquiry not found" });
+    }
+
+    res.json(enquiry);
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to update status" });
+  }
 };
 
 /* =========================
