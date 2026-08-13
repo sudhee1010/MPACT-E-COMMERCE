@@ -60,7 +60,13 @@ export default function AdminDistributor() {
   const updateStatus = async (id, status) => {
     try {
       setUpdating(true);
-      const { data } = await api.patch(`/api/distributor/distributor-enquiry/${id}`, { status });
+      let res;
+      try {
+        res = await api.put(`/api/distributor/distributor-enquiry/${id}`, { status });
+      } catch (e) {
+        res = await api.patch(`/api/distributor/distributor-enquiry/${id}`, { status });
+      }
+      const data = res.data;
       setEnquiries((prev) => prev.map((p) => (p._id === id ? data : p)));
       setSelected(data);
       toast.success('Status updated');

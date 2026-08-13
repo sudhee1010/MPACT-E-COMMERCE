@@ -1655,7 +1655,7 @@ const ProductCard = ({
   const { user } = useAuth();
   const [qty, setQty] = useState(1);
   const [stockError, setStockError] = useState(null);
-  const { refreshCart, setOpenSideCart } = useCart();
+  const { refreshCart, setOpenSideCart, addToCart } = useCart();
   const navigate = useNavigate();
   // const [showLoginModal, setShowLoginModal] = useState(false);
 
