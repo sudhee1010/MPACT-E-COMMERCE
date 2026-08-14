@@ -37,6 +37,8 @@ function SeeMoreDripButton({ onClick, isMobile }) {
   const handleEnter = () => {
     setHovered(true);
     if (!lottieRef.current || isMobile) return;
+    lottieRef.current.stop();
+    lottieRef.current.setSpeed(3);
     lottieRef.current.goToAndPlay(0, true);
   };
 
@@ -44,12 +46,6 @@ function SeeMoreDripButton({ onClick, isMobile }) {
     setHovered(false);
     if (!lottieRef.current || isMobile) return;
     lottieRef.current.stop();
-  };
-
-  const handleButtonEnter = () => {
-    if (!lottieRef.current || isTouchDev) return;
-    lottieRef.current.setSpeed(5);
-    lottieRef.current.goToAndPlay(0, true);
   };
 
   return (
@@ -61,7 +57,6 @@ function SeeMoreDripButton({ onClick, isMobile }) {
       {/* Original button — exact same inline style as before */}
       <button
         onClick={onClick}
-        onMouseEnter={handleButtonEnter}
         style={{
           backgroundColor: hovered ? "#ffd500" : "#facc15",
           color: "black",
@@ -89,14 +84,13 @@ function SeeMoreDripButton({ onClick, isMobile }) {
             transform: "translateX(-50%)",
             pointerEvents: "none",
             zIndex: 10,
-            fontFamily: "'Bebas Neue', cursive"
           }}>
             <Lottie
               lottieRef={lottieRef}
               animationData={DRIP_ANIMATION}
               loop={false}
               autoplay={false}
-              speed={5}
+              speed={3}
               style={{ width: "100%", height: "100%" }}
             />
           </div>
@@ -106,6 +100,7 @@ function SeeMoreDripButton({ onClick, isMobile }) {
     </div>
   );
 }
+
 /* ================= PRODUCT IMAGE HOVER ================= */
 function useProductCarousel(images = []) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -195,27 +190,6 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
           </div>
         )}
 
-        {/* Carousel dots - only show when hovering and multiple images */}
-        {/* {images.length > 1 && isHovered && (
-          <div style={{
-            position: "absolute", bottom: 8, left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex", gap: 5, zIndex: 5, pointerEvents: "none",
-          }}>
-            {images.map((_, i) => (
-              <span key={i} style={{
-                width: i === activeIndex ? (isMobile ? 8 : 10) : (isMobile ? 5 : 6),
-                height: i === activeIndex ? (isMobile ? 8 : 10) : (isMobile ? 5 : 6),
-                borderRadius: "50%",
-                background: i === activeIndex ? "#facc15" : "rgba(255,255,255,0.45)",
-                display: "inline-block",
-                transition: "all 0.3s ease",
-                transform: i === activeIndex ? "scale(1.4)" : "scale(1)",
-              }} />
-            ))}
-          </div>
-        )} */}
-
         <img
           src={images[activeIndex]?.url || proteinGym}
           alt={product.name || "product"}
@@ -246,27 +220,6 @@ function HomeProductCard({ product, isMobile, handleBuyNow, expandedDesc, setExp
         <p style={{ color: "white", textAlign: "center", marginBottom: "0.5rem", fontSize: isMobile ? "17px" : "23px", fontFamily: "'Bebas Neue', cursive", letterSpacing: "2px" }}>
           {product.name}
         </p>
-
-        {/* {(() => {
-          const isLong = isMobile && product.description?.length > 60;
-          const isExpanded = expandedDesc[product._id];
-          return (
-            <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "0.5rem", fontFamily: "'Poppins', sans-serif" }}>
-              {isLong && !isExpanded ? product.description.slice(0, 30) + "..." : product.description}
-              {isLong && (
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setExpandedDesc((prev) => ({ ...prev, [product._id]: !prev[product._id] }));
-                  }}
-                  style={{ color: "#facc15", cursor: "pointer", fontWeight: "bold", marginLeft: "4px" }}
-                >
-                  {isExpanded ? " See less" : " See more"}
-                </span>
-              )}
-            </p>
-          );
-        })()} */}
 
         {!isMobile && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.375rem", marginBottom: "0.5rem" }}>
@@ -605,7 +558,6 @@ const MPACTLandingPage = () => {
             <h3 style={{ color: "#facc15", marginBottom: "1rem" }}>Login Required</h3>
             <p style={{ color: "#d1d5db", marginBottom: "1.5rem" }}>Please login to purchase this product.</p>
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
-              {/* <button onClick={() => (window.location.href = "/login")} */}
               <button
                 onClick={() => navigate("/login")}
                 style={{ backgroundColor: "#facc15", color: "black", padding: "0.5rem 1.5rem", border: "none", borderRadius: "0.25rem", fontWeight: "bold", cursor: "pointer" }}>

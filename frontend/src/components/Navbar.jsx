@@ -49,6 +49,30 @@ export default function Navbar() {
   const MAX_OFFSET = 24;
   const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
+  // Determine if promo bar should be shown
+  const hasPromo = promoMessages.length > 0;
+
+  // ── SET CSS CUSTOM PROPERTY FOR HEADER HEIGHT ──────────────
+  // This ensures any page content can use the correct header offset
+  useEffect(() => {
+    const root = document.documentElement;
+    const navbarHeight = getComputedStyle(root).getPropertyValue('--navbar-height').trim() || '92px';
+    const promoHeight = getComputedStyle(root).getPropertyValue('--promo-height').trim() || '36px';
+    const safeTop = getComputedStyle(root).getPropertyValue('--safe-top').trim() || '0px';
+    
+    // Parse values to numbers (removing 'px')
+    const parsePx = (val) => parseInt(val) || 0;
+    const navbarPx = parsePx(navbarHeight);
+    const promoPx = parsePx(promoHeight);
+    const safePx = parsePx(safeTop);
+    
+    // Calculate total header height
+    const totalHeight = hasPromo ? navbarPx + promoPx + safePx : navbarPx + safePx;
+    
+    // Set the CSS custom property for the header height
+    root.style.setProperty('--header-total-height', totalHeight + 'px');
+  }, [hasPromo]);
+
   // LOCK BODY SCROLL WHEN MOBILE MENU IS OPEN
   useEffect(() => {
     if (menuOpen) {
@@ -298,9 +322,16 @@ export default function Navbar() {
           --safe-bottom: env(safe-area-inset-bottom, 0px);
           --safe-left: env(safe-area-inset-left, 0px);
           --safe-right: env(safe-area-inset-right, 0px);
+          --header-total-height: calc(var(--navbar-height) + var(--safe-top));
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body, #root {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+        }
 
         html, body { scrollbar-width: none; -ms-overflow-style: none; overflow-x: hidden; max-width: 100%; }
         html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
@@ -389,7 +420,8 @@ export default function Navbar() {
         /* ── NAVBAR ─────────────────────────────────── */
         .navbar {
           position: fixed;
-          top: calc(var(--promo-height) + var(--safe-top)); left: 0;
+          top: calc(var(--promo-height) + var(--safe-top));
+          left: 0;
           width: 100%;
           height: var(--navbar-height);
           background: #000000;
@@ -406,6 +438,11 @@ export default function Navbar() {
           box-sizing: border-box;
         }
 
+        /* When promo bar is hidden, navbar sits at top */
+        .navbar.no-promo {
+          top: var(--safe-top);
+        }
+
         /* ── LOGO IMAGE ─────────────────────────────── */
         .nav-logo {
           display: flex;
@@ -418,12 +455,10 @@ export default function Navbar() {
           height: 120px;
           width: auto;
           object-fit: contain;
-          /* glow transition only — scale/translate handled inline */
           transition: filter 0.3s ease;
           filter: drop-shadow(0 0 8px rgba(255, 212, 0, 0.3));
         }
 
-        /* glow intensifies on hover — kept exactly as original */
         .nav-logo:hover img {
           filter: drop-shadow(0 0 16px rgba(255, 212, 0, 0.6));
         }
@@ -588,7 +623,7 @@ export default function Navbar() {
         .mobile-search-bar {
           display: none;
           position: fixed;
-          top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top));
+          top: calc(var(--navbar-height) + var(--safe-top));
           left: 0;
           width: 100%;
           background: #111111;
@@ -602,6 +637,11 @@ export default function Navbar() {
           animation: mobileSearchSlide 0.25s ease;
           border-bottom: 1px solid rgba(255, 212, 0, 0.2);
           box-sizing: border-box;
+        }
+
+        /* When promo bar exists, mobile search sits below navbar + promo */
+        .mobile-search-bar.has-promo {
+          top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top));
         }
 
         .mobile-search-bar.visible { display: flex; }
@@ -732,58 +772,11 @@ export default function Navbar() {
           border-color: rgba(255, 212, 0, 0.5);
         }
 
-        /* ── MOBILE MENU ────────────────────────────── */
-        .mobile-menu {
-          position: fixed;
-          top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top)); left: 0;
-          width: 100%;
-          background: #000000;
-          display: flex; flex-direction: column; align-items: center;
-          gap: 8px; padding: 20px;
-          padding-bottom: calc(20px + var(--safe-bottom));
-          padding-left: calc(20px + var(--safe-left));
-          padding-right: calc(20px + var(--safe-right));
-          transform: translateY(-120%);
-          transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-          z-index: 1050;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          max-height: calc(100vh - var(--navbar-height) - var(--promo-height) - var(--safe-top));
-          overflow-y: auto;
-          border-bottom: 1px solid rgba(255, 212, 0, 0.2);
-          box-sizing: border-box;
+        /* ── PAGE WRAPPER ───────────────────────────── */
+        /* This provides a default offset for the page content */
+        .page-wrapper {
+          padding-top: var(--header-total-height);
         }
-
-        .mobile-menu.open { transform: translateY(0); }
-
-        .mobile-tab {
-          display: flex; align-items: center; gap: 16px;
-          padding: 14px 24px; width: 90%;
-          border-radius: 16px; cursor: pointer;
-          transition: all 0.3s ease; text-decoration: none;
-          background: rgba(255, 212, 0, 0.06);
-          border: 1px solid rgba(255, 212, 0, 0.1);
-          box-sizing: border-box;
-        }
-
-        .mobile-tab.active {
-          background: rgba(255, 212, 0, 0.15);
-          border-color: rgba(255, 212, 0, 0.4);
-        }
-        .mobile-tab:hover {
-          transform: translateX(8px);
-          background: rgba(255, 212, 0, 0.12);
-          border-color: rgba(255, 212, 0, 0.3);
-        }
-
-        .mobile-tab-label {
-          font-family: 'Jersey 25', sans-serif;
-          font-size: 20px;
-          color: #ffd400;
-        }
-
-        .mobile-tab.active .mobile-tab-label { font-weight: 700; color: #ffffff; }
-
-        .page-wrapper { padding-top: calc(var(--navbar-height) + var(--promo-height) + var(--safe-top)); }
 
         /* ── RESPONSIVE ─────────────────────────────── */
         @media (max-width: 1106px) {
@@ -867,8 +860,8 @@ export default function Navbar() {
         }
       `}</style>
 
-      {/* PROMO BAR */}
-      {promoMessages.length > 0 && (
+      {/* PROMO BAR - conditionally rendered */}
+      {hasPromo && (
         <div className="promo-bar">
           <div className="promo-inner">
             <button className="promo-arrow" aria-label="Previous" onClick={prevPromo}>
@@ -885,7 +878,7 @@ export default function Navbar() {
       )}
 
       {/* ═══════════════ NAVBAR ═══════════════ */}
-      <nav className="navbar">
+      <nav className={`navbar ${!hasPromo ? 'no-promo' : ''}`}>
 
         {/* ── LOGO: grows on hover + follows mouse magnetically, springs back on leave ── */}
         <Link
@@ -904,8 +897,8 @@ export default function Navbar() {
               ${mousePos.y * 3 + logoDrag.y}px
             ) scale(${logoHovered ? 1.13 : 1})`,
             transition: logoHovered
-              ? "transform 0.12s ease-out"                           // snappy/live while hovering
-              : "transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)", // spring bounce back on leave
+              ? "transform 0.12s ease-out"
+              : "transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
           }}
         >
           <img src={MpactLogo} alt="MPACT" draggable={false} />
@@ -1011,10 +1004,9 @@ export default function Navbar() {
           {/* CART */}
           <div
             className="nav-icon-btn"
-       
             onClick={() => {
-              setOpenSideCart(true);  // open instantly with 0ms lag
-              refreshCart();          // sync in background
+              setOpenSideCart(true);
+              refreshCart();
             }}
             role="button" tabIndex={0}
           >
@@ -1034,7 +1026,7 @@ export default function Navbar() {
       </nav>
 
       {/* ═══════════════ MOBILE SEARCH BAR ═══════════════ */}
-      <div className={`mobile-search-bar ${showMobileSearch ? "visible" : ""}`} ref={mobileSearchRef}>
+      <div className={`mobile-search-bar ${showMobileSearch ? "visible" : ""} ${hasPromo ? 'has-promo' : ''}`} ref={mobileSearchRef}>
         <div className="mobile-search-inner">
           <Search size={20} color="#ffd400" strokeWidth={2} />
           <input
@@ -1077,32 +1069,6 @@ export default function Navbar() {
             )}
           </div>
         )}
-      </div>
-
-      {/* ═══════════════ MOBILE MENU ═══════════════ */}
-      <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
-        <Link to="/" className={`mobile-tab ${isActive('/') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-          <span className="mobile-tab-label">Home</span>
-        </Link>
-        <Link to="/product" className={`mobile-tab ${isActive('/product') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-          <span className="mobile-tab-label">Products</span>
-        </Link>
-        <Link to="/about" className={`mobile-tab ${isActive('/about') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-          <span className="mobile-tab-label">About Us</span>
-        </Link>
-        <Link to="/blog" className={`mobile-tab ${isActive('/blog') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-          <span className="mobile-tab-label">Blog</span>
-        </Link>
-        <Link
-          to="/wishlist"
-          className={`mobile-tab ${isActive('/wishlist') ? 'active' : ''}`}
-          onClick={(e) => { e.preventDefault(); setMenuOpen(false); if (user) navigate("/wishlist"); else setShowLoginModal(true); }}
-        >
-          <span className="mobile-tab-label">Wishlist</span>
-        </Link>
-        <Link to="/distributor" className={`mobile-tab ${isActive('/distributor') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-          <span className="mobile-tab-label">Distributor</span>
-        </Link>
       </div>
 
       <SideCart />
