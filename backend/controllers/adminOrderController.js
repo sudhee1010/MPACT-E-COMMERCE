@@ -4,6 +4,10 @@ import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import Inventory from "../models/Inventory.js";
 import StockMovement from "../models/StockMovement.js";
+import {
+  DELIVERED_STATUS_ERROR,
+  isValidOrderStatusTransition
+} from "../utils/orderStatusTransitions.js";
 
 
 // ✅ Admin: Get all orders
@@ -37,23 +41,26 @@ export const updateOrderStatus = async (req, res) => {
     }
 
 
-    if (status === "delivered") {
-      return res.status(400).json({
-        message: "Use delivery endpoint to mark as delivered"
-      });
-    }
-
     const allowedStatuses = [
       "initiated",
       "placed",
       "packed",
       "shipped",
-      "cancelled"
+      "cancelled",
+      "returned"
     ];
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
         message: "Invalid order status"
+      });
+    }
+
+    if (!isValidOrderStatusTransition(order.orderStatus, status)) {
+      return res.status(400).json({
+        message: order.orderStatus === "delivered"
+          ? DELIVERED_STATUS_ERROR
+          : "Invalid order status transition"
       });
     }
     order.orderStatus = status;
@@ -92,6 +99,10 @@ export const markOrderDelivered = async (req, res) => {
 
     if (order.orderStatus === "delivered") {
       throw new Error("Order already delivered");
+    }
+
+    if (!isValidOrderStatusTransition(order.orderStatus, "delivered")) {
+      throw new Error("Invalid order status transition");
     }
 
     if (order.isStockReduced) {

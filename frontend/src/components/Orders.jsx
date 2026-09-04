@@ -5,6 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '../components/ui/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
 import toast from "react-hot-toast";
+import {
+  DELIVERED_STATUS_ERROR,
+  isValidOrderStatusTransition
+} from "../utils/orderStatusTransitions";
 
 export function Orders() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -135,6 +139,18 @@ export function Orders() {
 
 
   const updateOrderStatus = async (orderId, newStatus) => {
+    const order = orders.find((item) => item._id === orderId);
+    const currentStatus = normalizeStatus(order?.orderStatus);
+
+    if (!isValidOrderStatusTransition(currentStatus, newStatus)) {
+      toast.error(
+        currentStatus === "Delivered"
+          ? DELIVERED_STATUS_ERROR
+          : "Invalid order status transition"
+      );
+      return;
+    }
+
     const backendStatus = denormalizeStatus(newStatus);
 
     try {
