@@ -1,14 +1,7 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import { createCloudflareStorage } from "./cloudflareStorage.js";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "review-images", // ✅ separate folder
-    allowed_formats: ["jpg", "jpeg", "png"]
-  }
-});
+const storage = createCloudflareStorage({ folder: "review-images" });
 
 const reviewUpload = multer({
   storage,

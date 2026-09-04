@@ -129,7 +129,7 @@
 
 
 import Category from "../models/Category.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudflare } from "../config/cloudflare.js";
 
 export const createCategory = async (req, res) => {
   try {
@@ -148,15 +148,9 @@ export const createCategory = async (req, res) => {
     
     // Handle image upload if present
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'categories',
-        width: 500,
-        height: 500,
-        crop: 'fill'
-      });
       imageData = {
-        url: result.secure_url,
-        publicId: result.public_id
+        url: req.file.path,
+        publicId: req.file.filename
       };
     }
 
@@ -259,22 +253,15 @@ export const updateCategory = async (req, res) => {
 
     // Handle image upload if new image provided
     if (req.file) {
-      // Delete old image from Cloudinary if exists
+      // Delete old image from R2 if it exists
       if (category.image?.publicId) {
-        await cloudinary.uploader.destroy(category.image.publicId);
+        await deleteFromCloudflare(category.image.publicId);
       }
 
       // Upload new image
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'categories',
-        width: 500,
-        height: 500,
-        crop: 'fill'
-      });
-      
       category.image = {
-        url: result.secure_url,
-        publicId: result.public_id
+        url: req.file.path,
+        publicId: req.file.filename
       };
     }
 
@@ -307,9 +294,9 @@ export const deleteCategory = async (req, res) => {
       });
     }
 
-    // Delete image from Cloudinary if exists
+    // Delete image from R2 if it exists
     if (category.image?.publicId) {
-      await cloudinary.uploader.destroy(category.image.publicId);
+      await deleteFromCloudflare(category.image.publicId);
     }
 
     // Hard delete the category

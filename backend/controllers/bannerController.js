@@ -298,7 +298,7 @@
 
 
 import Banner from "../models/Banner.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudflare } from "../config/cloudflare.js";
 
 // ✅ GET ALL BANNERS (Public - for homepage carousel)
 export const getAllBanners = async (req, res) => {
@@ -373,10 +373,10 @@ export const updateBanner = async (req, res) => {
 
     // Update image if new one provided
     if (req.file) {
-      // Delete old image from Cloudinary
+      // Delete old image from R2
       if (banner.image?.public_id) {
         try {
-          await cloudinary.uploader.destroy(banner.image.public_id);
+          await deleteFromCloudflare(banner.image.public_id);
         } catch (err) {
           console.error("Failed to delete old image:", err);
         }
@@ -420,9 +420,9 @@ export const deleteBanner = async (req, res) => {
     // Delete image from Cloudinary
     if (banner.image?.public_id) {
       try {
-        await cloudinary.uploader.destroy(banner.image.public_id);
+        await deleteFromCloudflare(banner.image.public_id);
       } catch (err) {
-        console.error("Failed to delete image from Cloudinary:", err);
+        console.error("Failed to delete image from R2:", err);
       }
     }
 

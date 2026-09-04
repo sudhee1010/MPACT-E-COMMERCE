@@ -4,7 +4,7 @@ import generateToken from "../utils/generateToken.js";
 import { generateOTP } from "../utils/sendOTP.js";
 import sendEmail from "../utils/sendEmail.js";
 import { verifyGoogleToken } from "../utils/googleVerify.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudflare } from "../config/cloudflare.js";
 import { generateSecureOTP } from "../utils/otpHelper.js";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber.js";
 import { sendWhatsappOTP } from "../utils/sendWhatsappOTP.js";
@@ -821,9 +821,9 @@ export const uploadProfileImage = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🔥 Delete old image from Cloudinary
+    // Delete the previous R2 object
     if (user.profileImage?.public_id) {
-      await cloudinary.uploader.destroy(user.profileImage.public_id);
+      await deleteFromCloudflare(user.profileImage.public_id);
     }
 
     // Save new image

@@ -2,7 +2,7 @@
 import Blog from "../models/Blog.js";
 import BlogCategory from "../models/BlogCategory.js";
 import slugify from "slugify";
-import { uploadToCloudinary } from "../middlewares/blogUploadMiddleware.js";
+import { uploadToCloudflareBuffer } from "../middlewares/blogUploadMiddleware.js";
 
 /* CREATE BLOG (ADMIN) */
 export const createBlog = async (req, res) => {
@@ -38,7 +38,7 @@ export const createBlog = async (req, res) => {
     // ── Upload image to Cloudinary ────────────────────────────────────────────
     let cloudResult;
     try {
-      cloudResult = await uploadToCloudinary(req.file.buffer, "blog-covers");
+      cloudResult = await uploadToCloudflareBuffer(req.file.buffer, "blog-covers");
     } catch (uploadError) {
       return res.status(500).json({
         success: false,
@@ -241,7 +241,7 @@ export const updateBlog = async (req, res) => {
 
     if (req.file) {
       try {
-        const cloudResult = await uploadToCloudinary(req.file.buffer, "blog-covers");
+        const cloudResult = await uploadToCloudflareBuffer(req.file.buffer, "blog-covers");
         blog.coverImage = cloudResult.secure_url;
       } catch (uploadError) {
         return res.status(500).json({

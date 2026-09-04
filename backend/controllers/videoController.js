@@ -1,5 +1,5 @@
 import Video from "../models/Video.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudflare } from "../config/cloudflare.js";
 
 /**
  * @desc    Upload video (Admin)
@@ -86,7 +86,7 @@ export const deleteVideo = async (req, res) => {
       return res.status(404).json({ message: "Video not found" });
     }
 
-    await cloudinary.uploader.destroy(video.public_id, {
+    await deleteFromCloudflare(video.public_id, {
       resource_type: "video"
     });
 

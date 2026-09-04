@@ -5,7 +5,7 @@ import express from "express";
 // ❌ Removed multer, path, fs
 // ❌ Removed disk storage
 
-// Import Cloudinary upload middleware
+// Import video upload middleware
 import upload from "../middlewares/uploadVideo.js";
 
 // Import VideoHome model
@@ -308,7 +308,7 @@ router.get("/:id", async (req, res) => {
 
 /**
  * @route   POST /api/videohome/upload
- * @desc    Upload video file (Cloudinary)
+ * @desc    Upload video file (Cloudflare R2)
  */
 router.post("/upload", upload.single("video"), async (req, res) => {
   try {
@@ -316,7 +316,7 @@ router.post("/upload", upload.single("video"), async (req, res) => {
       return res.status(400).json({ message: "No video file uploaded" });
     }
 
-    // Cloudinary returns full hosted URL
+    // The storage middleware returns the public R2 URL
     const videoUrl = req.file.path;
 
     res.status(200).json({

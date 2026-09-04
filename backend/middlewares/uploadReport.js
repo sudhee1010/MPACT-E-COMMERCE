@@ -1,15 +1,7 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import { createCloudflareStorage } from "./cloudflareStorage.js";
 
-const reportStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "reports",
-    resource_type: "raw",
-    allowed_formats: ["pdf", "csv", "xls", "xlsx"]
-  }
-});
+const reportStorage = createCloudflareStorage({ folder: "reports" });
 
 const uploadReport = multer({
   storage: reportStorage,

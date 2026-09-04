@@ -1,17 +1,10 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import { createCloudflareStorage } from "./cloudflareStorage.js";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "ecommerce-products",
-    allowed_formats: ["jpg", "png", "jpeg"],
-
-    // 🔥 This generates proper Cloudinary public_id
-    public_id: (req, file) =>
-      Date.now() + "-" + file.originalname.replace(/\s+/g, "_")
-  }
+const storage = createCloudflareStorage({
+  folder: "ecommerce-products",
+  key: (_req, file) =>
+    `ecommerce-products/${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`
 });
 
 const uploadProduct = multer({ storage });

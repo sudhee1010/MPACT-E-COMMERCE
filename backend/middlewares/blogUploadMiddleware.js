@@ -1,5 +1,5 @@
 import multer from "multer";
-import cloudinary from "../config/cloudinary.js";
+import { uploadToCloudflare } from "../config/cloudflare.js";
 
 const storage = multer.memoryStorage();
 
@@ -43,25 +43,14 @@ export const handleBlogUpload = (singleFieldName) => {
 };
 
 /**
- * Upload a buffer to Cloudinary and return the result.
+ * Upload a buffer to Cloudflare R2 and return the result.
  * Throws a proper Error (with .message) on failure so Express can surface it.
  */
-export async function uploadToCloudinary(buffer, folder = "blog-covers") {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: "image" },
-      (err, result) => {
-        if (err) {
-          const message =
-            (typeof err === "object" && err.message) ||
-            (typeof err === "string" && err) ||
-            JSON.stringify(err);
-          return reject(new Error(`Cloudinary upload failed: ${message}`));
-        }
-        resolve(result);
-      }
-    );
-    stream.end(buffer);
+export async function uploadToCloudflareBuffer(buffer, folder = "blog-covers") {
+  return uploadToCloudflare({
+    buffer,
+    key: `${folder}/${Date.now()}-blog-cover`,
+    contentType: "image/jpeg"
   });
 }
 

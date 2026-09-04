@@ -1,6 +1,6 @@
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudflare } from "../config/cloudflare.js";
 
 
 export const getProducts = async (req, res) => {
@@ -273,9 +273,9 @@ export const deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
    
-    // Delete images from Cloudinary
+    // Delete images from R2
     for (const img of product.images) {
-      await cloudinary.uploader.destroy(img.public_id);
+      await deleteFromCloudflare(img.public_id);
     } 
 
     await Product.findByIdAndDelete(req.params.id);
@@ -306,8 +306,8 @@ export const deleteProductImage = async (req, res) => {
       return res.status(404).json({ message: "Image not found" });
     }
 
-    // Delete from Cloudinary
-    await cloudinary.uploader.destroy(image.public_id);
+    // Delete from R2
+    await deleteFromCloudflare(image.public_id);
 
     // Remove from DB
     product.images = product.images.filter(
@@ -346,9 +346,7 @@ export const updateProductImage = async (req, res) => {
     }
 
     // Delete old image
-    await cloudinary.uploader.destroy(
-      product.images[index].public_id
-    );
+    await deleteFromCloudflare(product.images[index].public_id);
 
     // Replace with new image
     product.images[index] = {

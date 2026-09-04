@@ -133,7 +133,7 @@
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import Report from "../models/Report.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudflare } from "../config/cloudflare.js";
 import { Parser } from "json2csv";
 
 /* =========================================================
@@ -296,7 +296,7 @@ export const deleteReport = async (req, res) => {
     if (!report)
       return res.status(404).json({ message: "Report not found" });
 
-    await cloudinary.uploader.destroy(report.file.public_id, {
+    await deleteFromCloudflare(report.file.public_id, {
       resource_type: "raw"
     });
 

@@ -123,7 +123,7 @@
 // };
 
 import HeroBanner from "../models/HeroBanner.js";
-import cloudinary from "../config/cloudinary.js";
+import { deleteFromCloudflare } from "../config/cloudflare.js";
 
 /**
  * @desc    Get active hero banners (Public)
@@ -165,7 +165,7 @@ export const createHeroBanner = async (req, res, next) => {
       return res.status(400).json({ message: "Image or video file required" });
     }
 
-    // Cloudinary returns resource_type in req.file when using multer-storage-cloudinary
+    // R2 storage returns the public URL and object key in req.file
     // We detect based on which upload middleware was used (passed via route)
     // or by checking the mimetype of the uploaded file
     const isVideo =
@@ -244,16 +244,16 @@ export const deleteHeroBanner = async (req, res, next) => {
       return res.status(404).json({ message: "Banner not found" });
     }
 
-    // Delete image from Cloudinary if exists
+    // Delete image from R2 if it exists
     if (banner.image?.public_id) {
-      await cloudinary.uploader.destroy(banner.image.public_id, {
+      await deleteFromCloudflare(banner.image.public_id, {
         resource_type: "image"
       });
     }
 
-    // Delete video from Cloudinary if exists
+    // Delete video from R2 if it exists
     if (banner.video?.public_id) {
-      await cloudinary.uploader.destroy(banner.video.public_id, {
+      await deleteFromCloudflare(banner.video.public_id, {
         resource_type: "video"
       });
     }

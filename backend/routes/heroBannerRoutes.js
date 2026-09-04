@@ -31,8 +31,7 @@
 
 import express from "express";
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import { createCloudflareStorage } from "../middlewares/cloudflareStorage.js";
 import {
   getHeroBanners,
   createHeroBanner,
@@ -47,17 +46,13 @@ import { isAdmin } from "../middlewares/adminMiddleware.js";
 const router = express.Router();
 
 // ── Combined storage: handles both image and video in ONE multer pass ─────────
-const combinedStorage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => {
-    const isVideo = file.mimetype.startsWith("video/");
-    return {
-      folder: isVideo ? "hero-banner-videos" : "hero-banners",
-      resource_type: isVideo ? "video" : "image",
-      allowed_formats: isVideo
-        ? ["mp4", "mov", "webm"]
-        : ["jpg", "jpeg", "png", "gif", "webp"]
-    };
+const combinedStorage = createCloudflareStorage({
+  folder: "hero-banners",
+  key: (_req, file) => {
+    const folder = file.mimetype.startsWith("video/")
+      ? "hero-banner-videos"
+      : "hero-banners";
+    return `${folder}/${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`;
   }
 });
 
