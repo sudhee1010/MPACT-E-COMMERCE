@@ -64,10 +64,9 @@ export const placeOrder = async (req, res) => {
         });
 
         if (coupon) {
-          const isUsed = coupon.usersUsed.some(id => id.toString() === req.user._id.toString());
           const limitReached = coupon.maxRedemptions > 0 && coupon.usedCount >= coupon.maxRedemptions;
 
-          if (!isUsed && !limitReached) {
+          if (!limitReached) {
             const { totalDiscount, anyEligible } = await calculateCouponDiscount(
               coupon,
               orderItems,
@@ -205,9 +204,7 @@ export const placeOrder = async (req, res) => {
       if (couponCodeToRedeem) {
         const coupon = await Coupon.findOne({ code: couponCodeToRedeem.toUpperCase() });
         if (coupon) {
-          if (!coupon.usersUsed.some((id) => id.toString() === req.user._id.toString())) {
-            coupon.usersUsed.push(req.user._id);
-          }
+          /* Only increment global usage count, allow unlimited per-user reuse */
           coupon.usedCount = (coupon.usedCount || 0) + 1;
           for (const item of order.orderItems) {
             const rule = coupon.applicableProducts.find(
@@ -423,9 +420,7 @@ export const updatePaymentMethod = async (req, res) => {
       if (couponCodeToRedeem) {
         const coupon = await Coupon.findOne({ code: couponCodeToRedeem.toUpperCase() });
         if (coupon) {
-          if (!coupon.usersUsed.some((id) => id.toString() === req.user._id.toString())) {
-            coupon.usersUsed.push(req.user._id);
-          }
+          /* Only increment global usage count, allow unlimited per-user reuse */
           coupon.usedCount = (coupon.usedCount || 0) + 1;
           for (const item of order.orderItems) {
             const rule = coupon.applicableProducts?.find(

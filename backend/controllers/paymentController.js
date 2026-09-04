@@ -231,9 +231,7 @@ export const verifyPayment = async (req, res) => {
       const coupon = await Coupon.findOne({ code: order.appliedCoupon.code.toUpperCase() });
       if (coupon) {
         const userId = order.user._id || req.user._id;
-        if (!coupon.usersUsed.some((id) => id.toString() === userId.toString())) {
-          coupon.usersUsed.push(userId);
-        }
+        /* Only increment global usage count, allow unlimited per-user reuse */
         coupon.usedCount = (coupon.usedCount || 0) + 1;
         for (const item of order.orderItems) {
           const rule = coupon.applicableProducts?.find(

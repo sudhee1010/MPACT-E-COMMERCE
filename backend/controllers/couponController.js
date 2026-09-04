@@ -192,10 +192,6 @@ export const applyCouponOnOrder = async (req, res) => {
     if (order.couponApplied && order.appliedCoupon?.code === coupon.code)
       return res.status(400).json({ message: "Coupon already applied" });
 
-    /* ── User already used this coupon ── */
-    if (coupon.usersUsed.some((id) => id.toString() === req.user._id.toString()))
-      return res.status(400).json({ message: "You already used this coupon" });
-
     /* ── Global usage limit ── */
     if (coupon.maxRedemptions > 0 && coupon.usedCount >= coupon.maxRedemptions)
       return res.status(400).json({ message: "Coupon usage limit reached" });
@@ -441,10 +437,6 @@ export const validateCouponForCart = async (req, res) => {
 
     if (!coupon)
       return res.status(400).json({ message: "Invalid or expired coupon" });
-
-    /* ── User already used ── */
-    if (coupon.usersUsed.some((id) => id.toString() === req.user._id.toString()))
-      return res.status(400).json({ message: "You already used this coupon" });
 
     /* ── Global usage limit ── */
     if (coupon.maxRedemptions > 0 && coupon.usedCount >= coupon.maxRedemptions)
