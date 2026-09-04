@@ -14,6 +14,7 @@ export function Orders() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -148,23 +149,28 @@ export function Orders() {
           ? DELIVERED_STATUS_ERROR
           : "Invalid order status transition"
       );
+      setSelectedStatus(currentStatus);
       return;
     }
 
     const backendStatus = denormalizeStatus(newStatus);
 
     try {
+      let response;
       if (backendStatus === "delivered") {
-        await api.put(`/api/admin/orders/orders/${orderId}/deliver`);
+        response = await api.put(`/api/admin/orders/orders/${orderId}/deliver`);
         toast.success("Order marked as Delivered");
       } else {
-        await api.put(`/api/admin/orders/${orderId}/status`, {
+        response = await api.put(`/api/admin/orders/${orderId}/status`, {
           status: backendStatus
         });
         toast.success(`Order marked as ${newStatus}`);
       }
 
-      fetchOrders();
+      const updatedOrder = response.data.order || response.data;
+      setSelectedOrder((currentOrder) => ({ ...currentOrder, ...updatedOrder }));
+      setSelectedStatus(normalizeStatus(updatedOrder.orderStatus));
+      await fetchOrders();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update order status");
     }
@@ -393,7 +399,10 @@ export function Orders() {
                     <Dialog>
                       <DialogTrigger asChild>
                         <button
-                          onClick={() => setSelectedOrder(order)}
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setSelectedStatus(normalizeStatus(order.orderStatus));
+                          }}
                           className="p-2 text-yellow-400 hover:bg-yellow-400/10 rounded-md transition-colors"
                         >
                           <Eye size={18} />
@@ -541,10 +550,8 @@ export function Orders() {
                               )}
 
                               <Select
-                                value={normalizeStatus(selectedOrder.orderStatus)}
-                                onValueChange={(value) =>
-                                  updateOrderStatus(selectedOrder._id, value)
-                                }
+                                value={selectedStatus}
+                                onValueChange={setSelectedStatus}
                               >
                                 <SelectTrigger className="bg-[#1a1a1a] border-gray-700 text-white">
                                   <SelectValue />
@@ -558,6 +565,12 @@ export function Orders() {
                                   <SelectItem value="Returned" className="text-white hover:cursor-pointer">Returned</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <button
+                                onClick={() => updateOrderStatus(selectedOrder._id, selectedStatus)}
+                                className="w-full px-4 py-2 mt-3 bg-yellow-400 hover:bg-yellow-300 text-black font-semibold rounded-md transition-colors"
+                              >
+                                Apply Status
+                              </button>
                             </div>
 
                             <button
